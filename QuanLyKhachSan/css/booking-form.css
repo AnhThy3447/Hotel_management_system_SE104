@@ -1,0 +1,232 @@
+/* Booking Form Page Specific Styles */
+
+.main-content {
+    padding: 32px;
+}
+
+.form-wrapper {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #8D6E63;
+    text-decoration: none;
+    margin-bottom: 16px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}
+
+.btn-back:hover {
+    background-color: #FAF8F3;
+}
+
+.form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 32px;
+}
+
+.form-header h1 {
+    font-size: 32px;
+    font-weight: 500;
+    color: #5D4037;
+    margin-bottom: 4px;
+}
+
+.subtitle {
+    font-size: 14px;
+    color: #8D6E63;
+}
+
+.header-actions {
+    display: flex;
+    gap: 12px;
+}
+
+/* Form Content */
+.form-content {
+    background: white;
+    border-radius: 16px;
+    border: 2px solid #D7CCC8;
+    box-shadow: 0 4px 12px rgba(93, 64, 55, 0.08);
+    padding: 32px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #6D4C41;
+    margin-bottom: 8px;
+}
+
+.required {
+    color: #D32F2F;
+}
+
+.form-group input,
+.form-group select {
+    padding: 12px 16px;
+    border: 1px solid #D7CCC8;
+    border-radius: 8px;
+    font-size: 16px;
+    color: #5D4037;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #8D6E63;
+}
+
+/* Guest Section */
+.guest-section {
+    margin-bottom: 24px;
+}
+
+.guest-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.guest-header h2 {
+    font-size: 20px;
+    font-weight: 500;
+    color: #5D4037;
+}
+
+.guest-count {
+    font-size: 14px;
+    color: #8D6E63;
+}
+
+.table-container {
+    overflow-x: auto;
+    margin-bottom: 16px;
+}
+
+#guest-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#guest-table thead tr {
+    background-color: #FAF8F3;
+    border-bottom: 2px solid #D7CCC8;
+}
+
+#guest-table th {
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 500;
+    color: #5D4037;
+}
+
+#guest-table th:last-child {
+    text-align: center;
+}
+
+#guest-table tbody tr {
+    border-bottom: 1px solid #D7CCC8;
+}
+
+#guest-table td {
+    padding: 12px 16px;
+}
+
+#guest-table td:first-child {
+    text-align: center;
+    color: #6D4C41;
+}
+
+#guest-table td:last-child {
+    text-align: center;
+}
+
+#guest-table input,
+#guest-table select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #D7CCC8;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #5D4037;
+}
+
+#guest-table input:focus,
+#guest-table select:focus {
+    outline: none;
+    border-color: #8D6E63;
+}
+
+.btn-remove {
+    padding: 8px;
+    border: none;
+    background: none;
+    color: #D32F2F;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}
+
+.btn-remove:hover {
+    background-color: #FFEBEE;
+}
+
+.btn-remove:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.btn-add-guest {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background-color: #FAF8F3;
+    color: #5D4037;
+    border: 1px solid #D7CCC8;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.2s;
+}
+
+.btn-add-guest:hover:not(:disabled) {
+    background-color: #F5F5F5;
+}
+
+.btn-add-guest:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Rules Note */
+.rules-note {
+    padding: 16px;
+    background-color: #FFF3E0;
+    border: 1px solid #FFE0B2;
+    border-radius: 8px;
+    color: #E65100;
+    font-size: 14px;
+}
