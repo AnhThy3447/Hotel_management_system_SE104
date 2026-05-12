@@ -100,8 +100,17 @@ function setActiveMenu() {
 
 // Format ngày theo định dạng Việt Nam
 function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN');
+    if (!dateString) return '';
+    // nếu đã là dd/mm/yyyy thì trả luôn
+    if (dateString.includes('/')) {
+        return dateString;
+    }
+    // nếu là yyyy-mm-dd thì chuyển
+    if (dateString.includes('-')) {
+        const [year, month, day] = dateString.split('-');
+        return `${day}/${month}/${year}`;
+    }
+    return dateString;
 }
 
 // Utility: Lấy dữ liệu từ localStorage
