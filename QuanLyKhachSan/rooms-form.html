@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thêm phòng mới - Khách sạn</title>
+    <link rel="stylesheet" href="css/rooms-form.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>Quản lý khách sạn</h1>
+                <p>Hệ thống quản lý</p>
+            </div>
+
+            <nav class="sidebar-nav">
+                <button class="nav-item" onclick="location.href='index.html'">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    <span>Trang chủ</span>
+                </button>
+                <button class="nav-item active">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M2 4v16"></path>
+                        <path d="M2 8h18a2 2 0 0 1 2 2v10"></path>
+                        <path d="M2 17h20"></path>
+                        <path d="M6 8v9"></path>
+                    </svg>
+                    <span>Quản lý phòng</span>
+                </button>
+                <button class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <span>Thuê phòng</span>
+                </button>
+                <button class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    <span>Khách hàng</span>
+                </button>
+                <button class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                    </svg>
+                    <span>Hóa đơn</span>
+                </button>
+                <button class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="20" x2="12" y2="10"></line>
+                        <line x1="18" y1="20" x2="18" y2="4"></line>
+                        <line x1="6" y1="20" x2="6" y2="16"></line>
+                    </svg>
+                    <span>Báo cáo</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar">A</div>
+                    <div class="user-info">
+                        <p>Admin</p>
+                        <small>Quản trị viên</small>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Breadcrumb -->
+            <div class="breadcrumb">
+                <a href="rooms.html">Quản lý phòng</a>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+                <span>Thêm phòng mới</span>
+            </div>
+
+            <div class="page-header">
+                <h2>Thêm phòng mới</h2>
+                <p>Nhập thông tin chi tiết của phòng</p>
+            </div>
+
+            <!-- Form Container -->
+            <div class="form-container">
+                <form id="addRoomForm" onsubmit="handleSubmit(event)">
+                    <!-- Thông tin cơ bản -->
+                    <div class="form-section">
+                        <div class="section-header">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="16" x2="12" y2="12"></line>
+                                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                            </svg>
+                            <h3>Thông tin cơ bản</h3>
+                        </div>
+
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="roomCode">
+                                    Mã phòng <span class="required">*</span>
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="roomCode" 
+                                    name="roomCode" 
+                                    placeholder="Ví dụ: P101" 
+                                    required
+                                >
+                                <small class="help-text">Mã phòng phải là duy nhất</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="roomName">
+                                    Tên phòng <span class="required">*</span>
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="roomName" 
+                                    name="roomName" 
+                                    placeholder="Ví dụ: Phòng 101" 
+                                    required
+                                >
+                            </div>
+
+                            <div class="form-group">
+                                <label for="roomType">
+                                    Loại phòng <span class="required">*</span>
+                                </label>
+                                <select id="roomType" name="roomType" required onchange="updatePrice()">
+                                    <option value="">-- Chọn loại phòng --</option>
+                                    <option value="Phòng tiêu chuẩn" data-price="150000">Phòng tiêu chuẩn (150,000 VNĐ/đêm)</option>
+                                    <option value="Phòng cao cấp" data-price="170000">Phòng cao cấp (170,000 VNĐ/đêm)</option>
+                                    <option value="Phòng hạng sang" data-price="200000">Phòng hạng sang (200,000 VNĐ/đêm)</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="floor">
+                                    Tầng <span class="required">*</span>
+                                </label>
+                                <select id="floor" name="floor" required>
+                                    <option value="">-- Chọn tầng --</option>
+                                    <option value="1">Tầng 1</option>
+                                    <option value="2">Tầng 2</option>
+                                    <option value="3">Tầng 3</option>
+                                    <option value="4">Tầng 4</option>
+                                    <option value="5">Tầng 5</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="price">
+                                    Giá phòng/đêm (VNĐ) <span class="required">*</span>
+                                </label>
+                                <input 
+                                    type="number" 
+                                    id="price" 
+                                    name="price" 
+                                    placeholder="500000" 
+                                    min="0"
+                                    step="10000"
+                                    required
+                                >
+                            </div>
+
+                            <div class="form-group">
+                                <label for="status">
+                                    Trạng thái <span class="required">*</span>
+                                </label>
+                                <select id="status" name="status" required>
+                                    <option value="available">Trống</option>
+                                    <option value="occupied">Đã thuê</option>
+                                    <option value="maintenance">Bảo trì</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chi tiết phòng -->
+                    <div class="form-section">
+                        <div class="section-header">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="3" y1="9" x2="21" y2="9"></line>
+                                <line x1="9" y1="21" x2="9" y2="9"></line>
+                            </svg>
+                            <h3>Chi tiết phòng</h3>
+                        </div>
+
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="area">Diện tích (m²)</label>
+                                <input 
+                                    type="number" 
+                                    id="area" 
+                                    name="area" 
+                                    placeholder="25" 
+                                    min="0"
+                                    step="0.1"
+                                >
+                            </div>
+
+                            <div class="form-group">
+                                <label for="capacity">Sức chứa (người)</label>
+                                <input 
+                                    type="number" 
+                                    id="capacity" 
+                                    name="capacity" 
+                                    placeholder="2" 
+                                    min="1"
+                                >
+                            </div>
+
+                            <div class="form-group">
+                                <label for="beds">Số giường</label>
+                                <select id="beds" name="beds">
+                                    <option value="1">1 giường đơn</option>
+                                    <option value="2">2 giường đơn</option>
+                                    <option value="1-double">1 giường đôi</option>
+                                    <option value="1-double-1-single">1 giường đôi + 1 giường đơn</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="view">Hướng nhìn</label>
+                                <select id="view" name="view">
+                                    <option value="">-- Chọn hướng nhìn --</option>
+                                    <option value="sea">Hướng biển</option>
+                                    <option value="city">Hướng thành phố</option>
+                                    <option value="garden">Hướng vườn</option>
+                                    <option value="pool">Hướng hồ bơi</option>
+                                    <option value="interior">Hướng nội khu</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tiện nghi -->
+                    <div class="form-section">
+                        <div class="section-header">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            <h3>Tiện nghi</h3>
+                        </div>
+
+                        <div class="amenities-grid">
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="amenities" value="wifi">
+                                <span class="checkmark"></span>
+                                <div class="amenity-info">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
+                                        <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
+                                        <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+                                        <line x1="12" y1="20" x2="12.01" y2="20"></line>
+                                    </svg>
+                                    <span>Wi-Fi miễn phí</span>
+                                </div>
+                            </label>
+
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="amenities" value="tv">
+                                <span class="checkmark"></span>
+                                <div class="amenity-info">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect>
+                                        <polyline points="17 2 12 7 7 2"></polyline>
+                                    </svg>
+                                    <span>TV màn hình phẳng</span>
+                                </div>
+                            </label>
+
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="amenities" value="ac">
+                                <span class="checkmark"></span>
+                                <div class="amenity-info">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                                    </svg>
+                                    <span>Điều hòa không khí</span>
+                                </div>
+                            </label>
+
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="amenities" value="minibar">
+                                <span class="checkmark"></span>
+                                <div class="amenity-info">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+                                        <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+                                        <line x1="6" y1="1" x2="6" y2="4"></line>
+                                        <line x1="10" y1="1" x2="10" y2="4"></line>
+                                        <line x1="14" y1="1" x2="14" y2="4"></line>
+                                    </svg>
+                                    <span>Minibar</span>
+                                </div>
+                            </label>
+
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="amenities" value="safe">
+                                <span class="checkmark"></span>
+                                <div class="amenity-info">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                    </svg>
+                                    <span>Két an toàn</span>
+                                </div>
+                            </label>
+
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="amenities" value="bathtub">
+                                <span class="checkmark"></span>
+                                <div class="amenity-info">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M9 6 6.5 3.5a1.5 1.5 0 0 0-1-.5C4.683 3 4 3.683 4 4.5V17a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"></path>
+                                        <line x1="10" y1="5" x2="8" y2="7"></line>
+                                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                                        <line x1="7" y1="19" x2="7" y2="21"></line>
+                                        <line x1="17" y1="19" x2="17" y2="21"></line>
+                                    </svg>
+                                    <span>Bồn tắm</span>
+                                </div>
+                            </label>
+
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="amenities" value="balcony">
+                                <span class="checkmark"></span>
+                                <div class="amenity-info">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                                    </svg>
+                                    <span>Ban công</span>
+                                </div>
+                            </label>
+
+                            <label class="checkbox-item">
+                                <input type="checkbox" name="amenities" value="phone">
+                                <span class="checkmark"></span>
+                                <div class="amenity-info">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                                    </svg>
+                                    <span>Điện thoại</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Ghi chú -->
+                    <div class="form-section">
+                        <div class="section-header">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <line x1="10" y1="9" x2="8" y2="9"></line>
+                            </svg>
+                            <h3>Ghi chú</h3>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description">Mô tả phòng</label>
+                            <textarea 
+                                id="description" 
+                                name="description" 
+                                rows="4" 
+                                placeholder="Nhập mô tả chi tiết về phòng (không bắt buộc)..."
+                            ></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="notes">Ghi chú nội bộ</label>
+                            <textarea 
+                                id="notes" 
+                                name="notes" 
+                                rows="3" 
+                                placeholder="Ghi chú dành cho nhân viên (không bắt buộc)..."
+                            ></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        <button type="button" class="btn-cancel" onclick="cancelForm()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                            Hủy bỏ
+                        </button>
+                        <button type="submit" class="btn-submit">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                            Thêm phòng
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function updatePrice() {
+            const select = document.getElementById('roomType');
+            const priceInput = document.getElementById('price');
+            const selectedOption = select.options[select.selectedIndex];
+            const price = selectedOption.getAttribute('data-price');
+            
+            if (price) {
+                priceInput.value = price;
+            }
+        }
+
+        function handleSubmit(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const data = {};
+            
+            for (let [key, value] of formData.entries()) {
+                if (key === 'amenities') {
+                    if (!data.amenities) data.amenities = [];
+                    data.amenities.push(value);
+                } else {
+                    data[key] = value;
+                }
+            }
+            
+            console.log('Dữ liệu phòng mới:', data);
+            
+            alert('✅ Thêm phòng thành công!\n\n' + 
+                  'Mã phòng: ' + data.roomCode + '\n' +
+                  'Tên phòng: ' + data.roomName + '\n' +
+                  'Loại phòng: ' + data.roomType + '\n' +
+                  'Tầng: ' + data.floor + '\n' +
+                  'Giá: ' + parseInt(data.price).toLocaleString('vi-VN') + ' VNĐ/đêm');
+            
+            // location.href = 'rooms.html';
+        }
+
+        function cancelForm() {
+            if (confirm('Bạn có chắc muốn hủy? Dữ liệu đã nhập sẽ không được lưu.')) {
+                location.href = 'rooms.html';
+            }
+        }
+
+        document.getElementById('roomCode').addEventListener('input', function(e) {
+            const code = e.target.value;
+            const nameInput = document.getElementById('roomName');
+            
+            if (code && !nameInput.value) {
+                nameInput.value = 'Phòng ' + code.replace('P', '');
+            }
+        });
+    </script>
+</body>
+</html>
