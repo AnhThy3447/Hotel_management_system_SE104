@@ -95,7 +95,14 @@ function renderRooms(list = rooms) {
                 </button>
             </td>
         `;
+tr.style.cursor = "pointer";
 
+    tr.addEventListener("click", (e) => {
+        // tránh click nút edit/delete bị mở detail
+        if (e.target.closest("button")) return;
+
+        viewRoomDetail(room.id);
+    });
         tbody.appendChild(tr);
     });
 }
@@ -130,8 +137,10 @@ function renderRoomTypes() {
 </td>
         `;
 
-        tbody.appendChild(tr);
-    });
+
+    tbody.appendChild(tr);
+});
+        
 }
 
 // ================= STATUS =================
@@ -211,4 +220,10 @@ function switchTab(tab) {
 
     document.getElementById(tab + "-tab").classList.add("active");
     event.target.classList.add("active");
+
+}
+
+
+function viewRoomDetail(id) {
+    window.location.href = `room-detail.html?id=${id}`;
 }
