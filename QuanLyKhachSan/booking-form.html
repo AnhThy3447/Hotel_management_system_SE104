@@ -57,8 +57,9 @@
                         <!-- Basic Info -->
                         <div class="form-grid">
                             <div class="form-group">
-                                <label for="form-date">Ngày lập <span class="required">*</span></label>
-                                <input type="date" id="form-date" required>
+                              <label for="form-date"
+                                >Ngày lập <span class="required">*</span></label>
+                                <input type="text" id="form-date" readonly />
                             </div>
                             <div class="form-group">
                                 <label for="room-number">Số phòng <span class="required">*</span></label>
@@ -66,7 +67,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="start-date">Ngày bắt đầu thuê <span class="required">*</span></label>
-                                <input type="date" id="start-date" required>
+                                <input type="text" id="start-date" placeholder="ddmmyyyy" maxlength="10" required/>
                             </div>
                         </div>
 
