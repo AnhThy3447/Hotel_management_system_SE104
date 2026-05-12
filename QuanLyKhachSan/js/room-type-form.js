@@ -1,78 +1,65 @@
 
-
-// ==========================
-// AUTO UPDATE PRICE
-// ==========================
-function updatePrice() {
-    const select = document.getElementById('roomType');
-    const selected = select.options[select.selectedIndex];
-    const price = selected.getAttribute('data-price');
-
-    if (price) {
-        document.getElementById('price').value = price;
-    }
-}
-
-// ==========================
-// GET AMENITIES
-// ==========================
-function getAmenities() {
-    const checked = document.querySelectorAll('input[name="amenities"]:checked');
-    return Array.from(checked).map(item => item.value);
-}
-
-// ==========================
-// SUBMIT FORM
-// ==========================
-async function handleSubmit(event) {
+function handleSubmit(event) {
     event.preventDefault();
 
-    const data = {
-        roomCode: document.getElementById('roomCode').value.trim(),
-        roomName: document.getElementById('roomName').value.trim(),
-        roomType: document.getElementById('roomType').value,
-        floor: document.getElementById('floor').value,
-        price: Number(document.getElementById('price').value),
-        status: document.getElementById('status').value,
-        area: Number(document.getElementById('area').value) || null,
-        capacity: Number(document.getElementById('capacity').value) || null,
-        beds: document.getElementById('beds').value,
-        view: document.getElementById('view').value,
-        amenities: getAmenities(),
-        description: document.getElementById('description').value
-    };
+    const formData = new FormData(event.target);
+    const data = {};
 
-    // Validate
-    if (!data.roomCode || !data.roomName) {
-        alert('Vui lòng nhập đầy đủ thông tin!');
-        return;
+    for (let [key, value] of formData.entries()) {
+        if (key === 'amenities') {
+            if (!data.amenities) data.amenities = [];
+            data.amenities.push(value);
+        } else {
+            data[key] = value;
+        }
     }
 
-    try {
-        const res = await fetch(API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        });
+    data.price = Number(data.price);
+    data.area = Number(data.area);
+    data.capacity = Number(data.capacity);
+    data.totalRooms = Number(data.totalRooms);
 
-        if (!res.ok) throw new Error();
+    fetch(API_TYPES, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(() => {
+        alert(
+            '✅ Thêm loại phòng thành công!\n\n' + 
+            'Tên loại: ' + data.typeName + '\n' +
+            'Mã loại: ' + data.typeCode + '\n' +
+            'Giá: ' + data.price.toLocaleString('vi-VN') + ' VNĐ/đêm\n' +
+            'Diện tích: ' + data.area + ' m²\n' +
+            'Sức chứa: ' + data.capacity + ' người\n' +
+            'Số lượng phòng: ' + data.totalRooms
+        );
 
-        alert('Thêm phòng thành công!');
         window.location.href = 'rooms.html';
-
-    } catch (err) {
+    })
+    .catch(err => {
         console.error(err);
-        alert('Lỗi kết nối server!');
-    }
+        alert('❌ Lỗi khi thêm loại phòng!');
+    });
 }
 
-// ==========================
-// CANCEL
-// ==========================
 function cancelForm() {
     if (confirm('Bạn có chắc muốn hủy?')) {
-        window.location.href = 'rooms.html';
+        location.href = 'rooms.html';
     }
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+    document.getElementById('typeName').addEventListener('input', function(e) {
+        const name = e.target.value;
+        const codeInput = document.getElementById('typeCode');
+
+        if (name && !codeInput.value) {
+            const code = name.substring(0, 3).toUpperCase();
+            codeInput.value = code;
+        }
+    });
+});
