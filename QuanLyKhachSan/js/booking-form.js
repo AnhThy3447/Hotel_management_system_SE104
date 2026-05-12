@@ -1,8 +1,42 @@
-// booking-form.js - Logic cho trang form thuê phòng
-
 let currentBooking = null;
 let guests = [];
 let isViewMode = false;
+
+function formatDateVN(date) {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+}
+
+function convertISOToVN(dateStr) {
+    if (!dateStr.includes('-')) return dateStr;
+
+    const [year, month, day] = dateStr.split('-');
+    return `${day}/${month}/${year}`;
+}
+
+function parseVNDate(dateStr) {
+    const parts = dateStr.split('/');
+
+    if (parts.length !== 3) return null;
+
+    const day = parseInt(parts[0]);
+    const month = parseInt(parts[1]) - 1;
+    const year = parseInt(parts[2]);
+
+    const date = new Date(year, month, day);
+
+    if (
+        date.getDate() !== day ||
+        date.getMonth() !== month ||
+        date.getFullYear() !== year
+    ) {
+        return null;
+    }
+
+    return date;
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -11,10 +45,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     isViewMode = mode === 'view';
 
+    document.getElementById('form-date').value = formatDateVN(new Date());
+
+    const startDateInput = document.getElementById('start-date');
+
+    // tự thêm dấu /
+    startDateInput.addEventListener('input', function (e) {
+        let value = e.target.value.replace(/\D/g, '');
+
+        if (value.length > 8) {
+            value = value.slice(0, 8);
+        }
+
+        if (value.length >= 5) {
+            value = `${value.slice(0,2)}/${value.slice(2,4)}/${value.slice(4)}`;
+        } else if (value.length >= 3) {
+            value = `${value.slice(0,2)}/${value.slice(2)}`;
+        }
+
+        e.target.value = value;
+    });
+
     if (bookingId) {
         loadBooking(parseInt(bookingId));
     } else {
-        document.getElementById('form-date').value = new Date().toISOString().split('T')[0];
         addGuest();
     }
 });
@@ -25,28 +79,36 @@ function loadBooking(id) {
 
     if (currentBooking) {
         document.getElementById('form-title').textContent =
-            isViewMode ? 'Chi tiết Phiếu Thuê Phòng (BM2)' : 'Cập nhật Phiếu Thuê Phòng (BM2)';
+            isViewMode
+                ? 'Chi tiết Phiếu Thuê Phòng (BM2)'
+                : 'Cập nhật Phiếu Thuê Phòng (BM2)';
+
         document.getElementById('form-subtitle').textContent = `Mã phiếu: #${currentBooking.id}`;
         document.getElementById('save-btn-text').textContent = 'Cập nhật';
 
-        document.getElementById('form-date').value = currentBooking.formDate;
-        document.getElementById('room-number').value = currentBooking.roomNumber;
-        document.getElementById('start-date').value = currentBooking.startDate;
+        document.getElementById('form-date').value =
+            convertISOToVN(currentBooking.formDate);
 
-        guests = currentBooking.guests;
+        document.getElementById('room-number').value =
+            currentBooking.roomNumber;
+
+        document.getElementById('start-date').value =
+            convertISOToVN(currentBooking.startDate);
+
+        guests = currentBooking.guests || [];
         renderGuests();
     }
 }
 
 function renderGuests() {
     const tbody = document.getElementById('guest-list');
+
     tbody.innerHTML = guests.map((guest, index) => `
         <tr>
             <td>${index + 1}</td>
             <td>
                 <input type="text"
                     value="${guest.name}"
-                    placeholder="Tên khách hàng"
                     onchange="updateGuest(${index}, 'name', this.value)"
                     required>
             </td>
@@ -59,26 +121,19 @@ function renderGuests() {
             <td>
                 <input type="text"
                     value="${guest.idNumber}"
-                    placeholder="Số CMND"
                     onchange="updateGuest(${index}, 'idNumber', this.value)"
                     required>
             </td>
             <td>
                 <input type="text"
                     value="${guest.address}"
-                    placeholder="Địa chỉ"
                     onchange="updateGuest(${index}, 'address', this.value)">
             </td>
             <td>
                 <button type="button"
-                    class="btn-remove"
                     onclick="removeGuest(${index})"
-                    ${guests.length === 1 ? 'disabled' : ''}
-                    title="Xóa khách">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="3 6 5 6 21 6"></polyline>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    </svg>
+                    ${guests.length === 1 ? 'disabled' : ''}>
+                    Xóa
                 </button>
             </td>
         </tr>
@@ -89,7 +144,7 @@ function renderGuests() {
 
 function addGuest() {
     if (guests.length >= 3) {
-        alert('Mỗi phòng chỉ được tối đa 3 khách!');
+        alert('Mỗi phòng chỉ tối đa 3 khách!');
         return;
     }
 
@@ -106,7 +161,7 @@ function addGuest() {
 
 function removeGuest(index) {
     if (guests.length === 1) {
-        alert('Phải có ít nhất 1 khách hàng!');
+        alert('Phải có ít nhất 1 khách!');
         return;
     }
 
@@ -120,28 +175,57 @@ function updateGuest(index, field, value) {
 
 function updateGuestCount() {
     document.getElementById('current-count').textContent = guests.length;
-
-    const addBtn = document.getElementById('add-guest-btn');
-    if (guests.length >= 3) {
-        addBtn.disabled = true;
-    } else {
-        addBtn.disabled = false;
-    }
+    document.getElementById('add-guest-btn').disabled = guests.length >= 3;
 }
 
-function validateForm() {
-    const formDate = document.getElementById('form-date').value;
-    const roomNumber = document.getElementById('room-number').value;
-    const startDate = document.getElementById('start-date').value;
+function validateStartDate(startDate) {
+    const regex = /^\d{2}\/\d{2}\/\d{4}$/;
 
-    if (!formDate || !roomNumber || !startDate) {
-        alert('Vui lòng điền đầy đủ thông tin cơ bản!');
+    if (!regex.test(startDate)) {
+        alert('Ngày phải đúng định dạng dd/mm/yyyy!');
         return false;
     }
 
-    for (let i = 0; i < guests.length; i++) {
-        if (!guests[i].name || !guests[i].idNumber) {
-            alert(`Vui lòng điền đầy đủ thông tin cho khách hàng ${i + 1}!`);
+    const inputDate = parseVNDate(startDate);
+
+    if (!inputDate) {
+        alert('Ngày không hợp lệ!');
+        return false;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    inputDate.setHours(0, 0, 0, 0);
+
+    const diffDays = (inputDate - today) / (1000 * 60 * 60 * 24);
+
+    if (diffDays < 0) {
+        alert('Không được nhập ngày quá khứ!');
+        return false;
+    }
+
+    if (diffDays > 100) {
+        alert('Ngày thuê không được vượt quá 100 ngày từ hôm nay!');
+        return false;
+    }
+
+    return true;
+}
+
+function validateForm() {
+    const roomNumber = document.getElementById('room-number').value;
+    const startDate = document.getElementById('start-date').value;
+
+    if (!roomNumber || !startDate) {
+        alert('Vui lòng nhập đầy đủ thông tin!');
+        return false;
+    }
+
+    if (!validateStartDate(startDate)) return false;
+
+    for (let guest of guests) {
+        if (!guest.name || !guest.idNumber) {
+            alert('Vui lòng nhập đầy đủ thông tin khách!');
             return false;
         }
     }
@@ -150,16 +234,14 @@ function validateForm() {
 }
 
 function saveForm() {
-    if (!validateForm()) {
-        return;
-    }
+    if (!validateForm()) return;
 
     const bookingData = {
         id: currentBooking ? currentBooking.id : Date.now(),
         formDate: document.getElementById('form-date').value,
         roomNumber: document.getElementById('room-number').value,
         startDate: document.getElementById('start-date').value,
-        guests: guests
+        guests
     };
 
     const bookings = JSON.parse(localStorage.getItem('hotelBookings') || '[]');
@@ -173,12 +255,12 @@ function saveForm() {
 
     localStorage.setItem('hotelBookings', JSON.stringify(bookings));
 
-    alert('Phiếu thuê phòng đã được lưu thành công!');
+    alert('Lưu thành công!');
     window.location.href = 'booking-list.html';
 }
 
 function cancelForm() {
-    if (confirm('Bạn có chắc chắn muốn hủy? Các thay đổi sẽ không được lưu.')) {
+    if (confirm('Bạn có chắc muốn hủy?')) {
         window.location.href = 'booking-list.html';
     }
 }
