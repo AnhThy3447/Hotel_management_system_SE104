@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý phòng - Khách sạn</title>
-    <link rel="stylesheet" href="rooms.css">
+    <link rel="stylesheet" href="css/rooms.css">
 </head>
 <body>
     <div class="container">
@@ -101,14 +101,14 @@
                     <select id="filterStatus">
                         <option value="">Tất cả trạng thái</option>
                         <option value="available">Trống</option>
-                        <option value="occupied">Đã thuê</option>
-                        <option value="maintenance">Bảo trì</option>
+                        <option value="occupied">Đang thuê</option>
+                        <option value="maintenance">Dọn dẹp</option>
                     </select>
                     <select id="filterType">
                         <option value="">Tất cả loại phòng</option>
-                        <option value="standard">Standard</option>
-                        <option value="deluxe">Deluxe</option>
-                        <option value="suite">Suite</option>
+                        <option value="standard">Phòng tiêu chuẩn</option>
+                        <option value="deluxe">Phòng cao cấp</option>
+                        <option value="suite">Phòng hạng sang</option>
                     </select>
                 </div>
             </div>
@@ -143,8 +143,8 @@
                                 <th>Loại phòng</th>
                                 <th>Tầng</th>
                                 <th>Giá/đêm</th>
-                                <th>Trạng thái</th>
-                                <th>Hành động</th>
+                                <th>Tình trạng</th>
+                                <th>Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -190,28 +190,44 @@
             </div>
 
             <!-- Room Types Tab Content -->
-            <div id="room-types-tab" class="tab-content">
-                <div class="content-header">
-                    <h3>Danh sách loại phòng</h3>
-                    <button class="btn-primary" onclick="location.href='room-type-form.html'">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="12" y1="5" x2="12" y2="19"></line>
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                        </svg>
-                        Thêm loại phòng
-                    </button>
-                </div>
-
-                <div class="room-types-grid">
-                    <!-- THÊM DỮ LIỆU VÀO ĐÂY -->
-                    <div class="empty-grid">
-                        Chưa có loại phòng nào. Nhấn "Thêm loại phòng" để bắt đầu.
-                    </div>
-                </div>
-            </div>
-        </main>
+<div id="room-types-tab" class="tab-content">
+    <div class="content-header">
+        <div class="stats-summary">
+            <span class="stat-item">Tổng: <strong id="total-types">0</strong></span>
+        </div>
+        <button class="btn-primary" onclick="location.href='room-type-form.html'">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Thêm loại phòng
+        </button>
     </div>
 
-   <script src="rooms.js"></script>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Mã loại phòng</th>
+                    <th>Tên loại phòng</th>
+                    <th>Giá mặc định</th>
+                    <th>Sức chứa</th>
+                    <th>Diện tích</th>
+                    <th>Giường</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody id="room-types-table">
+                <tr>
+                    <td colspan="7" class="empty-state">
+                        Chưa có loại phòng nào. Nhấn "Thêm loại phòng" để bắt đầu.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+   <script src="js/rooms.js"></script>
 </body>
 </html>
