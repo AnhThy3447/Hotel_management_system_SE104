@@ -48,6 +48,11 @@ let roomTypes = [
     }
 ];
 
+// ==========================SAVE TO LOCAL STORAGE==========================
+function saveData() {
+    localStorage.setItem("rooms", JSON.stringify(rooms));
+    localStorage.setItem("roomTypes", JSON.stringify(roomTypes));
+}
 // ================= INIT =================
 document.addEventListener("DOMContentLoaded", () => {
     renderRooms();
@@ -142,7 +147,7 @@ function renderStatus(status) {
 
 // ================= FORMAT =================
 function formatPrice(price) {
-    return price.toLocaleString("vi-VN") + " VNĐ";
+    return Number(price || 0).toLocaleString("vi-VN") + " VNĐ";
 }
 
 // ================= DELETE =================
@@ -150,6 +155,7 @@ function deleteRoom(id) {
     if (!confirm("Bạn có chắc muốn xóa phòng này?")) return;
 
     rooms = rooms.filter(r => r.id !== id);
+    saveData();
     renderRooms();
 }
 
