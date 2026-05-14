@@ -15,7 +15,7 @@ body {
     height: 100vh;
 }
 
-/* Main Content */
+/* Main */
 .main-content {
     flex: 1;
     overflow-y: auto;
@@ -36,18 +36,23 @@ body {
     text-decoration: none;
 }
 
+.breadcrumb a:hover {
+    color: #6D4C41;
+}
+
 .breadcrumb span {
     color: #6D4C41;
 }
 
-/* Page Header */
+/* Header */
 .page-header {
     margin-bottom: 32px;
 }
 
 .page-header h2 {
-    font-size: 32px;
-    margin-bottom: 8px;
+    font-size: 30px;
+    margin-bottom: 6px;
+    color: #5D4037;
 }
 
 .page-header p {
@@ -60,31 +65,32 @@ body {
 }
 
 .form-section {
-    background: white;
+    background: #fff;
     border: 1px solid #D7CCC8;
-    border-radius: 12px;
-    padding: 32px;
-    margin-bottom: 24px;
+    border-radius: 10px;
+    padding: 28px;
+    margin-bottom: 20px;
 }
 
 .section-header {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     margin-bottom: 20px;
-    border-bottom: 2px solid #EFEBE9;
     padding-bottom: 10px;
+    border-bottom: 1px solid #EFEBE9;
 }
 
 .section-header h3 {
-    font-size: 20px;
+    font-size: 18px;
+    color: #5D4037;
 }
 
 /* Grid */
 .form-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 24px;
+    gap: 20px;
 }
 
 .form-group {
@@ -95,24 +101,39 @@ body {
 .form-group label {
     margin-bottom: 6px;
     font-size: 14px;
+    font-weight: 500;
 }
 
 .required {
-    color: red;
+    color: #D32F2F;
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
-    padding: 10px;
+    padding: 10px 12px;
     border: 1px solid #D7CCC8;
     border-radius: 6px;
     font-size: 14px;
+    transition: 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: #8D6E63;
+    outline: none;
 }
 
 .form-group textarea {
     min-height: 100px;
     resize: vertical;
+}
+
+.help-text {
+    font-size: 12px;
+    margin-top: 4px;
+    color: #6D4C41;
 }
 
 /* Buttons */
@@ -158,12 +179,11 @@ body {
     }
 
     .form-actions {
-        flex-direction: column-reverse;
+        flex-direction: column;
     }
 
     .btn-cancel,
     .btn-submit {
         width: 100%;
-        justify-content: center;
     }
 }
