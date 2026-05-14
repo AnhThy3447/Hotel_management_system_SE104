@@ -45,19 +45,6 @@
 
                         <div class="form-grid">
                             <div class="form-group">
-                                <label for="typeName">
-                                    Tên loại phòng <span class="required">*</span>
-                                </label>
-                                <input 
-                                    type="text" 
-                                    id="typeName" 
-                                    name="typeName" 
-                                    placeholder="Ví dụ: Phòng tiêu chuẩn" 
-                                    required
-                                >
-                            </div>
-
-                            <div class="form-group">
                                 <label for="typeCode">
                                     Mã loại phòng <span class="required">*</span>
                                 </label>
@@ -65,15 +52,29 @@
                                     type="text" 
                                     id="typeCode" 
                                     name="typeCode" 
-                                    placeholder="Ví dụ: TC,CC,HS" 
+                                    placeholder=" RT01" 
                                     required
                                 >
-                                <small class="help-text">Mã viết tắt để phân biệt loại phòng</small>
+                                
                             </div>
 
                             <div class="form-group">
+                                <label for="typeName">
+                                    Tên loại phòng <span class="required">*</span>
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="typeName" 
+                                    name="typeName" 
+                                    placeholder="Phòng tiêu chuẩn" 
+                                    required
+                                >
+                            </div>
+
+
+                            <div class="form-group">
                                 <label for="price">
-                                    Giá phòng/đêm (VNĐ) <span class="required">*</span>
+                                    Đơn giá (VNĐ) <span class="required">*</span>
                                 </label>
                                 <input 
                                     type="number" 
@@ -94,7 +95,7 @@
                                     type="number" 
                                     id="totalRooms" 
                                     name="totalRooms" 
-                                    placeholder="Ví dụ: 20" 
+                                    placeholder=" 20" 
                                     min="1"
                                     required
                                 >
@@ -103,252 +104,8 @@
                         </div>
                     </div>
 
-                    <!-- Chi tiết phòng -->
-                    <div class="form-section">
-                        <div class="section-header">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                                <line x1="3" y1="9" x2="21" y2="9"></line>
-                                <line x1="9" y1="21" x2="9" y2="9"></line>
-                            </svg>
-                            <h3>Chi tiết phòng</h3>
-                        </div>
-
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="area">
-                                    Diện tích (m²) <span class="required">*</span>
-                                </label>
-                                <input 
-                                    type="number" 
-                                    id="area" 
-                                    name="area" 
-                                    placeholder="25" 
-                                    min="0"
-                                    step="0.1"
-                                    required
-                                >
-                            </div>
-
-                            <div class="form-group">
-                                <label for="capacity">
-                                    Sức chứa (người) <span class="required">*</span>
-                                </label>
-                                <input 
-                                    type="number" 
-                                    id="capacity" 
-                                    name="capacity" 
-                                    placeholder="2" 
-                                    min="1"
-                                    required
-                                >
-                            </div>
-
-                            <div class="form-group">
-                                <label for="beds">
-                                    Loại giường <span class="required">*</span>
-                                </label>
-                                <select id="beds" name="beds" required>
-                                    <option value="">-- Chọn loại giường --</option>
-                                    <option value="1-single">1 giường đơn</option>
-                                    <option value="2-single">2 giường đơn</option>
-                                    <option value="1-double">1 giường đôi</option>
-                                    <option value="1-double-1-single">1 giường đôi + 1 giường đơn</option>
-                                    <option value="1-king">1 giường King size</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="bedSize">
-                                    Kích thước giường
-                                </label>
-                                <input 
-                                    type="text" 
-                                    id="bedSize" 
-                                    name="bedSize" 
-                                    placeholder="Ví dụ: 1.8m x 2m"
-                                >
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Tiện nghi -->
-                    <div class="form-section">
-                        <div class="section-header">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="12" cy="7" r="4"></circle>
-                            </svg>
-                            <h3>Tiện nghi</h3>
-                        </div>
-
-                        <div class="amenities-grid">
-                            <label class="checkbox-item">
-                                <input type="checkbox" name="amenities" value="wifi">
-                                <span class="checkmark"></span>
-                                <div class="amenity-info">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
-                                        <path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
-                                        <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
-                                        <line x1="12" y1="20" x2="12.01" y2="20"></line>
-                                    </svg>
-                                    <span>Wi-Fi miễn phí</span>
-                                </div>
-                            </label>
-
-                            <label class="checkbox-item">
-                                <input type="checkbox" name="amenities" value="tv">
-                                <span class="checkmark"></span>
-                                <div class="amenity-info">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect>
-                                        <polyline points="17 2 12 7 7 2"></polyline>
-                                    </svg>
-                                    <span>TV màn hình phẳng</span>
-                                </div>
-                            </label>
-
-                            <label class="checkbox-item">
-                                <input type="checkbox" name="amenities" value="ac">
-                                <span class="checkmark"></span>
-                                <div class="amenity-info">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-                                    </svg>
-                                    <span>Điều hòa không khí</span>
-                                </div>
-                            </label>
-
-                            <label class="checkbox-item">
-                                <input type="checkbox" name="amenities" value="minibar">
-                                <span class="checkmark"></span>
-                                <div class="amenity-info">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
-                                        <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
-                                        <line x1="6" y1="1" x2="6" y2="4"></line>
-                                        <line x1="10" y1="1" x2="10" y2="4"></line>
-                                        <line x1="14" y1="1" x2="14" y2="4"></line>
-                                    </svg>
-                                    <span>Minibar</span>
-                                </div>
-                            </label>
-
-                            <label class="checkbox-item">
-                                <input type="checkbox" name="amenities" value="safe">
-                                <span class="checkmark"></span>
-                                <div class="amenity-info">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                                    </svg>
-                                    <span>Két an toàn</span>
-                                </div>
-                            </label>
-
-                            <label class="checkbox-item">
-                                <input type="checkbox" name="amenities" value="bathtub">
-                                <span class="checkmark"></span>
-                                <div class="amenity-info">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M9 6 6.5 3.5a1.5 1.5 0 0 0-1-.5C4.683 3 4 3.683 4 4.5V17a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"></path>
-                                        <line x1="10" y1="5" x2="8" y2="7"></line>
-                                        <line x1="2" y1="12" x2="22" y2="12"></line>
-                                        <line x1="7" y1="19" x2="7" y2="21"></line>
-                                        <line x1="17" y1="19" x2="17" y2="21"></line>
-                                    </svg>
-                                    <span>Bồn tắm</span>
-                                </div>
-                            </label>
-
-                            <label class="checkbox-item">
-                                <input type="checkbox" name="amenities" value="balcony">
-                                <span class="checkmark"></span>
-                                <div class="amenity-info">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                                    </svg>
-                                    <span>Ban công</span>
-                                </div>
-                            </label>
-
-                            <label class="checkbox-item">
-                                <input type="checkbox" name="amenities" value="phone">
-                                <span class="checkmark"></span>
-                                <div class="amenity-info">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-                                    </svg>
-                                    <span>Điện thoại</span>
-                                </div>
-                            </label>
-
-                            <label class="checkbox-item">
-                                <input type="checkbox" name="amenities" value="desk">
-                                <span class="checkmark"></span>
-                                <div class="amenity-info">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
-                                        <line x2="24" y1="12" y2="12"></line>
-                                    </svg>
-                                    <span>Bàn làm việc</span>
-                                </div>
-                            </label>
-
-                            <label class="checkbox-item">
-                                <input type="checkbox" name="amenities" value="wardrobe">
-                                <span class="checkmark"></span>
-                                <div class="amenity-info">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <rect x="3" y="2" width="18" height="20" rx="2" ry="2"></rect>
-                                        <line x1="12" y1="2" x2="12" y2="22"></line>
-                                        <circle cx="8" cy="12" r="1"></circle>
-                                        <circle cx="16" cy="12" r="1"></circle>
-                                    </svg>
-                                    <span>Tủ quần áo</span>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Mô tả -->
-                    <div class="form-section">
-                        <div class="section-header">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                                <line x1="16" y1="13" x2="8" y2="13"></line>
-                                <line x1="16" y1="17" x2="8" y2="17"></line>
-                                <line x1="10" y1="9" x2="8" y2="9"></line>
-                            </svg>
-                            <h3>Mô tả</h3>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="description">
-                                Mô tả loại phòng <span class="required">*</span>
-                            </label>
-                            <textarea 
-                                id="description" 
-                                name="description" 
-                                rows="5" 
-                                placeholder="Nhập mô tả chi tiết về loại phòng này (tính năng, phong cách, điểm nổi bật...)"
-                                required
-                            ></textarea>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="notes">Ghi chú nội bộ</label>
-                            <textarea 
-                                id="notes" 
-                                name="notes" 
-                                rows="3" 
-                                placeholder="Ghi chú dành cho nhân viên (không bắt buộc)..."
-                            ></textarea>
-                        </div>
-                    </div>
+                    
+                    
 
                     <!-- Form Actions -->
                     <div class="form-actions">
