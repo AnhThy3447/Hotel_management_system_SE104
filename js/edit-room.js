@@ -46,7 +46,6 @@ function fillForm(room) {
     document.getElementById('notes').value = room.notes || '';
 }
 
-
 // ==========================
 // AUTO PRICE
 // ==========================
