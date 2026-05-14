@@ -5,28 +5,18 @@ let rooms = [
         name: "Phòng 101",
         type: "standard",
         typeName: "Phòng tiêu chuẩn",
-        floor: 1,
         price: 150000,
         status: "available",
-        area: 25,
-    capacity: 2,
-    bedType: "double",
-    amenities: ["wifi", "tv", "ac"],
-    notes: "Phòng view hồ bơi"
+        notes: "Phòng view hồ bơi"
     },
     {
         id: "P102",
         name: "Phòng 102",
         type: "deluxe",
         typeName: "Phòng cao cấp",
-        floor: 1,
         price: 170000,
         status: "occupied",
-        area: 25,
-    capacity: 2,
-    bedType: "double",
-    amenities: ["wifi", "tv", "ac"],
-    notes: "Phòng view hồ bơi"
+        notes: "Phòng view hồ bơi"
     }
 ];
 
@@ -36,35 +26,22 @@ let roomTypes = [
         id: "RT01",
         name: "Phòng tiêu chuẩn",
         price: 150000,
-        capacity: "1 người",
-        area: "20 m²",
-        bed: "1 giường đơn"
+        
     },
     {
         id: "RT02",
         name: "Phòng cao cấp",
         price: 170000,
-        capacity: "2 người",
-        area: "30 m²",
-        bed: "2 giường đơn"
+        
     },
     {
         id: "RT03",
         name: "Phòng hạng sang",
         price: 200000,
-        capacity: "2 người",
-        area: "45 m²",
-        bed: "1 giường King size + 1 giường đơn"
+        
     }
 ];
-document.addEventListener("DOMContentLoaded", () => {
-    localStorage.setItem("rooms", JSON.stringify(rooms));
-    localStorage.setItem("roomTypes", JSON.stringify(roomTypes));
 
-    renderRooms();
-    renderRoomTypes();
-    setupEvents();
-});
 // ==========================SAVE TO LOCAL STORAGE==========================
 function saveData() {
     localStorage.setItem("rooms", JSON.stringify(rooms));
@@ -72,6 +49,14 @@ function saveData() {
 }
 // ================= INIT =================
 document.addEventListener("DOMContentLoaded", () => {
+    localStorage.setItem("rooms", JSON.stringify(rooms));
+    const savedTypes = JSON.parse(localStorage.getItem("roomTypes"));
+if (savedTypes) {
+    roomTypes = savedTypes;
+} else {
+    localStorage.setItem("roomTypes", JSON.stringify(roomTypes));
+}
+
     renderRooms();
     renderRoomTypes();
     setupEvents();
@@ -94,9 +79,9 @@ function renderRooms(list = rooms) {
             <td>${room.id}</td>
             <td>${room.name}</td>
             <td>${room.typeName}</td>
-            <td>${room.floor}</td>
             <td>${formatPrice(room.price)}</td>
             <td>${renderStatus(room.status)}</td>
+            <td>${room.notes || ""}</td>
             <td>
                 <button class="btn-action btn-edit" onclick="editRoom('${room.id}')">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -104,6 +89,7 @@ function renderRooms(list = rooms) {
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                     </svg>
                 </button>
+
                 <button class="btn-action btn-delete" onclick="deleteRoom('${room.id}')">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="3 6 5 6 21 6"></polyline>
@@ -112,18 +98,17 @@ function renderRooms(list = rooms) {
                 </button>
             </td>
         `;
-tr.style.cursor = "pointer";
 
-    tr.addEventListener("click", (e) => {
-        // tránh click nút edit/delete bị mở detail
-        if (e.target.closest("button")) return;
+        tr.style.cursor = "pointer";
 
-        viewRoomDetail(room.id);
-    });
+        tr.addEventListener("click", (e) => {
+            if (e.target.closest("button")) return;
+            viewRoomDetail(room.id);
+        });
+
         tbody.appendChild(tr);
     });
 }
-
 // ================= RENDER ROOM TYPES =================
 function renderRoomTypes() {
     const tbody = document.getElementById("room-types-table");
@@ -141,25 +126,19 @@ function renderRoomTypes() {
             <td>${type.id}</td>
             <td>${type.name}</td>
             <td>${formatPrice(type.price)}</td>
-            <td>${type.capacity}</td>
-            <td>${type.area}</td>
-            <td>${type.bed}</td>
-           <td>
-    <button class="btn-action btn-delete" onclick="deleteRoomType('${type.id}')" title="Xóa">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="3 6 5 6 21 6"></polyline>
-            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
-        </svg>
-    </button>
-</td>
+            <td>
+                <button class="btn-action btn-delete" onclick="deleteRoomType('${type.id}')" title="Xóa">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+                    </svg>
+                </button>
+            </td>
         `;
 
-
-    tbody.appendChild(tr);
-});
-        
+        tbody.appendChild(tr);
+    });
 }
-
 // ================= STATUS =================
 function renderStatus(status) {
     if (status === "available") {
