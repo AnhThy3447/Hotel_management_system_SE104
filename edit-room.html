@@ -1,276 +1,236 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cập nhật phòng - Quản lý khách sạn</title>
-    <link rel="stylesheet" href="edit-room.css">
-</head>
-<body>
+    <link rel="stylesheet" href="css/edit-room.css" />
+    <link rel="stylesheet" href="css/common.css" />
+  </head>
+  <body>
     <div class="container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <h1>Quản lý khách sạn</h1>
-                <p>Hệ thống quản lý</p>
+      <!-- Sidebar -->
+      <div id="sidebar-container"></div>
+
+      <!-- MAIN CONTENT -->
+      <main class="main-content">
+        <div class="breadcrumb">
+          <a href="rooms.html">Quản lý phòng</a>
+          <span class="separator">/</span>
+          <span>Cập nhật phòng</span>
+        </div>
+
+        <div class="page-header">
+          <h2>Cập nhật thông tin phòng</h2>
+          <button type="button" class="btn-delete" onclick="deleteRoom()">
+            Xóa phòng
+          </button>
+        </div>
+
+        <form class="room-form" onsubmit="handleSubmit(event)">
+          <div class="form-section">
+            <h3>Thông tin cơ bản</h3>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="roomCode"
+                  >Mã phòng <span class="required">*</span></label
+                >
+                <input
+                  type="text"
+                  id="roomCode"
+                  name="roomCode"
+                  value="P101"
+                  placeholder="Ví dụ: P101"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="roomName"
+                  >Tên phòng <span class="required">*</span></label
+                >
+                <input
+                  type="text"
+                  id="roomName"
+                  name="roomName"
+                  value="Phòng 101"
+                  placeholder="Ví dụ: Phòng 101"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="roomType"
+                  >Loại phòng <span class="required">*</span></label
+                >
+                <select
+                  id="roomType"
+                  name="roomType"
+                  required
+                  onchange="updatePrice()"
+                >
+                  <option value="">-- Chọn loại phòng --</option>
+                  <option value="standard" selected>Phòng tiêu chuẩn</option>
+                  <option value="deluxe">Phòng cao cấp</option>
+                  <option value="suite">Phòng hạng sang</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="price"
+                  >Giá/đêm (VNĐ) <span class="required">*</span></label
+                >
+                <input
+                  type="number"
+                  id="price"
+                  name="price"
+                  value="150000"
+                  placeholder="150000"
+                  required
+                />
+              </div>
             </div>
+          </div>
 
-             <nav class="sidebar-nav">
-                <button class="nav-item active" onclick="location.href='dashboard.html'">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                    </svg>
-                    <span>Trang chủ</span>
-                </button>
-                <button class="nav-item" onclick="location.href='rooms.html'">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M2 4v16"></path>
-                        <path d="M2 8h18a2 2 0 0 1 2 2v10"></path>
-                        <path d="M2 17h20"></path>
-                        <path d="M6 8v9"></path>
-                    </svg>
-                    <span>Quản lý phòng</span>
-                </button>
-                <button class="nav-item" onclick="location.href='booking-list.html'">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                        <line x1="16" y1="2" x2="16" y2="6"></line>
-                        <line x1="8" y1="2" x2="8" y2="6"></line>
-                        <line x1="3" y1="10" x2="21" y2="10"></line>
-                    </svg>
-                    <span>Thuê phòng</span>
-                </button>
-                <button class="nav-item" onclick="showPage('customers')">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="9" cy="7" r="4"></circle>
-                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                    </svg>
-                    <span>Khách hàng</span>
-                </button>
-                <button class="nav-item" onclick="showPage('invoices')">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <line x1="16" y1="13" x2="8" y2="13"></line>
-                        <line x1="16" y1="17" x2="8" y2="17"></line>
-                        <polyline points="10 9 9 9 8 9"></polyline>
-                    </svg>
-                    <span>Hóa đơn</span>
-                </button>
-                <button class="nav-item" onclick="showPage('reports')">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="12" y1="20" x2="12" y2="10"></line>
-                        <line x1="18" y1="20" x2="18" y2="4"></line>
-                        <line x1="6" y1="20" x2="6" y2="16"></line>
-                    </svg>
-                    <span>Báo cáo</span>
-                </button>
-            </nav>
+          <div class="form-section">
+            <h3>Chi tiết phòng</h3>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="floor">Tầng <span class="required">*</span></label>
+                <input
+                  type="number"
+                  id="floor"
+                  name="floor"
+                  value="1"
+                  placeholder="1"
+                  required
+                />
+              </div>
 
-            <div class="sidebar-footer">
-                <div class="user-profile">
-                    <div class="user-avatar">A</div>
-                    <div class="user-info">
-                        <p>Admin</p>
-                        <small>Quản trị viên</small>
-                    </div>
-                </div>
+              <div class="form-group">
+                <label for="area">Diện tích (m²)</label>
+                <input
+                  type="number"
+                  id="area"
+                  name="area"
+                  value="25"
+                  placeholder="25"
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="capacity"
+                  >Sức chứa (người) <span class="required">*</span></label
+                >
+                <input
+                  type="number"
+                  id="capacity"
+                  name="capacity"
+                  value="2"
+                  placeholder="2"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="bedType">Loại giường</label>
+                <select id="bedType" name="bedType">
+                  <option value="">-- Chọn loại giường --</option>
+                  <option value="single">Đơn</option>
+                  <option value="double" selected>Đôi</option>
+                  <option value="queen">Queen</option>
+                  <option value="king">King</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="status"
+                  >Trạng thái <span class="required">*</span></label
+                >
+                <select id="status" name="status" required>
+                  <option value="available" selected>Trống</option>
+                  <option value="occupied">Đang thuê</option>
+                  <option value="maintenance">Bảo trì</option>
+                </select>
+              </div>
             </div>
-        </aside>
+          </div>
 
-        <main class="main-content">
-            <div class="breadcrumb">
-                <a href="rooms.html">Quản lý phòng</a>
-                <span class="separator">/</span>
-                <span>Cập nhật phòng</span>
+          <div class="form-section">
+            <h3>Tiện nghi</h3>
+            <div class="amenities-grid">
+              <label class="checkbox-label">
+                <input type="checkbox" name="amenities" value="wifi" checked />
+                <span class="checkmark"></span>
+                <span>WiFi miễn phí</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="amenities" value="tv" checked />
+                <span class="checkmark"></span>
+                <span>Tivi</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="amenities" value="ac" checked />
+                <span class="checkmark"></span>
+                <span>Điều hòa</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="amenities" value="minibar" />
+                <span class="checkmark"></span>
+                <span>Minibar</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="amenities" value="safe" />
+                <span class="checkmark"></span>
+                <span>Két sắt</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="amenities" value="balcony" />
+                <span class="checkmark"></span>
+                <span>Ban công</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="amenities" value="bathtub" />
+                <span class="checkmark"></span>
+                <span>Bồn tắm</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="amenities" value="kitchen" />
+                <span class="checkmark"></span>
+                <span>Bếp nhỏ</span>
+              </label>
             </div>
+          </div>
 
-            <div class="page-header">
-                <h2>Cập nhật thông tin phòng</h2>
-                <button type="button" class="btn-delete" onclick="deleteRoom()">Xóa phòng</button>
+          <div class="form-section">
+            <h3>Ghi chú</h3>
+            <div class="form-group">
+              <textarea
+                id="notes"
+                name="notes"
+                rows="4"
+                placeholder="Nhập ghi chú về phòng (nếu có)"
+              >
+Phòng view hồ bơi</textarea
+              >
             </div>
+          </div>
 
-            <form class="room-form" onsubmit="handleSubmit(event)">
-                <div class="form-section">
-                    <h3>Thông tin cơ bản</h3>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="roomCode">Mã phòng <span class="required">*</span></label>
-                            <input 
-                                type="text" 
-                                id="roomCode" 
-                                name="roomCode" 
-                                value="P101"
-                                placeholder="Ví dụ: P101" 
-                                required
-                            >
-                        </div>
-
-                        <div class="form-group">
-                            <label for="roomName">Tên phòng <span class="required">*</span></label>
-                            <input 
-                                type="text" 
-                                id="roomName" 
-                                name="roomName" 
-                                value="Phòng 101"
-                                placeholder="Ví dụ: Phòng 101" 
-                                required
-                            >
-                        </div>
-
-                        <div class="form-group">
-                            <label for="roomType">Loại phòng <span class="required">*</span></label>
-                            <select id="roomType" name="roomType" required onchange="updatePrice()">
-                                <option value="">-- Chọn loại phòng --</option>
-                                <option value="standard" selected>Phòng tiêu chuẩn</option>
-                                <option value="deluxe">Phòng cao cấp</option>
-                                <option value="suite">Phòng hạng sang</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="price">Giá/đêm (VNĐ) <span class="required">*</span></label>
-                            <input 
-                                type="number" 
-                                id="price" 
-                                name="price" 
-                                value="150000"
-                                placeholder="150000" 
-                                required
-                            >
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-section">
-                    <h3>Chi tiết phòng</h3>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="floor">Tầng <span class="required">*</span></label>
-                            <input 
-                                type="number" 
-                                id="floor" 
-                                name="floor" 
-                                value="1"
-                                placeholder="1" 
-                                required
-                            >
-                        </div>
-
-                        <div class="form-group">
-                            <label for="area">Diện tích (m²)</label>
-                            <input 
-                                type="number" 
-                                id="area" 
-                                name="area" 
-                                value="25"
-                                placeholder="25"
-                            >
-                        </div>
-
-                        <div class="form-group">
-                            <label for="capacity">Sức chứa (người) <span class="required">*</span></label>
-                            <input 
-                                type="number" 
-                                id="capacity" 
-                                name="capacity" 
-                                value="2"
-                                placeholder="2" 
-                                required
-                            >
-                        </div>
-
-                        <div class="form-group">
-                            <label for="bedType">Loại giường</label>
-                            <select id="bedType" name="bedType">
-                                <option value="">-- Chọn loại giường --</option>
-                                <option value="single">Đơn</option>
-                                <option value="double" selected>Đôi</option>
-                                <option value="queen">Queen</option>
-                                <option value="king">King</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="status">Trạng thái <span class="required">*</span></label>
-                            <select id="status" name="status" required>
-                                <option value="available" selected>Trống</option>
-                                <option value="occupied">Đang thuê</option>
-                                <option value="maintenance">Bảo trì</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-section">
-                    <h3>Tiện nghi</h3>
-                    <div class="amenities-grid">
-                        <label class="checkbox-label">
-                            <input type="checkbox" name="amenities" value="wifi" checked>
-                            <span class="checkmark"></span>
-                            <span>WiFi miễn phí</span>
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" name="amenities" value="tv" checked>
-                            <span class="checkmark"></span>
-                            <span>Tivi</span>
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" name="amenities" value="ac" checked>
-                            <span class="checkmark"></span>
-                            <span>Điều hòa</span>
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" name="amenities" value="minibar">
-                            <span class="checkmark"></span>
-                            <span>Minibar</span>
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" name="amenities" value="safe">
-                            <span class="checkmark"></span>
-                            <span>Két sắt</span>
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" name="amenities" value="balcony">
-                            <span class="checkmark"></span>
-                            <span>Ban công</span>
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" name="amenities" value="bathtub">
-                            <span class="checkmark"></span>
-                            <span>Bồn tắm</span>
-                        </label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" name="amenities" value="kitchen">
-                            <span class="checkmark"></span>
-                            <span>Bếp nhỏ</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="form-section">
-                    <h3>Ghi chú</h3>
-                    <div class="form-group">
-                        <textarea 
-                            id="notes" 
-                            name="notes" 
-                            rows="4" 
-                            placeholder="Nhập ghi chú về phòng (nếu có)"
-                        >Phòng view hồ bơi</textarea>
-                    </div>
-                </div>
-
-                <div class="form-actions">
-                    <button type="button" class="btn-cancel" onclick="window.location.href='rooms.html'">Hủy</button>
-                    <button type="submit" class="btn-submit">Cập nhật</button>
-                </div>
-            </form>
-        </main>
+          <div class="form-actions">
+            <button
+              type="button"
+              class="btn-cancel"
+              onclick="window.location.href = 'rooms.html'"
+            >
+              Hủy
+            </button>
+            <button type="submit" class="btn-submit">Cập nhật</button>
+          </div>
+        </form>
+      </main>
     </div>
 
-  <script src="edit-room.js"></script>
-</body>
+    <script src="js/edit-room.js"></script>
+    <script src="js/common.js"></script>
+  </body>
 </html>
