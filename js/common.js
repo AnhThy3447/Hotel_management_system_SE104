@@ -32,14 +32,7 @@ function createSidebar() {
                     </svg>
                     <span>Thuê phòng</span>
                 </a>
-                <a href="checkout-list.html" class="nav-item" data-page="checkout">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M9 11l3 3L22 4"></path>
-                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-                    </svg>
-                    <span>Trả phòng</span>
-                </a>
-                <a href="#" class="nav-item" data-page="customers">
+                <a href="customers.html" class="nav-item" data-page="customers">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                         <circle cx="9" cy="7" r="4"></circle>
