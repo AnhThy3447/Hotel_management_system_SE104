@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trả phòng - Khách sạn Paradise</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/checkout-list.css">
+</head>
+<body data-page="checkout">
+    <div class="container">
+        <!-- Sidebar Container -->
+        <div id="sidebar-container"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-wrapper">
+                <div class="header">
+                    <div class="header-left">
+                        <h1>Quản lý Trả Phòng</h1>
+                        <p class="subtitle">Tổng số phòng đang thuê: <span id="total-active">0</span></p>
+                    </div>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="search-bar">
+                    <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <input type="text" id="search-input" placeholder="Tìm kiếm theo số phòng hoặc tên khách...">
+                </div>
+
+                <!-- Active Bookings Table -->
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>STT</th>
+                                <th>Số phòng</th>
+                                <th>Loại phòng</th>
+                                <th>Ngày lập</th>
+                                <th>Ngày thuê</th>
+                                <th>Số khách</th>
+                                <th>Khách hàng</th>
+                                <th>Loại khách</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="active-bookings-table">
+                            <!-- Data will be loaded here by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="footer-info">
+                    Hiển thị <span id="showing-count">0</span> phòng đang thuê
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal trả phòng -->
+    <div id="checkout-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Trả phòng và Thanh toán</h2>
+                <button class="btn-close" onclick="closeCheckoutModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="checkout-info">
+                    <div class="info-row">
+                        <span class="label">Số phòng:</span>
+                        <span class="value" id="modal-room"></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Loại phòng:</span>
+                        <span class="value" id="modal-room-type"></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Ngày lập phiếu:</span>
+                        <span class="value" id="modal-form-date"></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Ngày bắt đầu thuê:</span>
+                        <span class="value" id="modal-start-date"></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Ngày trả phòng:</span>
+                        <input type="text" id="checkout-date" class="form-input date-input-vn" onchange="calculateTotal()">
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Số ngày thuê:</span>
+                        <span class="value" id="modal-days">0</span>
+                    </div>
+
+                    <!-- Guest Details -->
+                    <div class="guest-details">
+                        <strong>Chi tiết khách hàng:</strong>
+                        <table id="guest-detail-table">
+                            <thead>
+                                <tr>
+                                    <th>STT</th>
+                                    <th>Tên khách</th>
+                                    <th>Loại khách</th>
+                                    <th>Giá/ngày</th>
+                                </tr>
+                            </thead>
+                            <tbody id="guest-detail-body">
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="label">Tổng tiền 1 ngày:</span>
+                        <span class="value" id="modal-price-per-day">0 VNĐ</span>
+                    </div>
+                    <div class="info-row total">
+                        <span class="label">Tổng tiền thanh toán:</span>
+                        <span class="value" id="modal-total">0 VNĐ</span>
+                    </div>
+
+                    <div class="payment-note">
+                        * Giá đã bao gồm phụ thu theo thứ tự khách và loại khách
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeCheckoutModal()">Hủy</button>
+                <button class="btn-primary" onclick="confirmCheckout()">Xác nhận trả phòng & Thanh toán</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/data-structure.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/date-input.js"></script>
+    <script src="js/checkout-list.js"></script>
+</body>
+</html>
