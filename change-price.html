@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thay đổi giá loại phòng - Quản lý khách sạn</title>
+    <link rel="stylesheet" href="css/change-price.css" />
+  </head>
+  <body>
+    <div class="overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>Thay đổi giá loại phòng</h3>
+          <button class="btn-close" onclick="closeModal()">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <table class="price-table">
+            <thead>
+              <tr>
+                <th>Mã loại phòng</th>
+                <th>Tên loại phòng</th>
+                <th>Đơn giá (VNĐ)</th>
+              </tr>
+            </thead>
+            <tbody id="priceBody">
+              <!-- THÊM DỮ LIỆU VÀO ĐÂY
+                        Template:
+                        <tr>
+                            <td>STD</td>
+                            <td>Standard</td>
+                            <td>
+                                <input type="number" class="price-input" value="500000" step="10000">
+                            </td>
+                        </tr>
+                        -->
+              <tr>
+                <td>STD</td>
+                <td>Standard</td>
+                <td>
+                  <input
+                    type="number"
+                    class="price-input"
+                    value="500000"
+                    step="10000"
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td>DLX</td>
+                <td>Deluxe</td>
+                <td>
+                  <input
+                    type="number"
+                    class="price-input"
+                    value="800000"
+                    step="10000"
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td>SUT</td>
+                <td>Suite</td>
+                <td>
+                  <input
+                    type="number"
+                    class="price-input"
+                    value="1200000"
+                    step="10000"
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-cancel" onclick="closeModal()">Hủy</button>
+          <button class="btn-save" onclick="saveChanges()">Lưu thay đổi</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/change-price.js"></script>
+  </body>
+</html>
