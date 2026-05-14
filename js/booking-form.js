@@ -96,7 +96,7 @@ function loadBookingData(maThuePhong) {
     const booking = thuePhong.find(tp => tp.MaThuePhong === maThuePhong);
     if (!booking) {
         alert('Không tìm thấy phiếu thuê!');
-        window.location.href = 'booking-list-v3.html';
+        window.location.href = 'booking-list.html';
         return;
     }
 
@@ -484,7 +484,7 @@ function createBooking(formDate, startDate, guests) {
     saveCTThuePhong(ctThuePhong);
 
     alert('Lưu phiếu thuê thành công!');
-    window.location.href = 'booking-list-v3.html';
+    window.location.href = 'booking-list.html';
 }
 
 function updateBooking(formDate, startDate, guests) {
@@ -543,7 +543,7 @@ function updateBooking(formDate, startDate, guests) {
     saveCTThuePhong(updatedCTThuePhong);
 
     alert('Cập nhật phiếu thuê thành công!');
-    window.location.href = 'booking-list-v3.html';
+    window.location.href = 'booking-list.html';
 }
 
 function validateForm() {
@@ -596,7 +596,7 @@ function collectGuestData() {
 // ============= HỦY FORM =============
 function cancelForm() {
     if (confirm('Bạn có chắc muốn hủy? Dữ liệu chưa lưu sẽ mất.')) {
-        window.location.href = 'booking-list-v3.html';
+        window.location.href = 'booking-list.html';
     }
 }
 
