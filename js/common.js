@@ -14,7 +14,7 @@ function createSidebar() {
                     </svg>
                     <span>Trang chủ</span>
                 </a>
-                <a href="room-management.html" class="nav-item" data-page="rooms">
+                <a href="rooms.html" class="nav-item" data-page="rooms">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M2 4v16"></path>
                         <path d="M2 8h18a2 2 0 0 1 2 2v10"></path>
