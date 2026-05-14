@@ -66,6 +66,7 @@ if (savedTypes) {
     renderRooms();
     renderRoomTypes();
     setupEvents();
+    syncRoomPrices();
 });
 
 // ================= RENDER ROOMS =================
@@ -135,6 +136,13 @@ function renderRoomTypes() {
             <td>${type.name}</td>
             <td>${formatPrice(type.price)}</td>
             <td>
+             <button class="btn-action btn-edit" onclick="editRoomType('${type.id}')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                </button>
+
                 <button class="btn-action btn-delete" onclick="deleteRoomType('${type.id}')" title="Xóa">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="3 6 5 6 21 6"></polyline>
@@ -173,16 +181,13 @@ function deleteRoom(id) {
 }
 
 function deleteRoomType(id) {
-    const confirmDelete = confirm("Bạn có chắc muốn xóa loại phòng này không?");
-    if (!confirmDelete) return;
+    if (!confirm("Bạn có chắc muốn xóa loại phòng này không?")) return;
 
-    // tìm index theo id
-    const index = roomTypes.findIndex(type => type.id === id);
+    roomTypes = roomTypes.filter(t => t.id !== id);
 
-    if (index !== -1) {
-        roomTypes.splice(index, 1); // xóa khỏi mảng
-        renderRoomTypes(); // render lại bảng
-    }
+    localStorage.setItem("roomTypes", JSON.stringify(roomTypes));
+
+    renderRoomTypes();
 }
 // ================= EDIT =================
 function editRoom(id) {
@@ -190,6 +195,17 @@ function editRoom(id) {
     window.location.href = `edit-room.html?id=${id}`;
 }
 
+function editRoomType(id) {
+    window.openChangePrice = id;
+
+    const modal = document.getElementById("changePriceFrame");
+
+    if (modal) {
+        modal.style.display = "block";
+    } else {
+        window.location.href = `change-price.html?id=${id}`;
+    }
+}
 // ================= SEARCH =================
 function setupEvents() {
     const search = document.getElementById("searchInput");
@@ -238,3 +254,17 @@ window.deleteRoom = deleteRoom;
 window.deleteRoomType = deleteRoomType;
 window.switchTab = switchTab;
 window.viewRoomDetail = viewRoomDetail;
+
+function syncRoomPrices() {
+    const types = JSON.parse(localStorage.getItem("roomTypes")) || [];
+
+    rooms.forEach(r => {
+        const type = types.find(t => t.name === r.typeName);
+
+        if (type) {
+            r.price = type.price;
+        }
+    });
+
+    localStorage.setItem("rooms", JSON.stringify(rooms));
+}
