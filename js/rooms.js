@@ -7,7 +7,12 @@ let rooms = [
         typeName: "Phòng tiêu chuẩn",
         floor: 1,
         price: 150000,
-        status: "available"
+        status: "available",
+        area: 25,
+    capacity: 2,
+    bedType: "double",
+    amenities: ["wifi", "tv", "ac"],
+    notes: "Phòng view hồ bơi"
     },
     {
         id: "P102",
@@ -16,11 +21,16 @@ let rooms = [
         typeName: "Phòng cao cấp",
         floor: 1,
         price: 170000,
-        status: "occupied"
+        status: "occupied",
+        area: 25,
+    capacity: 2,
+    bedType: "double",
+    amenities: ["wifi", "tv", "ac"],
+    notes: "Phòng view hồ bơi"
     }
 ];
 
-// 👉 THÊM DATA LOẠI PHÒNG
+//  THÊM DATA LOẠI PHÒNG
 let roomTypes = [
     {
         id: "RT01",
@@ -47,7 +57,14 @@ let roomTypes = [
         bed: "1 giường King size + 1 giường đơn"
     }
 ];
+document.addEventListener("DOMContentLoaded", () => {
+    localStorage.setItem("rooms", JSON.stringify(rooms));
+    localStorage.setItem("roomTypes", JSON.stringify(roomTypes));
 
+    renderRooms();
+    renderRoomTypes();
+    setupEvents();
+});
 // ==========================SAVE TO LOCAL STORAGE==========================
 function saveData() {
     localStorage.setItem("rooms", JSON.stringify(rooms));
@@ -182,7 +199,8 @@ function deleteRoomType(id) {
 }
 // ================= EDIT =================
 function editRoom(id) {
-    window.location.href = `rooms-form.html?id=${id}`;
+    console.log("EDIT CLICK:", id);
+    window.location.href = `edit-room.html?id=${id}`;
 }
 
 // ================= SEARCH =================
@@ -227,3 +245,9 @@ function switchTab(tab) {
 function viewRoomDetail(id) {
     window.location.href = `room-detail.html?id=${id}`;
 }
+
+window.editRoom = editRoom;
+window.deleteRoom = deleteRoom;
+window.deleteRoomType = deleteRoomType;
+window.switchTab = switchTab;
+window.viewRoomDetail = viewRoomDetail;
