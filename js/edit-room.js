@@ -1,9 +1,11 @@
 // ==========================
 // LOAD DATA
 // ==========================
-let rooms = JSON.parse(localStorage.getItem('rooms')) || [];
-let currentRoom = null;
+let rooms = JSON.parse(localStorage.getItem('rooms'));
 
+if (!rooms || !rooms.length) {
+    rooms = [];
+}
 // ==========================
 // INIT
 // ==========================
