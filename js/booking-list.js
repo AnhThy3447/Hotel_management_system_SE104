@@ -164,7 +164,12 @@ function setupSearch() {
 function updateTotalCount() {
     const thuePhong = getThuePhong();
     const activeCount = thuePhong.filter(tp => tp.NgayTraPhong === null).length;
-    document.getElementById('total-bookings').textContent = activeCount;
+
+    const totalElement = document.getElementById('total-bookings');
+
+    if (totalElement) {
+        totalElement.textContent = activeCount;
+    }
 }
 
 function formatDateVN(dateString) {
