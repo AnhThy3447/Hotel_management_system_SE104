@@ -13,11 +13,11 @@ function handleSubmit(event) {
         id: document.getElementById("typeCode").value.trim(),
         name: document.getElementById("typeName").value.trim(),
         price: Number(document.getElementById("price").value),
-        totalRooms: Number(document.getElementById("totalRooms").value)
+        
     };
 
     // VALIDATE
-    if (!data.id || !data.name || !data.price || !data.totalRooms) {
+    if (!data.id || !data.name || !data.price ) {
         alert("Vui lòng nhập đầy đủ thông tin!");
         return;
     }
