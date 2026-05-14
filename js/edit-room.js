@@ -36,6 +36,7 @@ function fillForm(room) {
     document.getElementById('roomName').value = room.name || '';
     document.getElementById('roomType').value = room.type || '';
     document.getElementById('price').value = room.price || '';
+    document.getElementById('status').value = room.status || 'available';
     document.getElementById('notes').value = room.notes || '';
 }
 
@@ -67,7 +68,9 @@ function handleSubmit(event) {
         name: document.getElementById('roomName').value.trim(),
         type: document.getElementById('roomType').value,
         price: Number(document.getElementById('price').value),
+        status: document.getElementById('status').value,
         notes: document.getElementById('notes').value.trim()
+        
     };
 
     // validate
