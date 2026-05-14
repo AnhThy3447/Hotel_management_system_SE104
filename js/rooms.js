@@ -72,10 +72,11 @@ function renderRooms(list = rooms) {
     tbody.innerHTML = "";
     total.textContent = list.length;
 
-    list.forEach(room => {
+     roomTypes.forEach((type, index) => {
         const tr = document.createElement("tr");
 
         tr.innerHTML = `
+             <td>${index + 1}</td>
             <td>${room.id}</td>
             <td>${room.name}</td>
             <td>${room.typeName}</td>
@@ -119,10 +120,11 @@ function renderRoomTypes() {
     tbody.innerHTML = "";
     total.textContent = roomTypes.length;
 
-    roomTypes.forEach(type => {
+    roomTypes.forEach((type, index) => {
         const tr = document.createElement("tr");
 
         tr.innerHTML = `
+            <td>${index + 1}</td>
             <td>${type.id}</td>
             <td>${type.name}</td>
             <td>${formatPrice(type.price)}</td>
