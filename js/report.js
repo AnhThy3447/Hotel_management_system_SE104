@@ -218,5 +218,5 @@ function applyFilter() {
 
 // ===== EXPORT =====
 function exportReport() {
-  alert("Xuất thành công!");
+  window.print();
 }
