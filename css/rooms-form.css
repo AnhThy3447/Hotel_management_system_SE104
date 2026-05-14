@@ -119,27 +119,31 @@ body {
 .form-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 12px;
-    margin-top: 24px;
+    gap: 16px;
+    margin-top: 32px;
 }
 
 .btn-cancel,
 .btn-submit {
-    display: flex;              /* ⚠️ GIỮ để icon không lệch */
-    align-items: center;        /* ⚠️ FIX lệch */
-    gap: 6px;                   /* ⚠️ FIX lệch icon-text */
-    padding: 10px 20px;
-    border-radius: 6px;
-    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 32px;
     border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
 }
 
 .btn-cancel {
-    background: #eee;
+    background-color: white;
+    color: #8D6E63;
+    border: 1px solid #D7CCC8;
 }
 
 .btn-submit {
-    background: #8D6E63;
+    background-color: #8D6E63;
     color: white;
 }
 
