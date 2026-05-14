@@ -1,231 +1,567 @@
-let currentBooking = null;
-let guests = [];
-let isViewMode = false;
+// Hỗ trợ: Tạo mới, Xem chi tiết (read-only), Chỉnh sửa
 
-function formatDateVN(date) {
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-}
+let selectedRoom = null;
+let guestCount = 0;
+const maxGuests = getThamSo().SoKhachToiDa || 3;
 
-function convertISOToVN(dateStr) {
-    if (!dateStr.includes('-')) return dateStr;
+let currentMode = 'create'; // 'create', 'view', 'edit'
+let currentBookingId = null;
 
-    const [year, month, day] = dateStr.split('-');
-    return `${day}/${month}/${year}`;
-}
-
-function parseVNDate(dateStr) {
-    const parts = dateStr.split('/');
-
-    if (parts.length !== 3) return null;
-
-    const day = parseInt(parts[0]);
-    const month = parseInt(parts[1]) - 1;
-    const year = parseInt(parts[2]);
-
-    const date = new Date(year, month, day);
-
-    if (
-        date.getDate() !== day ||
-        date.getMonth() !== month ||
-        date.getFullYear() !== year
-    ) {
-        return null;
-    }
-
-    return date;
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const bookingId = urlParams.get('id');
-    const mode = urlParams.get('mode');
-
-    isViewMode = mode === 'view';
-
-    document.getElementById('form-date').value = formatDateVN(new Date());
-
-    const startDateInput = document.getElementById('start-date');
-
-    // tự thêm dấu /
-    startDateInput.addEventListener('input', function (e) {
-        let value = e.target.value.replace(/\D/g, '');
-
-        if (value.length > 8) {
-            value = value.slice(0, 8);
-        }
-
-        if (value.length >= 5) {
-            value = `${value.slice(0,2)}/${value.slice(2,4)}/${value.slice(4)}`;
-        } else if (value.length >= 3) {
-            value = `${value.slice(0,2)}/${value.slice(2)}`;
-        }
-
-        e.target.value = value;
-    });
-
-    if (bookingId) {
-        loadBooking(parseInt(bookingId));
-    } else {
-        addGuest();
-    }
+// ============= KHỞI TẠO TRANG =============
+document.addEventListener('DOMContentLoaded', function() {
+    checkMode();
+    loadAvailableRooms();
+    initFormDate();
+    updateGuestCounter();
+    updateMaxGuestsDisplay();
 });
 
-function loadBooking(id) {
-    const bookings = JSON.parse(localStorage.getItem('hotelBookings') || '[]');
-    currentBooking = bookings.find(b => b.id === id);
+function checkMode() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get('id');
+    const mode = urlParams.get('mode');
 
-    if (currentBooking) {
-        document.getElementById('form-title').textContent =
-            isViewMode
-                ? 'Chi tiết Phiếu Thuê Phòng (BM2)'
-                : 'Cập nhật Phiếu Thuê Phòng (BM2)';
+    if (id) {
+        currentBookingId = parseInt(id);
 
-        document.getElementById('form-subtitle').textContent = `Mã phiếu: #${currentBooking.id}`;
-        document.getElementById('save-btn-text').textContent = 'Cập nhật';
-
-        document.getElementById('form-date').value =
-            convertISOToVN(currentBooking.formDate);
-
-        document.getElementById('room-number').value =
-            currentBooking.roomNumber;
-
-        document.getElementById('start-date').value =
-            convertISOToVN(currentBooking.startDate);
-
-        guests = currentBooking.guests || [];
-        renderGuests();
+        if (mode === 'view') {
+            currentMode = 'view';
+            setViewMode();
+            loadBookingData(currentBookingId);
+        } else {
+            currentMode = 'edit';
+            setEditMode();
+            loadBookingData(currentBookingId);
+        }
+    } else {
+        currentMode = 'create';
+        setCreateMode();
     }
 }
 
-function renderGuests() {
-    const tbody = document.getElementById('guest-list');
+function setViewMode() {
+    document.getElementById('form-title').textContent = 'Chi tiết Phiếu Thuê Phòng';
+    document.getElementById('save-btn').classList.add('hidden');
 
-    tbody.innerHTML = guests.map((guest, index) => `
-        <tr>
-            <td>${index + 1}</td>
-            <td>
-                <input type="text"
-                    value="${guest.name}"
-                    onchange="updateGuest(${index}, 'name', this.value)"
-                    required>
-            </td>
-            <td>
-                <select onchange="updateGuest(${index}, 'type', this.value)">
-                    <option value="nội địa" ${guest.type === 'nội địa' ? 'selected' : ''}>Nội địa</option>
-                    <option value="nước ngoài" ${guest.type === 'nước ngoài' ? 'selected' : ''}>Nước ngoài</option>
-                </select>
-            </td>
-            <td>
-                <input type="text"
-                    value="${guest.idNumber}"
-                    onchange="updateGuest(${index}, 'idNumber', this.value)"
-                    required>
-            </td>
-            <td>
-                <input type="text"
-                    value="${guest.address}"
-                    onchange="updateGuest(${index}, 'address', this.value)">
-            </td>
-            <td>
-                <button type="button"
-                    onclick="removeGuest(${index})"
-                    ${guests.length === 1 ? 'disabled' : ''}>
-                    Xóa
-                </button>
-            </td>
-        </tr>
-    `).join('');
+    // Show print button
+    const printBtn = document.getElementById('print-btn');
+    if (printBtn) printBtn.classList.remove('hidden');
 
-    updateGuestCount();
+    // Disable tất cả input
+    setTimeout(() => {
+        document.querySelectorAll('input, select, button').forEach(el => {
+            if (!el.classList.contains('btn-back') &&
+                el.id !== 'save-btn' &&
+                el.id !== 'print-btn' &&
+                !el.onclick || el.onclick.toString().includes('cancelForm') ||
+                el.onclick.toString().includes('printForm')) {
+                el.disabled = true;
+            }
+        });
+
+        // Disable add guest button
+        const addBtn = document.getElementById('add-guest-btn');
+        if (addBtn) addBtn.disabled = true;
+    }, 500);
 }
 
-function addGuest() {
-    if (guests.length >= 3) {
-        alert('Mỗi phòng chỉ tối đa 3 khách!');
+function setEditMode() {
+    document.getElementById('form-title').textContent = 'Chỉnh sửa Phiếu Thuê Phòng';
+    const saveBtnText = document.getElementById('save-btn-text');
+    if (saveBtnText) {
+        saveBtnText.textContent = 'Cập nhật phiếu';
+    }
+
+    // Hide print button in edit mode
+    const printBtn = document.getElementById('print-btn');
+    if (printBtn) printBtn.classList.add('hidden');
+}
+
+function setCreateMode() {
+    document.getElementById('form-title').textContent = 'Tạo Phiếu Thuê Phòng Mới (BM2)';
+
+    // Hide print button in create mode
+    const printBtn = document.getElementById('print-btn');
+    if (printBtn) printBtn.classList.add('hidden');
+}
+
+function loadBookingData(maThuePhong) {
+    const thuePhong = getThuePhong();
+    const ctThuePhong = getCTThuePhong();
+    const khachHang = getKhachHang();
+    const loaiKhach = getLoaiKhach();
+    const phong = getPhong();
+    const loaiPhong = getLoaiPhong();
+
+    const booking = thuePhong.find(tp => tp.MaThuePhong === maThuePhong);
+    if (!booking) {
+        alert('Không tìm thấy phiếu thuê!');
+        window.location.href = 'booking-list-v3.html';
         return;
     }
 
-    guests.push({
-        id: guests.length + 1,
-        name: '',
-        type: 'nội địa',
-        idNumber: '',
-        address: ''
+    // Load basic info
+    setDateValue(document.getElementById('form-date'), booking.NgayLap);
+    setDateValue(document.getElementById('start-date'), booking.NgayBatDauThue);
+
+    // Load room
+    const room = phong.find(p => p.SoPhong === booking.SoPhong);
+    selectedRoom = room;
+
+    document.getElementById('room-select').value = booking.SoPhong;
+
+    const roomType = loaiPhong.find(lp => lp.MaLoaiPhong === room.MaLoaiPhong);
+    displayRoomInfo(roomType);
+
+    // Load guests
+    const chiTiet = ctThuePhong.filter(ct => ct.MaThuePhong === maThuePhong);
+    chiTiet.forEach(ct => {
+        const khach = khachHang.find(kh => kh.MaKhachHang === ct.MaKhachHang);
+        const loai = loaiKhach.find(lk => lk.MaLoaiKhach === khach.MaLoaiKhach);
+
+        addGuestWithData({
+            name: khach.TenKhachHang,
+            type: khach.MaLoaiKhach,
+            cmnd: khach.CMND,
+            address: khach.DiaChi || '',
+            maKhachHang: khach.MaKhachHang
+        });
     });
 
-    renderGuests();
+    updatePricePreview();
 }
 
-function removeGuest(index) {
-    if (guests.length === 1) {
-        alert('Phải có ít nhất 1 khách!');
+// Hiển thị số khách tối đa
+function updateMaxGuestsDisplay() {
+    const elements = document.querySelectorAll('#max-guests, #max-count, #max-guests-rule');
+    elements.forEach(el => {
+        if (el) el.textContent = maxGuests;
+    });
+}
+
+// Thiết lập ngày lập mặc định là hôm nay
+function initFormDate() {
+    if (currentMode === 'create') {
+        const today = getTodayFormatted();
+        document.getElementById('form-date').value = today;
+        document.getElementById('form-date').setAttribute('data-iso-date', getTodayISO());
+
+        document.getElementById('start-date').value = today;
+        document.getElementById('start-date').setAttribute('data-iso-date', getTodayISO());
+    }
+}
+
+// ============= LOAD PHÒNG TRỐNG =============
+function loadAvailableRooms() {
+    const phong = getPhong();
+    const loaiPhong = getLoaiPhong();
+    const roomSelect = document.getElementById('room-select');
+
+    if (!roomSelect) return;
+
+    // Lọc phòng trống (hoặc phòng hiện tại nếu đang edit)
+    let availableRooms = phong.filter(p => p.TinhTrang === 'Trống');
+
+    // Nếu đang edit, thêm phòng hiện tại vào danh sách
+    if (currentMode === 'edit' && selectedRoom) {
+        const currentRoom = phong.find(p => p.SoPhong === selectedRoom.SoPhong);
+        if (currentRoom && !availableRooms.find(r => r.SoPhong === currentRoom.SoPhong)) {
+            availableRooms.push(currentRoom);
+        }
+    }
+
+    // Xóa options cũ (trừ option đầu tiên)
+    roomSelect.innerHTML = '<option value="">-- Chọn phòng trống --</option>';
+
+    // Thêm các phòng
+    availableRooms.forEach(room => {
+        const loai = loaiPhong.find(lp => lp.MaLoaiPhong === room.MaLoaiPhong);
+        const option = document.createElement('option');
+        option.value = room.SoPhong;
+        option.textContent = `Phòng ${room.SoPhong} - ${loai.LoaiPhong} (${formatCurrency(loai.DonGia)})`;
+        roomSelect.appendChild(option);
+    });
+
+    if (availableRooms.length === 0) {
+        roomSelect.innerHTML = '<option value="">Không có phòng trống</option>';
+        roomSelect.disabled = true;
+    }
+}
+
+// ============= XỬ LÝ CHỌN PHÒNG =============
+function onRoomChange() {
+    const roomSelect = document.getElementById('room-select');
+    const soPhong = parseInt(roomSelect.value);
+
+    if (!soPhong) {
+        hideRoomInfo();
         return;
     }
 
-    guests.splice(index, 1);
-    renderGuests();
+    const phong = getPhong();
+    const loaiPhong = getLoaiPhong();
+
+    selectedRoom = phong.find(p => p.SoPhong === soPhong);
+
+    if (selectedRoom) {
+        const loai = loaiPhong.find(lp => lp.MaLoaiPhong === selectedRoom.MaLoaiPhong);
+        displayRoomInfo(loai);
+        updatePricePreview();
+    }
 }
 
-function updateGuest(index, field, value) {
-    guests[index][field] = value;
+function displayRoomInfo(loaiPhong) {
+    const roomInfo = document.getElementById('room-info');
+    const roomType = document.getElementById('selected-room-type');
+    const roomPrice = document.getElementById('selected-room-price');
+
+    if (roomInfo) roomInfo.style.display = 'flex';
+    if (roomType) roomType.textContent = loaiPhong.LoaiPhong;
+    if (roomPrice) roomPrice.textContent = formatCurrency(loaiPhong.DonGia);
 }
 
-function updateGuestCount() {
-    document.getElementById('current-count').textContent = guests.length;
-    document.getElementById('add-guest-btn').disabled = guests.length >= 3;
+function hideRoomInfo() {
+    const roomInfo = document.getElementById('room-info');
+    if (roomInfo) roomInfo.style.display = 'none';
+    selectedRoom = null;
+    updatePricePreview();
 }
 
-function validateStartDate(startDate) {
-    const regex = /^\d{2}\/\d{2}\/\d{4}$/;
-
-    if (!regex.test(startDate)) {
-        alert('Ngày phải đúng định dạng dd/mm/yyyy!');
-        return false;
+// ============= QUẢN LÝ KHÁCH =============
+function addGuest() {
+    if (guestCount >= maxGuests) {
+        alert(`Chỉ được phép tối đa ${maxGuests} khách!`);
+        return;
     }
 
-    const inputDate = parseVNDate(startDate);
-
-    if (!inputDate) {
-        alert('Ngày không hợp lệ!');
-        return false;
+    if (!selectedRoom) {
+        alert('Vui lòng chọn phòng trước!');
+        return;
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    inputDate.setHours(0, 0, 0, 0);
+    guestCount++;
+    const guestList = document.getElementById('guest-list');
+    const loaiKhach = getLoaiKhach();
 
-    const diffDays = (inputDate - today) / (1000 * 60 * 60 * 24);
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td style="text-align: center;">${guestCount}</td>
+        <td>
+            <input type="text" class="guest-name" placeholder="Nhập tên khách hàng" required>
+        </td>
+        <td>
+            <select class="guest-type" onchange="updatePricePreview()">
+                ${loaiKhach.map(lk => `
+                    <option value="${lk.MaLoaiKhach}">${lk.LoaiKhach}</option>
+                `).join('')}
+            </select>
+        </td>
+        <td>
+            <input type="text" class="guest-id" placeholder="Nhập CMND" required>
+        </td>
+        <td>
+            <input type="text" class="guest-address" placeholder="Nhập địa chỉ">
+        </td>
+        <td style="text-align: right; font-weight: 600; color: #1e293b;">
+            <span class="guest-price">${formatCurrency(0)}</span>
+        </td>
+        <td style="text-align: center;">
+            <button type="button" class="btn-delete" onclick="removeGuest(this)">Xóa</button>
+        </td>
+    `;
 
-    if (diffDays < 0) {
-        alert('Không được nhập ngày quá khứ!');
-        return false;
+    guestList.appendChild(row);
+    updateGuestCounter();
+    updatePricePreview();
+
+    // Disable nút thêm nếu đã đủ
+    const addBtn = document.getElementById('add-guest-btn');
+    if (guestCount >= maxGuests && addBtn) {
+        addBtn.disabled = true;
+    }
+}
+
+function addGuestWithData(data) {
+    guestCount++;
+    const guestList = document.getElementById('guest-list');
+    const loaiKhach = getLoaiKhach();
+
+    const row = document.createElement('tr');
+    row.setAttribute('data-guest-id', data.maKhachHang || '');
+    row.innerHTML = `
+        <td style="text-align: center;">${guestCount}</td>
+        <td>
+            <input type="text" class="guest-name" placeholder="Nhập tên khách hàng" value="${data.name}" required>
+        </td>
+        <td>
+            <select class="guest-type" onchange="updatePricePreview()">
+                ${loaiKhach.map(lk => `
+                    <option value="${lk.MaLoaiKhach}" ${lk.MaLoaiKhach === data.type ? 'selected' : ''}>
+                        ${lk.LoaiKhach}
+                    </option>
+                `).join('')}
+            </select>
+        </td>
+        <td>
+            <input type="text" class="guest-id" placeholder="Nhập CMND" value="${data.cmnd}" required>
+        </td>
+        <td>
+            <input type="text" class="guest-address" placeholder="Nhập địa chỉ" value="${data.address}">
+        </td>
+        <td style="text-align: right; font-weight: 600; color: #1e293b;">
+            <span class="guest-price">${formatCurrency(0)}</span>
+        </td>
+        <td style="text-align: center;">
+            <button type="button" class="btn-delete" onclick="removeGuest(this)">Xóa</button>
+        </td>
+    `;
+
+    guestList.appendChild(row);
+    updateGuestCounter();
+
+    // Disable nút thêm nếu đã đủ
+    const addBtn = document.getElementById('add-guest-btn');
+    if (guestCount >= maxGuests && addBtn) {
+        addBtn.disabled = true;
+    }
+}
+
+function removeGuest(button) {
+    const row = button.closest('tr');
+    row.remove();
+    guestCount--;
+
+    // Cập nhật lại STT
+    const rows = document.querySelectorAll('#guest-list tr');
+    rows.forEach((row, index) => {
+        row.cells[0].textContent = index + 1;
+    });
+
+    updateGuestCounter();
+    updatePricePreview();
+
+    // Enable nút thêm
+    const addBtn = document.getElementById('add-guest-btn');
+    if (addBtn) addBtn.disabled = false;
+}
+
+function updateGuestCounter() {
+    const currentCount = document.getElementById('current-count');
+    if (currentCount) currentCount.textContent = guestCount;
+}
+
+// ============= TÍNH TIỀN =============
+function calculateGuestPrice(thuTuKhach, maLoaiKhach) {
+    if (!selectedRoom) return 0;
+
+    const loaiPhong = getLoaiPhong();
+    const tiLePhuThu = getTiLePhuThu();
+    const loaiKhach = getLoaiKhach();
+
+    const loai = loaiPhong.find(lp => lp.MaLoaiPhong === selectedRoom.MaLoaiPhong);
+    const donGiaPhong = loai ? loai.DonGia : 0;
+
+    const phuThu = tiLePhuThu.find(pt => pt.ThuTuKhach === thuTuKhach);
+    const heSoKhach = phuThu ? phuThu.HeSoPhuThu : 1.0;
+
+    const loaiKH = loaiKhach.find(lk => lk.MaLoaiKhach === parseInt(maLoaiKhach));
+    const heSoLoaiKhach = loaiKH ? loaiKH.HeSoPhuThu : 1.0;
+
+    return donGiaPhong * heSoKhach * heSoLoaiKhach;
+}
+
+function updatePricePreview() {
+    if (!selectedRoom) {
+        document.getElementById('total-per-day').textContent = '0 VNĐ';
+        return;
     }
 
-    if (diffDays > 100) {
-        alert('Ngày thuê không được vượt quá 100 ngày từ hôm nay!');
-        return false;
+    const rows = document.querySelectorAll('#guest-list tr');
+    let totalPerDay = 0;
+
+    rows.forEach((row, index) => {
+        const thuTuKhach = index + 1;
+        const guestTypeSelect = row.querySelector('.guest-type');
+        const maLoaiKhach = guestTypeSelect ? guestTypeSelect.value : 1;
+
+        const guestPrice = calculateGuestPrice(thuTuKhach, maLoaiKhach);
+
+        const priceCell = row.querySelector('.guest-price');
+        if (priceCell) {
+            priceCell.textContent = formatCurrency(guestPrice);
+        }
+
+        totalPerDay += guestPrice;
+    });
+
+    const totalElement = document.getElementById('total-per-day');
+    if (totalElement) {
+        totalElement.textContent = formatCurrency(totalPerDay) + ' VNĐ';
+    }
+}
+
+// ============= LƯU PHIẾU THUÊ =============
+function saveBooking() {
+    if (!validateForm()) return;
+
+    const formDate = getISODate(document.getElementById('form-date'));
+    const startDate = getISODate(document.getElementById('start-date'));
+
+    if (!formDate || !startDate) {
+        alert('Vui lòng nhập đầy đủ ngày lập và ngày bắt đầu thuê!');
+        return;
     }
 
-    return true;
+    if (!selectedRoom) {
+        alert('Vui lòng chọn phòng!');
+        return;
+    }
+
+    if (guestCount === 0) {
+        alert('Vui lòng thêm ít nhất 1 khách hàng!');
+        return;
+    }
+
+    const guests = collectGuestData();
+    if (!guests) return;
+
+    if (currentMode === 'edit') {
+        updateBooking(formDate, startDate, guests);
+    } else {
+        createBooking(formDate, startDate, guests);
+    }
+}
+
+function createBooking(formDate, startDate, guests) {
+    const khachHang = getKhachHang();
+    const thuePhong = getThuePhong();
+    const ctThuePhong = getCTThuePhong();
+
+    const maThuePhong = getNextId('THUEPHONG');
+
+    const savedGuestIds = [];
+    guests.forEach(guest => {
+        const maKhachHang = getNextId('KHACHHANG');
+
+        khachHang.push({
+            MaKhachHang: maKhachHang,
+            TenKhachHang: guest.name,
+            MaLoaiKhach: guest.type,
+            CMND: guest.cmnd,
+            DiaChi: guest.address || ''
+        });
+
+        savedGuestIds.push({
+            maKhachHang: maKhachHang,
+            thuTuKhach: guest.order
+        });
+    });
+
+    thuePhong.push({
+        MaThuePhong: maThuePhong,
+        SoPhong: selectedRoom.SoPhong,
+        NgayLap: formDate,
+        NgayBatDauThue: startDate,
+        NgayTraPhong: null,
+        SoNgayThue: null,
+        ThanhTien: null
+    });
+
+    savedGuestIds.forEach(guest => {
+        const maChiTiet = getNextId('CTTHUEPHONG');
+        ctThuePhong.push({
+            MaChiTiet: maChiTiet,
+            MaKhachHang: guest.maKhachHang,
+            MaThuePhong: maThuePhong,
+            ThuTuKhach: guest.thuTuKhach
+        });
+    });
+
+    updateTinhTrangPhong(selectedRoom.SoPhong, 'Đang thuê');
+
+    saveKhachHang(khachHang);
+    saveThuePhong(thuePhong);
+    saveCTThuePhong(ctThuePhong);
+
+    alert('Lưu phiếu thuê thành công!');
+    window.location.href = 'booking-list-v3.html';
+}
+
+function updateBooking(formDate, startDate, guests) {
+    const khachHang = getKhachHang();
+    const thuePhong = getThuePhong();
+    const ctThuePhong = getCTThuePhong();
+
+    // Cập nhật phiếu thuê
+    const bookingIndex = thuePhong.findIndex(tp => tp.MaThuePhong === currentBookingId);
+    if (bookingIndex !== -1) {
+        thuePhong[bookingIndex].NgayLap = formDate;
+        thuePhong[bookingIndex].NgayBatDauThue = startDate;
+        thuePhong[bookingIndex].SoPhong = selectedRoom.SoPhong;
+    }
+
+    // Xóa chi tiết cũ
+    const updatedCTThuePhong = ctThuePhong.filter(ct => ct.MaThuePhong !== currentBookingId);
+
+    // Cập nhật khách hàng và tạo chi tiết mới
+    guests.forEach(guest => {
+        let maKhachHang = guest.maKhachHang;
+
+        if (maKhachHang) {
+            // Cập nhật khách cũ
+            const khachIndex = khachHang.findIndex(kh => kh.MaKhachHang === maKhachHang);
+            if (khachIndex !== -1) {
+                khachHang[khachIndex].TenKhachHang = guest.name;
+                khachHang[khachIndex].MaLoaiKhach = guest.type;
+                khachHang[khachIndex].CMND = guest.cmnd;
+                khachHang[khachIndex].DiaChi = guest.address || '';
+            }
+        } else {
+            // Thêm khách mới
+            maKhachHang = getNextId('KHACHHANG');
+            khachHang.push({
+                MaKhachHang: maKhachHang,
+                TenKhachHang: guest.name,
+                MaLoaiKhach: guest.type,
+                CMND: guest.cmnd,
+                DiaChi: guest.address || ''
+            });
+        }
+
+        // Tạo chi tiết mới
+        const maChiTiet = getNextId('CTTHUEPHONG');
+        updatedCTThuePhong.push({
+            MaChiTiet: maChiTiet,
+            MaKhachHang: maKhachHang,
+            MaThuePhong: currentBookingId,
+            ThuTuKhach: guest.order
+        });
+    });
+
+    saveKhachHang(khachHang);
+    saveThuePhong(thuePhong);
+    saveCTThuePhong(updatedCTThuePhong);
+
+    alert('Cập nhật phiếu thuê thành công!');
+    window.location.href = 'booking-list-v3.html';
 }
 
 function validateForm() {
-    const roomNumber = document.getElementById('room-number').value;
-    const startDate = document.getElementById('start-date').value;
+    const rows = document.querySelectorAll('#guest-list tr');
 
-    if (!roomNumber || !startDate) {
-        alert('Vui lòng nhập đầy đủ thông tin!');
-        return false;
-    }
+    for (let row of rows) {
+        const name = row.querySelector('.guest-name').value.trim();
+        const cmnd = row.querySelector('.guest-id').value.trim();
 
-    if (!validateStartDate(startDate)) return false;
+        if (!name) {
+            alert('Vui lòng nhập tên khách hàng!');
+            row.querySelector('.guest-name').focus();
+            return false;
+        }
 
-    for (let guest of guests) {
-        if (!guest.name || !guest.idNumber) {
-            alert('Vui lòng nhập đầy đủ thông tin khách!');
+        if (!cmnd) {
+            alert('Vui lòng nhập CMND!');
+            row.querySelector('.guest-id').focus();
             return false;
         }
     }
@@ -233,38 +569,43 @@ function validateForm() {
     return true;
 }
 
-function saveForm() {
-    if (!validateForm()) return;
+function collectGuestData() {
+    const rows = document.querySelectorAll('#guest-list tr');
+    const guests = [];
 
-    const bookingData = {
-        id: currentBooking ? currentBooking.id : Date.now(),
-        formDate: document.getElementById('form-date').value,
-        roomNumber: document.getElementById('room-number').value,
-        startDate: document.getElementById('start-date').value,
-        guests
-    };
+    rows.forEach((row, index) => {
+        const name = row.querySelector('.guest-name').value.trim();
+        const type = parseInt(row.querySelector('.guest-type').value);
+        const cmnd = row.querySelector('.guest-id').value.trim();
+        const address = row.querySelector('.guest-address').value.trim();
+        const maKhachHang = row.getAttribute('data-guest-id');
 
-    const bookings = JSON.parse(localStorage.getItem('hotelBookings') || '[]');
+        guests.push({
+            order: index + 1,
+            name: name,
+            type: type,
+            cmnd: cmnd,
+            address: address,
+            maKhachHang: maKhachHang ? parseInt(maKhachHang) : null
+        });
+    });
 
-    if (currentBooking) {
-        const index = bookings.findIndex(b => b.id === currentBooking.id);
-        bookings[index] = bookingData;
-    } else {
-        bookings.push(bookingData);
-    }
-
-    localStorage.setItem('hotelBookings', JSON.stringify(bookings));
-
-    alert('Lưu thành công!');
-    window.location.href = 'booking-list.html';
+    return guests;
 }
 
+// ============= HỦY FORM =============
 function cancelForm() {
-    if (confirm('Bạn có chắc muốn hủy?')) {
-        window.location.href = 'booking-list.html';
+    if (confirm('Bạn có chắc muốn hủy? Dữ liệu chưa lưu sẽ mất.')) {
+        window.location.href = 'booking-list-v3.html';
     }
 }
 
+// ============= IN PHIẾU =============
 function printForm() {
     window.print();
+}
+
+// ============= HELPER =============
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('vi-VN').format(amount);
 }
