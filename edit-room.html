@@ -89,21 +89,31 @@
                   required
                 />
               </div>
+              <div class="form-group">
+                <label for="status"
+                  >Tình trạng phòng <span class="required">*</span></label
+                >
+                <select id="status" name="status" required>
+                  <option value="available">Trống</option>
+                  <option value="occupied">Đang thuê</option>
+                  <option value="maintenance">Bảo trì</option>
+                </select>
+              </div>
             </div>
           </div>
 
-         <div class="form-section">
-  <h3>Ghi chú</h3>
+          <div class="form-section">
+            <h3>Ghi chú</h3>
 
-  <div class="form-group">
-    <textarea
-      id="notes"
-      name="notes"
-      placeholder="Nhập ghi chú..."
-      rows="4"
-    ></textarea>
-  </div>
-</div>
+            <div class="form-group">
+              <textarea
+                id="notes"
+                name="notes"
+                placeholder="Nhập ghi chú..."
+                rows="4"
+              ></textarea>
+            </div>
+          </div>
           <div class="form-actions">
             <button
               type="button"
