@@ -34,11 +34,18 @@ document.addEventListener('DOMContentLoaded', () => {
 function fillForm(room) {
     document.getElementById('roomCode').value = room.id || '';
     document.getElementById('roomName').value = room.name || '';
-    document.getElementById('roomType').value = room.type || '';
+    const typeSelect = document.getElementById('roomType');
+    const mapType = {
+        "Phòng tiêu chuẩn": "standard",
+        "Phòng cao cấp": "deluxe",
+        "Phòng hạng sang": "suite"
+    };
+    typeSelect.value = mapType[room.type] || room.type || '';
     document.getElementById('price').value = room.price || '';
     document.getElementById('status').value = room.status || 'available';
     document.getElementById('notes').value = room.notes || '';
 }
+
 
 // ==========================
 // AUTO PRICE
