@@ -15,7 +15,6 @@ body {
     height: 100vh;
 }
 
-
 /* Main Content */
 .main-content {
     flex: 1;
@@ -82,37 +81,20 @@ body {
     gap: 12px;
 }
 
-.btn-primary,
+/* Button */
 .btn-secondary {
     display: flex;
     align-items: center;
     gap: 8px;
     padding: 14px 28px;
-    border: none;
     border-radius: 8px;
     font-size: 15px;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-}
-
-.btn-primary {
-    background-color: #8D6E63;
-    color: white;
-    box-shadow: 0 2px 8px rgba(141, 110, 99, 0.2);
-}
-
-.btn-primary:hover {
-    background-color: #6D4C41;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(141, 110, 99, 0.3);
-}
-
-.btn-secondary {
     background-color: white;
     color: #8D6E63;
     border: 2px solid #D7CCC8;
+    transition: all 0.2s;
 }
 
 .btn-secondary:hover {
@@ -126,7 +108,6 @@ body {
     border-radius: 24px;
     font-size: 14px;
     font-weight: 600;
-    letter-spacing: 0.3px;
 }
 
 .badge-available {
@@ -137,11 +118,6 @@ body {
 .badge-occupied {
     background-color: #FFF3E0;
     color: #E65100;
-}
-
-.badge-maintenance {
-    background-color: #FFF9C4;
-    color: #F57F17;
 }
 
 /* Detail Grid */
@@ -216,34 +192,6 @@ body {
     font-size: 16px;
 }
 
-.info-grid div:has(#price) b {
-    color: #8D6E63;
-    font-size: 18px;
-    font-weight: 700;
-}
-
-/* Extra Info Styling */
-.section-card p {
-    padding: 14px 16px;
-    margin-bottom: 12px;
-    background-color: #FAF8F3;
-    border-radius: 8px;
-    font-size: 15px;
-    color: #5D4037;
-    border-left: 3px solid #BCAAA4;
-    transition: all 0.2s;
-}
-
-.section-card p:hover {
-    background-color: #EFEBE9;
-    border-left-color: #8D6E63;
-    transform: translateX(4px);
-}
-
-.section-card p:last-child {
-    margin-bottom: 0;
-}
-
 /* Responsive */
 @media (max-width: 1200px) {
     .detail-grid {
@@ -252,11 +200,6 @@ body {
 }
 
 @media (max-width: 768px) {
-    .sidebar {
-        width: 100%;
-        padding: 20px 16px;
-    }
-
     .container {
         flex-direction: column;
     }
@@ -286,7 +229,6 @@ body {
         flex-direction: column;
     }
 
-    .btn-primary,
     .btn-secondary {
         width: 100%;
         justify-content: center;
