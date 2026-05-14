@@ -1,200 +1,131 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Thêm phòng mới - Khách sạn</title>
-    <link rel="stylesheet" href="css/rooms-form.css" />
-    <link rel="stylesheet" href="css/common.css" />
-  </head>
-  <body>
-    <div class="container">
-      <div id="sidebar-container"></div>
-      <!-- Main Content -->
-      <main class="main-content">
-        <!-- Breadcrumb -->
-        <div class="breadcrumb">
-          <a href="rooms.html">Quản lý phòng</a>
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
-          <span>Thêm phòng mới</span>
-        </div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý phòng - Khách sạn</title>
+    <link rel="stylesheet" href="css/rooms.css">
+    <link rel="stylesheet" href="css/common.css">
+</head>
+
+<body>
+<div class="container">
+
+    <!-- SIDEBAR -->
+    <div id="sidebar-container"></div>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
 
         <div class="page-header">
-          <h2>Thêm phòng mới</h2>
-          <p>Nhập thông tin chi tiết của phòng</p>
+            <h2>Quản lý phòng</h2>
+            <p>Quản lý danh sách phòng và loại phòng</p>
         </div>
 
-        <!-- Form Container -->
-        <div class="form-container">
-          <form id="addRoomForm" onsubmit="handleSubmit(event)">
-            <!-- Thông tin cơ bản -->
-            <div class="form-section">
-              <div class="section-header">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="12" y1="16" x2="12" y2="12"></line>
-                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                </svg>
-                <h3>Thông tin cơ bản</h3>
-              </div>
+        <!-- SEARCH -->
+        <div class="search-section">
+            <div class="search-box">
+                <input type="text" id="searchInput"
+                       placeholder="Tìm kiếm theo mã phòng">
+            </div>
 
-              <div class="form-grid">
-                <div class="form-group">
-                  <label for="roomCode">
-                    Số phòng <span class="required">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="roomCode"
-                    name="roomCode"
-                    placeholder="Ví dụ: P101"
-                    required
-                  />
-                  <small class="help-text">Mã phòng phải là duy nhất</small>
-                </div>
-
-                <div class="form-group">
-                  <label for="roomName">
-                    Tên phòng <span class="required">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="roomName"
-                    name="roomName"
-                    placeholder="Ví dụ: Phòng 101"
-                    required
-                  />
-                </div>
-
-                <div class="form-group">
-                  <label for="roomType">
-                    Loại phòng <span class="required">*</span>
-                  </label>
-                  <select
-                    id="roomType"
-                    name="roomType"
-                    required
-                    onchange="updatePrice()"
-                  >
-                    <option value="">-- Chọn loại phòng --</option>
-                  <option value="standard" selected>Phòng tiêu chuẩn</option>
-                  <option value="deluxe">Phòng cao cấp</option>
-                  <option value="suite">Phòng hạng sang</option>
-                  </select>
-                </div>
-
-                <div class="form-group">
-                  <label for="price">
-                    Đơn giá (VNĐ) <span class="required">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    id="price"
-                    name="price"
-                    placeholder="500000"
-                    min="0"
-                    step="10000"
-                    required
-                  />
-                </div>
-
-                <div class="form-group">
-                  <label for="status">
-                    Tình trạng <span class="required">*</span>
-                  </label>
-                  <select id="status" name="status" required>
+            <div class="filter-group">
+                <select id="filterStatus">
+                    <option value="">Tất cả trạng thái</option>
                     <option value="available">Trống</option>
                     <option value="occupied">Đang thuê</option>
                     <option value="maintenance">Dọn dẹp</option>
-                  </select>
-                </div>
-              </div>
-            </div>
+                </select>
 
-            <!-- Ghi chú -->
-            <div class="form-section">
-              <div class="section-header">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path
-                    d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-                  ></path>
-                  <polyline points="14 2 14 8 20 8"></polyline>
-                  <line x1="16" y1="13" x2="8" y2="13"></line>
-                  <line x1="16" y1="17" x2="8" y2="17"></line>
-                  <line x1="10" y1="9" x2="8" y2="9"></line>
-                </svg>
-                <h3>Ghi chú</h3>
-              </div>
-
-              <div class="form-group">
-                <textarea
-                  id="notes"
-                  name="notes"
-                  rows="4"
-                  placeholder="Nhập ghi chú..."
-                ></textarea>
-              </div>
+                <select id="filterType">
+                    <option value="">Tất cả loại phòng</option>
+                    <option value="standard">Phòng tiêu chuẩn</option>
+                    <option value="deluxe">Phòng cao cấp</option>
+                    <option value="suite">Phòng hạng sang</option>
+                </select>
             </div>
-
-            <!-- Form Actions -->
-            <div class="form-actions">
-              <button type="button" class="btn-cancel" onclick="cancelForm()">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-                Hủy bỏ
-              </button>
-              <button type="submit" class="btn-submit">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-                Thêm phòng
-              </button>
-            </div>
-          </form>
         </div>
-      </main>
-    </div>
 
-    <script src="js/rooms-form.js"></script>
-    <script src="js/common.js"></script>
-  </body>
+        <!-- TABS -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('rooms')">
+                Danh sách phòng
+            </button>
+            <button class="tab-btn" onclick="switchTab('room-types')">
+                Loại phòng
+            </button>
+        </div>
+
+        <!-- ROOMS TAB -->
+        <div id="rooms-tab" class="tab-content active">
+
+            <div class="content-header">
+                <div class="stats-summary">
+                    Tổng: <strong id="totalRooms">0</strong>
+                </div>
+
+                <button class="btn-primary" onclick="location.href='rooms-form.html'">
+                    + Thêm phòng mới
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Số phòng</th>
+                            <th>Tên phòng</th>
+                            <th>Loại phòng</th>                            
+                            <th>Đơn Giá</th>
+                            <th>Tình trạng</th>
+                            <th>Ghi Chú</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="roomTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ROOM TYPES TAB -->
+        <div id="room-types-tab" class="tab-content">
+
+            <div class="content-header">
+                <div class="stats-summary">
+                    Tổng: <strong id="total-types">0</strong>
+                </div>
+
+                <button class="btn-primary" onclick="location.href='room-type-form.html'">
+                    + Thêm loại phòng
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Mã Loại Phòng</th>
+                            <th>Loại Phòng</th>
+                            <th> Đơn Giá</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="room-types-table"></tbody>
+                </table>
+            </div>
+
+        </div>
+
+    </main>
+</div>
+
+<!-- SCRIPTS -->
+<script src="js/rooms.js"></script>
+<script src="js/common.js"></script>
+
+</body>
 </html>
