@@ -69,7 +69,7 @@ function updatePrice() {
 function handleSubmit(event) {
     event.preventDefault();
 
-     const typeNameMap = {
+    const typeNameMap = {
     standard: "Phòng tiêu chuẩn",
     deluxe: "Phòng cao cấp",
     suite: "Phòng hạng sang"
@@ -79,12 +79,10 @@ const data = {
     id: document.getElementById('roomCode').value.trim(),
     name: document.getElementById('roomName').value.trim(),
     type: document.getElementById('roomType').value,
-    typeName: typeNameMap[document.getElementById('roomType').value], // 👈 THÊM DÒNG NÀY
-    price: Number(document.getElementById('price').value),
+    typeName: typeNameMap[document.getElementById('roomType').value], 
     status: document.getElementById('status').value,
     notes: document.getElementById('notes').value.trim()
 };
-
 
     // validate
     if (!data.id || !data.name || !data.type) {
