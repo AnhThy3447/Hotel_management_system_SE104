@@ -49,7 +49,13 @@ function saveData() {
 }
 // ================= INIT =================
 document.addEventListener("DOMContentLoaded", () => {
+    const savedRooms = JSON.parse(localStorage.getItem("rooms"));
+
+if (savedRooms) {
+    rooms = savedRooms;
+} else {
     localStorage.setItem("rooms", JSON.stringify(rooms));
+}
     const savedTypes = JSON.parse(localStorage.getItem("roomTypes"));
 if (savedTypes) {
     roomTypes = savedTypes;
@@ -72,11 +78,11 @@ function renderRooms(list = rooms) {
     tbody.innerHTML = "";
     total.textContent = list.length;
 
-     roomTypes.forEach((type, index) => {
+   list.forEach((room, index) => {
         const tr = document.createElement("tr");
 
         tr.innerHTML = `
-             <td>${index + 1}</td>
+            <td>${index + 1}</td>   <!-- STT -->
             <td>${room.id}</td>
             <td>${room.name}</td>
             <td>${room.typeName}</td>
