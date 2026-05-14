@@ -248,6 +248,15 @@ body {
         align-items: flex-start;
         gap: 8px;
     }
+    .notes-content {
+    margin-top: 10px;
+    padding: 10px;
+    background: #f8f8f8;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    min-height: 60px;
+    white-space: pre-wrap;
+}
 }
 
 @media (max-width: 480px) {
