@@ -1,4 +1,4 @@
-/* Booking Form Page Specific Styles */
+/* Booking Form - Bố cục đẹp + Logic V3 */
 
 .main-content {
     padding: 32px;
@@ -49,6 +49,46 @@
     gap: 12px;
 }
 
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    background-color: #FAF8F3;
+    color: #5D4037;
+    border: 1px solid #D7CCC8;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+    background-color: #F5F5F5;
+    border-color: #BCAAA4;
+}
+
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #8D6E63 0%, #6D4C41 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(93, 64, 55, 0.3);
+}
+
 /* Form Content */
 .form-content {
     background: white;
@@ -62,7 +102,7 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 24px;
-    margin-bottom: 32px;
+    margin-bottom: 24px;
 }
 
 .form-group {
@@ -88,12 +128,39 @@
     border-radius: 8px;
     font-size: 16px;
     color: #5D4037;
+    transition: border-color 0.2s;
 }
 
 .form-group input:focus,
 .form-group select:focus {
     outline: none;
     border-color: #8D6E63;
+    box-shadow: 0 0 0 3px rgba(141, 110, 99, 0.1);
+}
+
+.form-group input::placeholder {
+    color: #BCAAA4;
+}
+
+/* Room Info Compact */
+.room-info-compact {
+    display: flex;
+    gap: 32px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%);
+    border-left: 4px solid #FF6F00;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    font-size: 14px;
+}
+
+.room-info-compact strong {
+    color: #E65100;
+    font-weight: 600;
+}
+
+.room-info-compact span {
+    color: #BF360C;
 }
 
 /* Guest Section */
@@ -112,16 +179,20 @@
     font-size: 20px;
     font-weight: 500;
     color: #5D4037;
+    margin: 0;
 }
 
 .guest-count {
     font-size: 14px;
     color: #8D6E63;
+    margin: 0;
 }
 
 .table-container {
     overflow-x: auto;
     margin-bottom: 16px;
+    border-radius: 8px;
+    border: 1px solid #D7CCC8;
 }
 
 #guest-table {
@@ -142,12 +213,18 @@
     color: #5D4037;
 }
 
+#guest-table th:first-child,
 #guest-table th:last-child {
     text-align: center;
 }
 
 #guest-table tbody tr {
-    border-bottom: 1px solid #D7CCC8;
+    border-bottom: 1px solid #EFEBE9;
+    transition: background-color 0.2s;
+}
+
+#guest-table tbody tr:hover {
+    background-color: #FAF8F3;
 }
 
 #guest-table td {
@@ -157,6 +234,7 @@
 #guest-table td:first-child {
     text-align: center;
     color: #6D4C41;
+    font-weight: 500;
 }
 
 #guest-table td:last-child {
@@ -177,6 +255,14 @@
 #guest-table select:focus {
     outline: none;
     border-color: #8D6E63;
+    box-shadow: 0 0 0 2px rgba(141, 110, 99, 0.1);
+}
+
+/* Guest Price Column */
+#guest-table td:nth-last-child(2) {
+    text-align: right;
+    font-weight: 600;
+    color: #6D4C41;
 }
 
 .btn-remove {
@@ -209,16 +295,50 @@
     border-radius: 8px;
     cursor: pointer;
     font-size: 16px;
-    transition: background-color 0.2s;
+    font-weight: 500;
+    transition: all 0.2s;
 }
 
 .btn-add-guest:hover:not(:disabled) {
     background-color: #F5F5F5;
+    border-color: #BCAAA4;
 }
 
 .btn-add-guest:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+/* Price Preview */
+.price-preview {
+    background: linear-gradient(135deg, #FFF9C4 0%, #FFF59D 100%);
+    border-left: 4px solid #F9A825;
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.preview-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 15px;
+    color: #F57F17;
+    font-weight: 500;
+}
+
+.price-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: #E65100;
+}
+
+.preview-note {
+    font-size: 12px;
+    color: #F57F17;
+    margin: 0;
+    font-style: italic;
 }
 
 /* Rules Note */
@@ -229,4 +349,82 @@
     border-radius: 8px;
     color: #E65100;
     font-size: 14px;
+    line-height: 1.6;
+}
+
+.rules-note strong {
+    color: #BF360C;
+    font-weight: 600;
+}
+
+/* Hidden class */
+.hidden {
+    display: none !important;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .form-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        padding: 16px;
+    }
+
+    .form-header {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .header-actions {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .header-actions button {
+        flex: 1;
+        min-width: 100px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .room-info-compact {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .guest-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .table-container {
+        font-size: 12px;
+    }
+
+    #guest-table th,
+    #guest-table td {
+        padding: 8px;
+    }
+}
+
+/* Print styles */
+@media print {
+    .btn-back,
+    .header-actions,
+    .btn-add-guest,
+    .btn-remove {
+        display: none !important;
+    }
+
+    .form-content {
+        border: 1px solid #D7CCC8;
+        box-shadow: none;
+    }
 }
