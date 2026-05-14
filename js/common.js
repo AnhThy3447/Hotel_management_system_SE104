@@ -1,6 +1,3 @@
-// common.js - Load sidebar và các tiện ích chung
-
-// Tạo sidebar bằng JavaScript (tránh lỗi encoding khi fetch)
 function createSidebar() {
     return `
         <aside class="sidebar">
@@ -17,7 +14,7 @@ function createSidebar() {
                     </svg>
                     <span>Trang chủ</span>
                 </a>
-                <a href="rooms.html" class="nav-item" data-page="rooms">
+                <a href="room-management.html" class="nav-item" data-page="rooms">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M2 4v16"></path>
                         <path d="M2 8h18a2 2 0 0 1 2 2v10"></path>
@@ -35,6 +32,13 @@ function createSidebar() {
                     </svg>
                     <span>Thuê phòng</span>
                 </a>
+                <a href="checkout-list.html" class="nav-item" data-page="checkout">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 11l3 3L22 4"></path>
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                    </svg>
+                    <span>Trả phòng</span>
+                </a>
                 <a href="#" class="nav-item" data-page="customers">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -44,7 +48,7 @@ function createSidebar() {
                     </svg>
                     <span>Khách hàng</span>
                 </a>
-                <a href="#" class="nav-item" data-page="invoices">
+                <a href="invoice-list.html" class="nav-item" data-page="invoices">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                         <polyline points="14 2 14 8 20 8"></polyline>
@@ -76,7 +80,6 @@ function createSidebar() {
     `;
 }
 
-// Load sidebar vào trang
 function loadSidebar() {
     const container = document.getElementById('sidebar-container');
     if (container) {
@@ -85,7 +88,6 @@ function loadSidebar() {
     }
 }
 
-// Đánh dấu menu đang active
 function setActiveMenu() {
     const currentPage = document.body.getAttribute('data-page');
     if (!currentPage) return;
@@ -98,33 +100,20 @@ function setActiveMenu() {
     });
 }
 
-// Format ngày theo định dạng Việt Nam
 function formatDate(dateString) {
-    if (!dateString) return '';
-    // nếu đã là dd/mm/yyyy thì trả luôn
-    if (dateString.includes('/')) {
-        return dateString;
-    }
-    // nếu là yyyy-mm-dd thì chuyển
-    if (dateString.includes('-')) {
-        const [year, month, day] = dateString.split('-');
-        return `${day}/${month}/${year}`;
-    }
-    return dateString;
+    const date = new Date(dateString);
+    return date.toLocaleDateString('vi-VN');
 }
 
-// Utility: Lấy dữ liệu từ localStorage
 function getStorageData(key) {
     const data = localStorage.getItem(key);
     return data ? JSON.parse(data) : null;
 }
 
-// Utility: Lưu dữ liệu vào localStorage
 function setStorageData(key, data) {
     localStorage.setItem(key, JSON.stringify(data));
 }
 
-// Khởi tạo khi trang load
 document.addEventListener('DOMContentLoaded', () => {
     loadSidebar();
 });
