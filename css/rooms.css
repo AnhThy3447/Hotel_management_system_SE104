@@ -159,9 +159,11 @@ thead {
 
 th, td {
     padding: 16px;
+    text-align: center;
 }
 
 td {
+    
     border-bottom: 1px solid #D7CCC8;
 }
 
@@ -169,6 +171,11 @@ tbody tr:hover {
     background-color: rgba(239, 235, 233, 0.5);
 }
 
+th:first-child,
+td:first-child {
+    width:200px; /* chỉnh nhỏ lại */
+    text-align: center;
+}
 /* Action Buttons */
 .btn-action {
     padding: 8px;
