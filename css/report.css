@@ -18,6 +18,7 @@ body {
 }
 
 
+
 /* Main Content */
 .main-content {
   flex: 1;
@@ -343,4 +344,54 @@ body {
 
 .report-table {
   width: 95%;
+}
+@media print {
+  /* Ẩn sidebar */
+  .sidebar,
+  #sidebar-container {
+    display: none !important;
+  }
+
+  /* Ẩn tiêu đề trang */
+  .page-header h2,
+  .page-header p {
+    display: none !important;
+  }
+
+  /* Ẩn filter + nút */
+  .filter-section,
+  .btn-export,
+  .btn-filter {
+    display: none !important;
+  }
+
+  /* Full màn hình */
+  .main-content {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Format lại bảng */
+  .report-card {
+    box-shadow: none;
+    border: none;
+  }
+
+  body {
+    background: white;
+  }
+ 
+  .report-table thead th {
+    color: #3e2723!important;     
+    opacity: 1 !important;       
+    font-weight: bold !important;
+    
+
+  }
+   .report-table {
+    border-collapse: collapse;
+    border: 1px solid #3e2723;
+  }
+  
 }
