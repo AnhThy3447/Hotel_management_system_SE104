@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
 
-    // 👉 Lấy data từ localStorage
+    // Lấy data từ localStorage
     const rooms = JSON.parse(localStorage.getItem("rooms")) || [];
 
     console.log("ROOMS:", rooms);
@@ -21,8 +21,8 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("id").textContent = room.id;
     document.getElementById("name").textContent = room.name;
     document.getElementById("type").textContent = room.typeName;
-
-    // 🔥 FIX GIÁ (quan trọng)
+    document.getElementById("notes").textContent = room.notes || "Không có ghi chú";
+    // FIX GIÁ 
     document.getElementById("price").textContent =
         Number(room.price || 0).toLocaleString("vi-VN") + " VNĐ";
 
