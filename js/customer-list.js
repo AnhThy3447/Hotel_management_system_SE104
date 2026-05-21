@@ -4,8 +4,10 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeDatabase();
     renderCustomers();
     renderAgencies();
+    renderHistory();
     setupCustomerSearch();
     setupAgencySearch();
+    setupHistorySearch();
 });
 
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
@@ -254,6 +256,110 @@ function setupAgencySearch() {
     });
 }
 
+// ─── Lịch sử thuê phòng (BM5) ────────────────────────────────────────────────
+
+function buildHistoryRows() {
+    const thuePhong = getThuePhong();
+    const ctThuePhong = getCTThuePhong();
+    const khachHang = getKhachHang();
+    const loaiKhach = getLoaiKhach();
+
+    // Duyệt từ CTTHUEPHONG → tìm KHACHHANG + THUEPHONG (giống chiều modal)
+    const rows = [];
+    ctThuePhong.forEach(ct => {
+        // Dùng == để tránh mismatch kiểu dữ liệu number/string
+        const kh = khachHang.find(k => k.MaKhachHang == ct.MaKhachHang);
+        if (!kh) return;
+        const tp = thuePhong.find(t => t.MaThuePhong == ct.MaThuePhong);
+        if (!tp) return;
+        const loai = loaiKhach.find(lk => lk.MaLoaiKhach == kh.MaLoaiKhach);
+
+        rows.push({
+            maThuePhong: tp.MaThuePhong,
+            soPhong: tp.SoPhong,
+            ngayBatDau: tp.NgayBatDauThue,
+            ngayTra: tp.NgayTraPhong || null,
+            soNgay: tp.SoNgayThue || 0,
+            thanhTien: tp.ThanhTien || 0,
+            tenKhach: kh.TenKhachHang || '—',
+            tenLoai: loai ? loai.LoaiKhach : 'N/A',
+            isNuocNgoai: loai ? loai.LoaiKhach !== 'Nội địa' : false
+        });
+    });
+
+    // Sắp xếp: đang thuê lên trên, rồi theo ngày thuê gần nhất
+    rows.sort((a, b) => {
+        if (!a.ngayTra && b.ngayTra) return -1;
+        if (a.ngayTra && !b.ngayTra) return 1;
+        return (b.ngayBatDau || '').localeCompare(a.ngayBatDau || '');
+    });
+
+    return rows;
+}
+
+function renderHistory(list = null) {
+    const allRows = buildHistoryRows();
+    const rows = list !== null ? list : allRows;
+    const tbody = document.getElementById('history-table-body');
+
+    document.getElementById('history-count-badge').textContent = allRows.length;
+    document.getElementById('history-showing').textContent = rows.length;
+
+    if (rows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="empty-state">Không có kết quả tra cứu</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = rows.map((row, index) => {
+        const dangThue = !row.ngayTra;
+        const ngayTraText = dangThue
+            ? `<span style="color:#f59e0b;font-style:italic">Đang thuê</span>`
+            : formatDateVN(row.ngayTra);
+        const thanhTienText = dangThue
+            ? `<span style="color:#94a3b8">—</span>`
+            : `<strong style="color:#16a34a">${formatCurrency(row.thanhTien)} VNĐ</strong>`;
+
+        return `
+            <tr>
+                <td>${index + 1}</td>
+                <td><strong>${row.tenKhach}</strong></td>
+                <td><span class="${row.isNuocNgoai ? 'badge-foreign' : 'badge-local'}">${row.tenLoai}</span></td>
+                <td><span class="badge badge-room">${row.soPhong}</span></td>
+                <td>${formatDateVN(row.ngayBatDau)}</td>
+                <td>${ngayTraText}</td>
+                <td>${dangThue ? '—' : row.soNgay}</td>
+                <td>${thanhTienText}</td>
+            </tr>`;
+    }).join('');
+}
+
+function setupHistorySearch() {
+    const applyFilter = () => {
+        const name = document.getElementById('history-filter-name').value.toLowerCase().trim();
+        const room = document.getElementById('history-filter-room').value.trim();
+        const status = document.getElementById('history-filter-status').value;
+
+        let rows = buildHistoryRows();
+
+        if (name) rows = rows.filter(r => r.tenKhach.toLowerCase().includes(name));
+        if (room) rows = rows.filter(r => r.soPhong.toString().includes(room));
+        if (status === 'done')   rows = rows.filter(r => r.ngayTra !== null);
+        if (status === 'active') rows = rows.filter(r => r.ngayTra === null);
+
+        renderHistory(rows);
+    };
+
+    ['history-filter-name', 'history-filter-room', 'history-filter-status']
+        .forEach(id => document.getElementById(id).addEventListener('input', applyFilter));
+}
+
+function clearHistoryFilter() {
+    document.getElementById('history-filter-name').value = '';
+    document.getElementById('history-filter-room').value = '';
+    document.getElementById('history-filter-status').value = '';
+    renderHistory();
+}
+
 // ─── Utilities ────────────────────────────────────────────────────────────────
 
 function formatDateVN(dateString) {
@@ -261,4 +367,9 @@ function formatDateVN(dateString) {
     const parts = dateString.split('-');
     if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
     return dateString;
+}
+
+function formatCurrency(amount) {
+    if (!amount && amount !== 0) return '0';
+    return Number(amount).toLocaleString('vi-VN');
 }
