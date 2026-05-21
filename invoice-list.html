@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Hóa đơn - Khách sạn Paradise</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/invoice.css">
+</head>
+<body data-page="invoices">
+    <div class="container">
+        <div id="sidebar-container"></div>
+
+        <main class="main-content">
+            <div class="content-wrapper">
+
+                <div class="header">
+                    <div class="header-left">
+                        <h1>Quản lý Hóa đơn</h1>
+                        <p class="subtitle">
+                            Tổng số hóa đơn: <span id="total-invoices">0</span>
+                        </p>
+                    </div>
+
+                    <button class="btn-primary" onclick="goToCreateInvoice()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Tạo hóa đơn
+                    </button>
+                </div>
+
+                <div class="search-bar">
+                    <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <input type="text" id="search-input" placeholder="Tìm theo mã hóa đơn, khách hàng...">
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>STT</th>
+                                <th>Mã HĐ</th>
+                                <th>Khách thanh toán</th>
+                                <th>Ngày thanh toán</th>
+                                <th>Số phiếu thuê</th>
+                                <th>Tổng tiền</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="invoice-table-body"></tbody>
+                    </table>
+                </div>
+
+                <div class="footer-info">
+                    Hiển thị <span id="showing-count">0</span> hóa đơn
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal chi tiết -->
+    <div id="invoice-modal" class="modal">
+        <div class="modal-content invoice-modal-content">
+
+            <div class="modal-header">
+                <h2>Hóa Đơn Thanh Toán</h2>
+                <button class="btn-close" onclick="closeInvoiceModal()">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="invoice-info-grid">
+                    <div class="info-row">
+                        <span class="label">Mã hóa đơn:</span>
+                        <span class="value" id="modal-invoice-id"></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Khách thanh toán:</span>
+                        <span class="value" id="modal-customer"></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Cơ quan:</span>
+                        <span class="value" id="modal-agency"></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Ngày thanh toán:</span>
+                        <span class="value" id="modal-date"></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Tổng tiền:</span>
+                        <span class="value total-money" id="modal-total"></span>
+                    </div>
+                </div>
+
+                <div class="table-container invoice-detail-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>STT</th>
+                                <th>Phòng</th>
+                                <th>Loại phòng</th>
+                                <th>Số ngày thuê</th>
+                                <th>Đơn giá</th>
+                                <th>Trị giá</th>
+                            </tr>
+                        </thead>
+                        <tbody id="invoice-detail-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeInvoiceModal()">Đóng</button>
+                <button class="btn-primary" onclick="printInvoice()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px">
+                        <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                        <rect x="6" y="14" width="12" height="8"></rect>
+                    </svg>
+                    In hóa đơn
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/data-structure.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/invoice-list.js"></script>
+</body>
+</html>
