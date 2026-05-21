@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tra cứu Khách hàng - Khách sạn Paradise</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/booking-list.css">
+    <style>
+        /* ── Tabs ── */
+        .tab-bar {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .tab-btn {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #6b7280;
+            cursor: pointer;
+            transition: color 0.15s, border-color 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tab-btn:hover { color: #1d4ed8; }
+        .tab-btn.active { color: #1d4ed8; border-bottom-color: #1d4ed8; }
+
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* ── Inline add-agency form ── */
+        .add-form-card {
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 18px;
+        }
+        .add-form-card .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 12px;
+            align-items: flex-end;
+        }
+        .add-form-card .form-group { display: flex; flex-direction: column; gap: 4px; }
+        .add-form-card label { font-size: 12px; font-weight: 600; color: #6b7280; }
+        .add-form-card .form-input {
+            padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px;
+            font-size: 14px; outline: none; transition: border-color 0.15s;
+        }
+        .add-form-card .form-input:focus { border-color: #3b82f6; }
+
+        /* ── Modal edit ── */
+        .modal {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.45); z-index: 1000;
+            align-items: center; justify-content: center;
+        }
+        .modal.open { display: flex; }
+        .modal-content {
+            background: #fff; border-radius: 12px; width: 480px; max-width: 95vw;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+        .modal-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 18px 22px 14px; border-bottom: 1px solid #e5e7eb;
+        }
+        .modal-header h2 { margin: 0; font-size: 16px; color: #1e293b; }
+        .modal-body { padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; }
+        .modal-body .form-group { display: flex; flex-direction: column; gap: 4px; }
+        .modal-body label { font-size: 12px; font-weight: 600; color: #6b7280; }
+        .modal-body .form-input {
+            padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 6px;
+            font-size: 14px; outline: none; transition: border-color 0.15s;
+        }
+        .modal-body .form-input:focus { border-color: #3b82f6; }
+        .modal-footer {
+            padding: 14px 22px; border-top: 1px solid #e5e7eb;
+            display: flex; justify-content: flex-end; gap: 10px;
+        }
+
+        .badge-local  { background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 9px; font-size: 12px; font-weight: 500; }
+        .badge-foreign{ background: #fef9c3; color: #854d0e; padding: 2px 8px; border-radius: 9px; font-size: 12px; font-weight: 500; }
+    </style>
+</head>
+<body data-page="customers">
+    <div class="container">
+        <div id="sidebar-container"></div>
+
+        <main class="main-content">
+            <div class="content-wrapper">
+
+                <div class="header">
+                    <div class="header-left">
+                        <h1>Tra cứu Khách hàng</h1>
+                        <p class="subtitle">Danh sách khách hàng đã từng sử dụng dịch vụ</p>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tab-bar">
+                    <button class="tab-btn active" onclick="switchTab('customers')" id="tab-customers">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                        Khách hàng
+                        <span class="badge badge-room" id="customer-count-badge">0</span>
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('agencies')" id="tab-agencies">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="7" width="20" height="14" rx="2"></rect>
+                            <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"></path>
+                        </svg>
+                        Cơ quan
+                        <span class="badge badge-room" id="agency-count-badge">0</span>
+                    </button>
+                </div>
+
+                <!-- Tab: Khách hàng -->
+                <div class="tab-panel active" id="panel-customers">
+                    <div class="search-bar">
+                        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.35-4.35"></path>
+                        </svg>
+                        <input type="text" id="customer-search" placeholder="Tìm theo tên, CMND hoặc địa chỉ...">
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>STT</th>
+                                    <th>CMND</th>
+                                    <th>Họ tên khách hàng</th>
+                                    <th>Loại khách</th>
+                                    <th>Địa chỉ</th>
+                                    <th>Số lần thuê</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customer-table-body"></tbody>
+                        </table>
+                    </div>
+                    <div class="footer-info">
+                        Hiển thị <span id="customer-showing">0</span> khách hàng
+                    </div>
+                </div>
+
+                <!-- Tab: Cơ quan -->
+                <div class="tab-panel" id="panel-agencies">
+
+                    <!-- Form thêm cơ quan -->
+                    <div class="add-form-card">
+                        <div style="font-size:13px;font-weight:700;color:#475569;margin-bottom:12px">
+                            Thêm cơ quan mới
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Tên cơ quan</label>
+                                <input type="text" class="form-input" id="new-agency-name" placeholder="Nhập tên cơ quan...">
+                            </div>
+                            <div class="form-group">
+                                <label>Địa chỉ</label>
+                                <input type="text" class="form-input" id="new-agency-address" placeholder="Nhập địa chỉ...">
+                            </div>
+                            <button class="btn-primary" onclick="addAgency()" style="height:38px;white-space:nowrap">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                                Thêm
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="search-bar">
+                        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.35-4.35"></path>
+                        </svg>
+                        <input type="text" id="agency-search" placeholder="Tìm theo tên hoặc địa chỉ cơ quan...">
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>STT</th>
+                                    <th>Tên cơ quan</th>
+                                    <th>Địa chỉ</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="agency-table-body"></tbody>
+                        </table>
+                    </div>
+                    <div class="footer-info">
+                        Hiển thị <span id="agency-showing">0</span> cơ quan
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal xem chi tiết khách hàng -->
+    <div id="customer-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Chi tiết khách hàng</h2>
+                <button class="btn-close" onclick="closeCustomerModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Họ tên</label>
+                    <input type="text" class="form-input" id="modal-customer-name" readonly>
+                </div>
+                <div class="form-group">
+                    <label>CMND</label>
+                    <input type="text" class="form-input" id="modal-customer-cmnd" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Loại khách</label>
+                    <input type="text" class="form-input" id="modal-customer-type" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Địa chỉ</label>
+                    <input type="text" class="form-input" id="modal-customer-address" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Lịch sử thuê phòng</label>
+                    <div id="modal-customer-history" style="font-size:13px;color:#475569;padding:8px 0;line-height:1.8"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeCustomerModal()">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal sửa cơ quan -->
+    <div id="agency-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Sửa cơ quan</h2>
+                <button class="btn-close" onclick="closeAgencyModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="edit-agency-id">
+                <div class="form-group">
+                    <label>Tên cơ quan</label>
+                    <input type="text" class="form-input" id="edit-agency-name" placeholder="Tên cơ quan">
+                </div>
+                <div class="form-group">
+                    <label>Địa chỉ</label>
+                    <input type="text" class="form-input" id="edit-agency-address" placeholder="Địa chỉ">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeAgencyModal()">Hủy</button>
+                <button class="btn-primary" onclick="saveAgency()">Lưu</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/data-structure.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/customer-list.js"></script>
+</body>
+</html>
