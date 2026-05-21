@@ -124,6 +124,14 @@
                         Cơ quan
                         <span class="badge badge-room" id="agency-count-badge">0</span>
                     </button>
+                    <button class="tab-btn" onclick="switchTab('history')" id="tab-history">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        Lịch sử thuê
+                        <span class="badge badge-room" id="history-count-badge">0</span>
+                    </button>
                 </div>
 
                 <!-- Tab: Khách hàng -->
@@ -154,6 +162,55 @@
                     </div>
                     <div class="footer-info">
                         Hiển thị <span id="customer-showing">0</span> khách hàng
+                    </div>
+                </div>
+
+                <!-- Tab: Lịch sử thuê (BM5) -->
+                <div class="tab-panel" id="panel-history">
+
+                    <!-- Bộ lọc -->
+                    <div class="add-form-card">
+                        <div style="font-size:13px;font-weight:700;color:#475569;margin-bottom:12px">Lọc kết quả</div>
+                        <div class="form-row" style="grid-template-columns:1fr 1fr 1fr auto">
+                            <div class="form-group">
+                                <label>Họ tên khách</label>
+                                <input type="text" class="form-input" id="history-filter-name" placeholder="Tìm theo tên...">
+                            </div>
+                            <div class="form-group">
+                                <label>Số phòng</label>
+                                <input type="text" class="form-input" id="history-filter-room" placeholder="Số phòng...">
+                            </div>
+                            <div class="form-group">
+                                <label>Trạng thái</label>
+                                <select class="form-input" id="history-filter-status">
+                                    <option value="">-- Tất cả --</option>
+                                    <option value="done">Đã trả phòng</option>
+                                    <option value="active">Đang thuê</option>
+                                </select>
+                            </div>
+                            <button class="btn-secondary" onclick="clearHistoryFilter()" style="height:38px;white-space:nowrap">Xóa lọc</button>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>STT</th>
+                                    <th>Họ tên khách</th>
+                                    <th>Loại khách</th>
+                                    <th>Phòng</th>
+                                    <th>Ngày thuê</th>
+                                    <th>Ngày trả</th>
+                                    <th>Số ngày</th>
+                                    <th>Thành tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table-body"></tbody>
+                        </table>
+                    </div>
+                    <div class="footer-info">
+                        Hiển thị <span id="history-showing">0</span> bản ghi
                     </div>
                 </div>
 
