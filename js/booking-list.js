@@ -1,7 +1,7 @@
 // booking-list.js - Theo DB Schema với View/Edit
 // Hiển thị danh sách phiếu thuê từ THUEPHONG, CTTHUEPHONG, KHACHHANG
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'https://hotel-management-system-se104.onrender.com/api';
 let bookings = [];
 
 async function initializeData() {
