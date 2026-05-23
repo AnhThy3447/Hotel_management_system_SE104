@@ -2,7 +2,7 @@
 // Tính tiền đầy đủ theo LOAIPHONG, TILEPHUTHU, LOAIKHACH
 // Sử dụng date input dd/mm/yyyy
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'https://hotel-management-system-se104.onrender.com/api';
 let currentCheckoutBooking = null;
 let allBookings = [];
 
