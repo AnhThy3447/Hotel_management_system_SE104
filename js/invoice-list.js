@@ -1,201 +1,140 @@
 // invoice-list.js - Quản lý danh sách hóa đơn
-// Sử dụng dữ liệu từ localStorage thông qua data-structure.js
+
+const API_URL = 'http://localhost:3000/api';
+let allInvoices = [];
 
 document.addEventListener('DOMContentLoaded', () => {
-    initializeDatabase();
     loadInvoices();
     setupSearch();
 });
 
-function loadInvoices(filtered = null) {
-    const hoaDon = filtered !== null ? filtered : getHoaDon();
-    const ctHoaDon = getCTHoaDon();
-    const khachHang = getKhachHang();
+async function loadInvoices(filtered = null) {
+    try {
+        if (!filtered) {
+            const res = await fetch(`${API_URL}/hoa-don`);
+            const json = await res.json();
+            allInvoices = json.data || [];
+        }
 
-    const tableBody = document.getElementById('invoice-table-body');
-    const totalInvoices = document.getElementById('total-invoices');
-    const showingCount = document.getElementById('showing-count');
+        const data = filtered || allInvoices;
+        const tableBody = document.getElementById('invoice-table-body');
+        const totalInvoices = document.getElementById('total-invoices');
+        const showingCount = document.getElementById('showing-count');
 
-    if (hoaDon.length === 0) {
-        tableBody.innerHTML = `
-            <tr>
-                <td colspan="7" class="empty-state">
-                    Chưa có hóa đơn nào. Hãy tạo hóa đơn mới!
-                </td>
-            </tr>
-        `;
-        totalInvoices.textContent = '0';
-        showingCount.textContent = '0';
-        return;
+        if (data.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="7" class="empty-state">Chưa có hóa đơn nào!</td></tr>`;
+            totalInvoices.textContent = '0';
+            showingCount.textContent = '0';
+            return;
+        }
+
+        tableBody.innerHTML = data.map((invoice, index) => {
+            const maHD = 'HD' + String(invoice.mahoadon).padStart(3, '0');
+            return `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td><strong>${maHD}</strong></td>
+                    <td>${invoice.tenkhachhang || 'N/A'}</td>
+                    <td>${formatDateVN(invoice.ngaythanhToan?.split('T')[0] || invoice.ngaythanhtoan?.split('T')[0])}</td>
+                    <td><span class="badge badge-room">—</span></td>
+                    <td><strong style="color: #4CAF50;">${formatCurrency(invoice.tongtien)} VNĐ</strong></td>
+                    <td>
+                        <div class="actions">
+                            <button class="btn-icon btn-view" onclick="viewInvoice(${invoice.mahoadon})" title="Xem chi tiết">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </button>
+                            <button class="btn-icon btn-delete" onclick="deleteInvoice(${invoice.mahoadon})" title="Xóa">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+        totalInvoices.textContent = allInvoices.length;
+        showingCount.textContent = data.length;
+    } catch (err) {
+        console.error('Lỗi:', err);
     }
-
-    tableBody.innerHTML = hoaDon.map((invoice, index) => {
-        const kh = khachHang.find(k => k.MaKhachHang === invoice.MaKhachHangThanhToan);
-        const tenKhach = kh ? kh.TenKhachHang : 'N/A';
-        const soPhieuThue = ctHoaDon.filter(ct => ct.MaHoaDon === invoice.MaHoaDon).length;
-        const maHD = 'HD' + String(invoice.MaHoaDon).padStart(3, '0');
-
-        return `
-            <tr>
-                <td>${index + 1}</td>
-                <td><strong>${maHD}</strong></td>
-                <td>${tenKhach}</td>
-                <td>${formatDateVN(invoice.NgayThanhToan)}</td>
-                <td><span class="badge badge-room">${soPhieuThue}</span></td>
-                <td><strong style="color: #4CAF50;">${formatCurrency(invoice.TongTien)} VNĐ</strong></td>
-                <td>
-                    <div class="actions">
-                        <button class="btn-icon btn-view" onclick="viewInvoice(${invoice.MaHoaDon})" title="Xem chi tiết">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                <circle cx="12" cy="12" r="3"></circle>
-                            </svg>
-                        </button>
-                        <button class="btn-icon btn-print" onclick="printInvoiceById(${invoice.MaHoaDon})" title="In hóa đơn">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="6 9 6 2 18 2 18 9"></polyline>
-                                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-                                <rect x="6" y="14" width="12" height="8"></rect>
-                            </svg>
-                        </button>
-                        <button class="btn-icon btn-delete" onclick="deleteInvoice(${invoice.MaHoaDon})" title="Xóa hóa đơn">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="3 6 5 6 21 6"></polyline>
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                            </svg>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `;
-    }).join('');
-
-    const allHoaDon = getHoaDon();
-    totalInvoices.textContent = allHoaDon.length;
-    showingCount.textContent = hoaDon.length;
 }
 
-// Xem chi tiết hóa đơn
-function viewInvoice(maHoaDon) {
-    const hoaDon = getHoaDon();
-    const ctHoaDon = getCTHoaDon();
-    const thuePhong = getThuePhong();
-    const khachHang = getKhachHang();
-    const phong = getPhong();
-    const loaiPhong = getLoaiPhong();
-    const coQuan = JSON.parse(localStorage.getItem('COQUAN') || '[]');
+async function viewInvoice(maHoaDon) {
+    try {
+        const res = await fetch(`${API_URL}/hoa-don/${maHoaDon}`);
+        const json = await res.json();
+        const invoice = json.data.hoaDon;
+        const chitiet = json.data.chiTiet || [];
 
-    const invoice = hoaDon.find(hd => hd.MaHoaDon === maHoaDon);
-    if (!invoice) return;
+        const maHD = 'HD' + String(invoice.mahoadon).padStart(3, '0');
+        document.getElementById('modal-invoice-id').textContent = maHD;
+        document.getElementById('modal-customer').textContent = invoice.tenkhachhang || 'N/A';
+        document.getElementById('modal-agency').textContent = invoice.tenco quan || 'Không có';
+        document.getElementById('modal-date').textContent = formatDateVN(invoice.ngaythanhtoan?.split('T')[0]);
+        document.getElementById('modal-total').textContent = formatCurrency(invoice.tongtien) + ' VNĐ';
 
-    const kh = khachHang.find(k => k.MaKhachHang === invoice.MaKhachHangThanhToan);
-    const tenKhach = kh ? kh.TenKhachHang : 'N/A';
-
-    const cq = coQuan.find(c => c.MaCoQuan === invoice.MaCoQuan);
-    const tenCoQuan = cq ? cq.TenCoQuan : 'Không có';
-
-    const maHD = 'HD' + String(invoice.MaHoaDon).padStart(3, '0');
-
-    document.getElementById('modal-invoice-id').textContent = maHD;
-    document.getElementById('modal-customer').textContent = tenKhach;
-    document.getElementById('modal-agency').textContent = tenCoQuan;
-    document.getElementById('modal-date').textContent = formatDateVN(invoice.NgayThanhToan);
-    document.getElementById('modal-total').textContent = formatCurrency(invoice.TongTien) + ' VNĐ';
-
-    const details = ctHoaDon.filter(ct => ct.MaHoaDon === maHoaDon);
-
-    const detailBody = document.getElementById('invoice-detail-body');
-    detailBody.innerHTML = details.map((detail, index) => {
-        const booking = thuePhong.find(tp => tp.MaThuePhong === detail.MaThuePhong);
-        const room = booking ? phong.find(p => p.SoPhong === booking.SoPhong) : null;
-        const roomType = room ? loaiPhong.find(lp => lp.MaLoaiPhong === room.MaLoaiPhong) : null;
-
-        const soPhong = booking ? booking.SoPhong : 'N/A';
-        const tenLoaiPhong = roomType ? roomType.LoaiPhong : 'N/A';
-        const soNgay = booking ? (booking.SoNgayThue || 0) : 0;
-        const donGia = roomType ? roomType.DonGia : 0;
-
-        return `
+        const detailBody = document.getElementById('invoice-detail-body');
+        detailBody.innerHTML = chitiet.map((ct, index) => `
             <tr>
                 <td>${index + 1}</td>
-                <td><strong>${soPhong}</strong></td>
-                <td>${tenLoaiPhong}</td>
-                <td>${soNgay}</td>
-                <td>${formatCurrency(donGia)} VNĐ</td>
-                <td><strong style="color: #4CAF50;">${formatCurrency(detail.TriGia)} VNĐ</strong></td>
+                <td><strong>${ct.sophong || 'N/A'}</strong></td>
+                <td>—</td>
+                <td>${ct.songaythue || 0}</td>
+                <td>—</td>
+                <td><strong style="color:#4CAF50">${formatCurrency(ct.trigia)} VNĐ</strong></td>
             </tr>
-        `;
-    }).join('');
+        `).join('');
 
-    document.getElementById('invoice-modal').classList.add('show');
+        document.getElementById('invoice-modal').classList.add('show');
+    } catch (err) {
+        alert('Lỗi: ' + err.message);
+    }
 }
 
-// Đóng modal
 function closeInvoiceModal() {
     document.getElementById('invoice-modal').classList.remove('show');
 }
 
-// Xóa hóa đơn
-function deleteInvoice(maHoaDon) {
+async function deleteInvoice(maHoaDon) {
     if (!confirm('Bạn có chắc chắn muốn xóa hóa đơn này?')) return;
-
-    let hoaDon = getHoaDon();
-    let ctHoaDon = getCTHoaDon();
-
-    ctHoaDon = ctHoaDon.filter(ct => ct.MaHoaDon !== maHoaDon);
-    saveCTHoaDon(ctHoaDon);
-
-    hoaDon = hoaDon.filter(hd => hd.MaHoaDon !== maHoaDon);
-    saveHoaDon(hoaDon);
-
-    alert('Đã xóa hóa đơn thành công!');
-    loadInvoices();
+    try {
+        await fetch(`${API_URL}/hoa-don/${maHoaDon}`, { method: 'DELETE' });
+        alert('Đã xóa hóa đơn thành công!');
+        loadInvoices();
+    } catch (err) {
+        alert('Lỗi: ' + err.message);
+    }
 }
 
-// In hóa đơn (từ modal đang mở)
-function printInvoice() {
-    window.print();
-}
-
-// In hóa đơn theo ID (mở modal rồi in)
-function printInvoiceById(maHoaDon) {
-    viewInvoice(maHoaDon);
-    setTimeout(() => window.print(), 300);
-}
-
-// Tìm kiếm hóa đơn
 function setupSearch() {
     const searchInput = document.getElementById('search-input');
     searchInput.addEventListener('input', (e) => {
-        const searchTerm = e.target.value.toLowerCase().trim();
-
-        if (!searchTerm) { loadInvoices(); return; }
-
-        const hoaDon = getHoaDon();
-        const khachHang = getKhachHang();
-        const ctHoaDon = getCTHoaDon();
-        const thuePhong = getThuePhong();
-
-        const filtered = hoaDon.filter(hd => {
-            const maHD = 'HD' + String(hd.MaHoaDon).padStart(3, '0');
-            if (maHD.toLowerCase().includes(searchTerm)) return true;
-
-            const kh = khachHang.find(k => k.MaKhachHang === hd.MaKhachHangThanhToan);
-            if (kh && kh.TenKhachHang.toLowerCase().includes(searchTerm)) return true;
-
-            const details = ctHoaDon.filter(ct => ct.MaHoaDon === hd.MaHoaDon);
-            return details.some(ct => {
-                const booking = thuePhong.find(tp => tp.MaThuePhong === ct.MaThuePhong);
-                return booking && booking.SoPhong.toString().includes(searchTerm);
-            });
+        const q = e.target.value.toLowerCase().trim();
+        if (!q) { loadInvoices(); return; }
+        const filtered = allInvoices.filter(hd => {
+            const maHD = 'HD' + String(hd.mahoadon).padStart(3, '0');
+            return maHD.toLowerCase().includes(q) ||
+                (hd.tenkhachhang || '').toLowerCase().includes(q);
         });
-
         loadInvoices(filtered);
     });
 }
 
 function goToCreateInvoice() {
     window.location.href = 'create-invoice.html';
+}
+
+function printInvoice() { window.print(); }
+
+function printInvoiceById(maHoaDon) {
+    viewInvoice(maHoaDon);
+    setTimeout(() => window.print(), 300);
 }
 
 function formatDateVN(dateString) {
