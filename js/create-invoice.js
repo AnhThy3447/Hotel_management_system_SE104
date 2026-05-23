@@ -1,6 +1,6 @@
 // create-invoice.js - Lập hóa đơn thanh toán
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'https://hotel-management-system-se104.onrender.com/api';
 
 let allBookings = [];
 let allCustomers = [];
