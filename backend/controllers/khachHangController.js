@@ -16,7 +16,7 @@ exports.themKhach = async (req, res) => {
 exports.xemDanhSach = async (req, res) => {
   try {
     const result = await db.query(
-      `SELECT kh.*, lk.TenLoaiKhach FROM KHACHHANG kh
+      `SELECT kh.*, lk.LoaiKhach FROM KHACHHANG kh
        LEFT JOIN LOAIKHACH lk ON kh.MaLoaiKhach = lk.MaLoaiKhach`
     );
     res.json({ success: true, data: result.rows });
@@ -29,7 +29,7 @@ exports.xemChiTiet = async (req, res) => {
   try {
     const { id } = req.params;
     const result = await db.query(
-      `SELECT kh.*, lk.TenLoaiKhach FROM KHACHHANG kh
+      `SELECT kh.*, lk.LoaiKhach FROM KHACHHANG kh
        LEFT JOIN LOAIKHACH lk ON kh.MaLoaiKhach = lk.MaLoaiKhach
        WHERE kh.MaKhachHang = $1`,
       [id]
