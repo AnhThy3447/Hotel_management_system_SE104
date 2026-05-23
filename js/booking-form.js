@@ -1,6 +1,6 @@
 // Hỗ trợ: Tạo mới, Xem chi tiết (read-only), Chỉnh sửa
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'https://hotel-management-system-se104.onrender.com/api';
 let currentBooking = null;
 let guests = [];
 let isViewMode = false;
@@ -171,7 +171,7 @@ async function saveForm() {
     };
 
     try {
-        const res = await fetch('http://localhost:3000/api/thue-phong', {
+        const res = await fetch('http://hotel-management-system-se104.onrender.com/api/thue-phong', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(bookingData)
