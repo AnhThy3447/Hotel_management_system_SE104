@@ -2,10 +2,10 @@ const db = require('../db');
 
 exports.them = async (req, res) => {
   try {
-    const { TenCoQuan, DiaChi, MaSoThue, NguoiDaiDien, SoDienThoai } = req.body;
+    const { TenCoQuan, DiaChi } = req.body;
     const result = await db.query(
-      `INSERT INTO COQUAN (TenCoQuan, DiaChi, MaSoThue, NguoiDaiDien, SoDienThoai) VALUES ($1,$2,$3,$4,$5) RETURNING *`,
-      [TenCoQuan, DiaChi, MaSoThue, NguoiDaiDien, SoDienThoai]
+      `INSERT INTO COQUAN (TenCoQuan, DiaChi) VALUES ($1, $2) RETURNING *`,
+      [TenCoQuan, DiaChi]
     );
     res.status(201).json({ success: true, data: result.rows[0] });
   } catch (err) {
@@ -35,11 +35,10 @@ exports.xemChiTiet = async (req, res) => {
 exports.capNhat = async (req, res) => {
   try {
     const { id } = req.params;
-    const { TenCoQuan, DiaChi, MaSoThue, NguoiDaiDien, SoDienThoai } = req.body;
+    const { TenCoQuan, DiaChi } = req.body;
     const result = await db.query(
-      `UPDATE COQUAN SET TenCoQuan=$1, DiaChi=$2, MaSoThue=$3, NguoiDaiDien=$4, SoDienThoai=$5
-       WHERE MaCoQuan=$6 RETURNING *`,
-      [TenCoQuan, DiaChi, MaSoThue, NguoiDaiDien, SoDienThoai, id]
+      `UPDATE COQUAN SET TenCoQuan=$1, DiaChi=$2 WHERE MaCoQuan=$3 RETURNING *`,
+      [TenCoQuan, DiaChi, id]
     );
     res.json({ success: true, data: result.rows[0] });
   } catch (err) {
