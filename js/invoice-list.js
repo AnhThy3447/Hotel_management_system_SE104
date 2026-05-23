@@ -1,6 +1,6 @@
 // invoice-list.js - Quản lý danh sách hóa đơn
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'https://hotel-management-system-se104.onrender.com/api';
 let allInvoices = [];
 
 document.addEventListener('DOMContentLoaded', () => {
