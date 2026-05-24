@@ -21,6 +21,8 @@ app.use('/api/quy-dinh',    require('./routes/quyDinh'));
 
 app.use('/api/co-quan',     require('./routes/coQuan'));
 
+app.use('/api/baocao',      require('./routes/report'));
+
 app.get('/', (req, res) => {
 
   res.json({ message: '✅ Backend QLKS đang chạy!' });

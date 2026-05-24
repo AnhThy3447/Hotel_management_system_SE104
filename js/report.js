@@ -1,176 +1,147 @@
-// ===== DATA =====
-const revenueData = [
-  { month: "2026-05", type: "Phòng tiêu chuẩn", revenue: 15000000, percent: 45, count: 30, rentPercent: 46, note: "" },
-  { month: "2026-05", type: "Phòng hạng sang", revenue: 18000000, percent: 55, count: 35, rentPercent: 54, note: "" },
-
-  { month: "2026-06", type: "Phòng tiêu chuẩn", revenue: 20000000, percent: 50, count: 40, rentPercent: 57, note: "" },
-  { month: "2026-06", type: "Phòng hạng sang", revenue: 20000000, percent: 50, count: 30, rentPercent: 43, note: "" }
-];
-
-const customerData = [
-    { month: "2026-05", type: "Khách nội địa", count: 150, percent: 75 },
-    { month: "2026-05", type: "Khách quốc tế", count: 50, percent: 25 },
-    { month: "2026-06", type: "Khách nội địa", count: 200, percent: 80 },
-    { month: "2026-06", type: "Khách quốc tế", count: 50, percent: 20 }
-];
+const BASE_URL = "http://localhost:3000/api/baocao";
 
 // ===== LOAD =====
 document.addEventListener("DOMContentLoaded", () => {
   loadRevenue();
 });
 
-// ===== DOANH THU =====
-function loadRevenue() {
+
+async function loadRevenue() {
   const tbody = document.getElementById("revenueBody");
-  tbody.innerHTML = "";
+  tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:15px;">Đang tải dữ liệu doanh thu...</td></tr>`;
 
   const filterType = document.getElementById("filterType").value;
+  let filterValue = "";
 
-  let filteredData = [];
-
-  // ===== LỌC =====
   if (filterType === "month") {
-    const selectedMonth = document.getElementById("reportMonth").value;
-    filteredData = revenueData.filter(item => item.month === selectedMonth);
+    filterValue = document.getElementById("reportMonth").value; // Định dạng: YYYY-MM
   } else {
-    const selectedYear = document.getElementById("reportYear").value;
-    filteredData = revenueData.filter(item =>
-      item.month.startsWith(selectedYear)
-    );
+    filterValue = document.getElementById("reportYear").value;  // Định dạng: YYYY
   }
 
-  // ===== KIỂM TRA RỖNG =====
-  if (filteredData.length === 0) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="7" class="empty-state">
-          Không có dữ liệu
-        </td>
-      </tr>
-    `;
-    document.getElementById("totalRevenue").innerText = "0";
-    document.getElementById("totalCount").innerText = "0";
+  if (!filterValue) {
+    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Vui lòng chọn thời gian</td></tr>`;
     return;
   }
 
-  // ===== GỘP THEO LOẠI PHÒNG =====
-  let grouped = {};
+  try {
+    const response = await fetch(`${BASE_URL}/doanh-thu?filterType=${filterType}&value=${filterValue}`);
+    const filteredData = await response.json();
 
-  filteredData.forEach(item => {
-    if (!grouped[item.type]) {
-      grouped[item.type] = { revenue: 0, count: 0 };
-    }
-    grouped[item.type].revenue += item.revenue;
-    grouped[item.type].count += item.count;
-  });
 
-  // ===== TÍNH TỔNG =====
-  let totalRevenue = 0;
-  let totalCount = 0;
-
-  Object.values(grouped).forEach(item => {
-    totalRevenue += item.revenue;
-    totalCount += item.count;
-  });
-
-  // ===== RENDER =====
-  let index = 1;
-
-  for (let type in grouped) {
-    const data = grouped[type];
-
-    const percent = ((data.revenue / totalRevenue) * 100).toFixed(0);
-    const rentPercent = ((data.count / totalCount) * 100).toFixed(0);
-
-    tbody.innerHTML += `
-      <tr>
-        <td>${index++}</td>
-        <td>${type}</td>
-        <td>${data.revenue.toLocaleString()} VNĐ</td>
-        <td class="text-center">${percent}%</td>
-        <td class="text-center">${data.count}</td>
-        <td class="text-center">${rentPercent}%</td>
-        <td></td>
-      </tr>
-    `;
-  }
-
-  // ===== HIỂN THỊ TỔNG =====
-  document.getElementById("totalRevenue").innerText =
-    totalRevenue.toLocaleString() + " VNĐ";
-
-  document.getElementById("totalCount").innerText = totalCount;
-}
-
-// ===== KHÁCH =====
-function loadCustomerReport() {
-    const tbody = document.getElementById("customerBody");
-    tbody.innerHTML = "";
-
-    const filterType = document.getElementById("filterType").value;
-
-    let filteredData = [];
-
-    //  LỌC THEO THÁNG
-    if (filterType === "month") {
-        const selectedMonth = document.getElementById("reportMonth").value;
-
-        filteredData = customerData.filter(item =>
-            item.month === selectedMonth
-        );
+    if (!filteredData || filteredData.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" class="empty-state">Không có dữ liệu doanh thu</td>
+        </tr>
+      `;
+      document.getElementById("totalRevenue").innerText = "0 VNĐ";
+      document.getElementById("totalCount").innerText = "0";
+      return;
     }
 
-    // LỌC THEO NĂM
-    else {
-        const selectedYear = document.getElementById("reportYear").value;
-
-        filteredData = customerData.filter(item =>
-            item.month.startsWith(selectedYear)
-        );
-    }
-
-    let total = 0;
-    filteredData.forEach(item => total += item.count);
+    let totalRevenue = 0;
+    let totalCount = 0;
 
     filteredData.forEach(item => {
-        const [year, m] = item.month.split("-");
+      totalRevenue += Number(item.revenue);
+      totalCount += Number(item.count);
+    });
 
-        tbody.innerHTML += `
-            <tr>
-                <td>${parseInt(m)}/${year}</td>
-                <td>${item.type}</td>
-                <td class="text-center">${item.count}</td>
-                <td class="text-center">${item.percent}%</td>
-            </tr>
-        `;
+    tbody.innerHTML = "";
+    let index = 1;
+
+    filteredData.forEach(item => {
+      const revenue = Number(item.revenue);
+      const count = Number(item.count);
+
+      const percent = totalRevenue > 0 ? ((revenue / totalRevenue) * 100).toFixed(0) : 0;
+      const rentPercent = totalCount > 0 ? ((count / totalCount) * 100).toFixed(0) : 0;
+
+      tbody.innerHTML += `
+        <tr>
+          <td>${index++}</td>
+          <td>Phòng loại ${item.type}</td>
+          <td>${revenue.toLocaleString()} VNĐ</td>
+          <td class="text-center">${percent}%</td>
+          <td class="text-center">${count}</td>
+          <td class="text-center">${rentPercent}%</td>
+          <td>${item.revenue > 0 ? "Ổn định" : ""}</td>
+        </tr>
+      `;
+    });
+
+    document.getElementById("totalRevenue").innerText = totalRevenue.toLocaleString() + " VNĐ";
+    document.getElementById("totalCount").innerText = totalCount;
+
+  } catch (error) {
+    tbody.innerHTML = `<tr><td colspan="7" style="color:red; text-align:center;">Lỗi hệ thống: ${error.message}</td></tr>`;
+  }
+}
+
+
+async function loadCustomerReport() {
+  const tbody = document.getElementById("customerBody");
+  tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:15px;">Đang tải dữ liệu mật độ khách...</td></tr>`;
+
+  const filterType = document.getElementById("filterType").value;
+  let filterValue = "";
+
+  if (filterType === "month") {
+    filterValue = document.getElementById("reportMonth").value;
+  } else {
+    filterValue = document.getElementById("reportYear").value;
+  }
+
+  if (!filterValue) {
+    tbody.innerHTML = `<tr><td colspan="4" class="empty-state">Vui lòng chọn thời gian</td></tr>`;
+    return;
+  }
+
+  try {
+    const response = await fetch(`${BASE_URL}/khach?filterType=${filterType}&value=${filterValue}`);
+    const filteredData = await response.json();
+
+    
+    if (!filteredData || filteredData.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="4" class="empty-state">Không có dữ liệu khách tháng này</td>
+        </tr>
+      `;
+      document.getElementById("totalCustomer").innerText = "0";
+      return;
+    }
+
+    
+    let total = 0;
+    filteredData.forEach(item => total += Number(item.count));
+
+    
+    tbody.innerHTML = "";
+    filteredData.forEach(item => {
+      const [year, m] = item.month.split("-");
+      const count = Number(item.count);
+      const percent = total > 0 ? ((count / total) * 100).toFixed(0) : 0;
+
+      tbody.innerHTML += `
+        <tr>
+          <td>${parseInt(m)}/${year}</td>
+          <td>Khách ${item.type}</td>
+          <td class="text-center">${count}</td>
+          <td class="text-center">${percent}%</td>
+        </tr>
+      `;
     });
 
     document.getElementById("totalCustomer").innerText = total;
 
-    if (filteredData.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="4" class="empty-state">
-                    Không có dữ liệu
-                </td>
-            </tr>
-        `;
-    }
-
-
-    // Nếu không có dữ liệu
-    if (filteredData.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="4" class="empty-state">
-                    Không có dữ liệu tháng này
-                </td>
-            </tr>
-        `;
-    }
+  } catch (error) {
+    tbody.innerHTML = `<tr><td colspan="4" style="color:red; text-align:center;">Lỗi hệ thống: ${error.message}</td></tr>`;
+  }
 }
 
-// ===== ĐỔI REPORT =====
+
 function changeReportType() {
   const type = document.getElementById("reportType").value;
 
@@ -181,10 +152,10 @@ function changeReportType() {
     type === "customer" ? "block" : "none";
 
   if (type === "customer") loadCustomerReport();  
-else loadRevenue();
+  else loadRevenue();
 }
 
-// ===== ĐỔI FILTER =====
+
 function changeFilterType() {
   const type = document.getElementById("filterType").value;
 
@@ -195,19 +166,22 @@ function changeFilterType() {
     type === "year" ? "block" : "none";
 }
 
-// ===== APPLY FILTER =====
+
 function applyFilter() {
   const type = document.getElementById("filterType").value;
-
   let text = "";
 
   if (type === "month") {
     const month = document.getElementById("reportMonth").value;
-    const [year, m] = month.split("-");
-    text = `Tháng ${parseInt(m)}/${year}`;
+    if (month) {
+      const [year, m] = month.split("-");
+      text = `Tháng ${parseInt(m)}/${year}`;
+    } else {
+      text = "Chưa chọn tháng";
+    }
   } else {
     const year = document.getElementById("reportYear").value;
-    text = `Năm ${year}`;
+    text = year ? `Năm ${year}` : "Chưa chọn năm";
   }
 
   document.getElementById("displayMonth").innerText = text;
@@ -216,7 +190,63 @@ function applyFilter() {
   changeReportType();
 }
 
-// ===== EXPORT =====
+
 function exportReport() {
-  window.print();
+  const currentType = document.getElementById("reportType").value;
+  let tableId = "";
+  let filePrefix = "";
+  let headerRow = [];
+
+  if (currentType === "revenue") {
+    tableId = "revenueBody";
+    filePrefix = "BaoCaoDoanhThu";
+    headerRow = ["STT", "Loại Phòng", "Doanh Thu", "Tỷ Lệ Doanh Thu", "Số Lượt Thuê", "Tỷ Lệ Thuê", "Ghi Chú"];
+  } else {
+    tableId = "customerBody";
+    filePrefix = "BaoCaoKhach";
+    headerRow = ["Tháng/Năm", "Loại Khách", "Số Lượng Khách", "Tỷ Lệ"];
+  }
+
+  const tableBody = document.getElementById(tableId);
+  if (!tableBody || tableBody.innerHTML.includes("empty-state") || tableBody.rows.length === 0) {
+    alert("Không có số liệu hiển thị trên bảng để kết xuất file!");
+    return;
+  }
+
+  let csvContent = "";
+  csvContent += headerRow.map(h => `"${h}"`).join(",") + "\n";
+
+  const rows = tableBody.querySelectorAll("tr");
+  for (let i = 0; i < rows.length; i++) {
+    const cols = rows[i].querySelectorAll("td");
+    const rowData = [];
+    for (let j = 0; j < cols.length; j++) {
+      // Loại bỏ ký tự dấu phẩy trong định dạng tiền tệ (ví dụ: 15,000,000) để không bị nhảy lệch ô Excel
+      let text = cols[j].innerText.replace(/,/g, "");
+      rowData.push(`"${text}"`);
+    }
+    csvContent += rowData.join(",") + "\n";
+  }
+
+ 
+  if (currentType === "revenue") {
+    const totalRev = document.getElementById("totalRevenue").innerText.replace(/,/g, "");
+    const totalCnt = document.getElementById("totalCount").innerText;
+    csvContent += `"Tổng cộng","", "${totalRev}","", "${totalCnt}","",""\n`;
+  } else {
+    const totalCst = document.getElementById("totalCustomer").innerText;
+    csvContent += `"Tổng cộng","", "${totalCst}",""\n`;
+  }
+
+  
+  const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  
+  const timeText = document.getElementById("displayMonth").innerText.replace(/\//g, "-");
+  link.href = url;
+  link.setAttribute("download", `${filePrefix}_${timeText}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
