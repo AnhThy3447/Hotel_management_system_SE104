@@ -28,7 +28,7 @@ async function loadRooms() {
     try {
         const res = await fetch(`${API_URL}/phong`);
         const json = await res.json();
-        allRooms = json.data || [];
+        allRooms = Array.isArray(json) ? json : (json.data || []);
 
         const select = document.getElementById('room-select');
         const availableRooms = allRooms.filter(p =>
