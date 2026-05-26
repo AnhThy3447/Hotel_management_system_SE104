@@ -67,7 +67,7 @@ async function handleSubmit(event) {
     try {
 
         const res =
-        await fetch(`${API_URL}/them`, {
+        await fetch(`${API_URL}`, {
 
             method: 'POST',
 

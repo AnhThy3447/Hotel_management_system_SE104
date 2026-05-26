@@ -1,5 +1,5 @@
 const API_URL =
-  'https://hotel-management-system-se104.onrender.com/api/phong';
+'https://hotel-management-system-se104.onrender.com/api/phong';
 
 document.addEventListener('DOMContentLoaded', () => {
     loadRoomDetail();
@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ======================================================
 // LOAD ROOM DETAIL
 // ======================================================
+
 async function loadRoomDetail() {
 
     const params =
@@ -15,176 +16,48 @@ async function loadRoomDetail() {
 
     const id = params.get('id');
 
-    const title =
-        document.getElementById('roomTitle');
-
-    const statusEl =
-        document.getElementById('roomStatus');
-
-    const idEl =
-        document.getElementById('id');
-
-    const typeEl =
-        document.getElementById('type');
-
-    const priceEl =
-        document.getElementById('price');
-
-    const notesEl =
-        document.getElementById('notes');
-
-    if (!id) {
-
-        if (title) {
-            title.textContent =
-                'Không tìm thấy phòng';
-        }
-
-        return;
-    }
+    if (!id) return;
 
     try {
 
-        if (title) {
-            title.textContent =
-                'Đang tải dữ liệu...';
-        }
-
         const response =
-            await fetch(`${API_URL}/${id}`);
+            await fetch(`${API_URL}/chi-tiet/${id}`);
 
-        if (!response.ok) {
-            throw new Error(
-                `HTTP ${response.status}`
-            );
-        }
-
-        const room =
+        const json =
             await response.json();
 
-        if (!room) {
+        const room =
+            json.data;
 
-            if (title) {
-                title.textContent =
-                    'Không tìm thấy phòng';
-            }
+        document.getElementById('roomTitle')
+            .textContent = `Phòng ${room.sophong}`;
 
-            return;
-        }
+        document.getElementById('id')
+            .textContent = room.sophong;
 
-        // ================= TITLE =================
+        document.getElementById('type')
+            .textContent = room.loaiphong;
 
-        if (title) {
-            title.textContent =
-                `Phòng ${room.sophong}`;
-        }
+        document.getElementById('price')
+            .textContent =
+            formatCurrency(room.dongia);
 
-        // ================= DATA =================
+        document.getElementById('notes')
+            .textContent =
+            room.ghichu || 'Không có';
 
-        if (idEl) {
-            idEl.textContent =
-                room.sophong || '';
-        }
-
-        if (typeEl) {
-            typeEl.textContent =
-                room.loaiphong || '';
-        }
-
-        if (priceEl) {
-            priceEl.textContent =
-                formatCurrency(room.dongia) +
-                ' VNĐ';
-        }
-
-        if (notesEl) {
-            notesEl.textContent =
-                room.ghichu ||
-                'Không có ghi chú';
-        }
-
-        // ================= STATUS =================
-
-        renderStatus(
-            room.tinhtrang,
-            statusEl
-        );
-
-        // ================= EDIT BUTTON =================
-
-        const editBtn =
-            document.getElementById('editBtn');
-
-        if (editBtn) {
-
-            editBtn.onclick = () => {
-
-                window.location.href =
-                    `edit-room.html?id=${room.sophong}`;
-            };
-        }
+        document.getElementById('roomStatus')
+            .textContent =
+            room.tinhtrang;
 
     } catch (err) {
 
-        console.error(
-            'Lỗi load chi tiết phòng:',
-            err
-        );
-
-        if (title) {
-            title.textContent =
-                'Lỗi tải dữ liệu';
-        }
-
-        if (notesEl) {
-            notesEl.textContent =
-                err.message;
-        }
+        console.error(err);
     }
 }
 
-// ======================================================
-// RENDER STATUS
-// ======================================================
-function renderStatus(status, el) {
+function formatCurrency(number) {
 
-    if (!el) return;
-
-    if (status === 'Trống') {
-
-        el.textContent =
-            'Trống';
-
-        el.className =
-            'badge badge-available';
-
-        return;
-    }
-
-    if (status === 'Đang thuê') {
-
-        el.textContent =
-            'Đang thuê';
-
-        el.className =
-            'badge badge-occupied';
-
-        return;
-    }
-
-    el.textContent =
-        'Dọn dẹp';
-
-    el.className =
-        'badge badge-maintenance';
-}
-
-// ======================================================
-// FORMAT PRICE
-// ======================================================
-function formatCurrency(amount) {
-
-    return new Intl
-        .NumberFormat('vi-VN')
-        .format(amount || 0);
+    return new Intl.NumberFormat('vi-VN')
+    .format(number || 0) + ' VNĐ';
 }

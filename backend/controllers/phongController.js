@@ -56,6 +56,60 @@ exports.xemDanhSachPhong = async (req, res) => {
 };
 
 // ======================================================
+// XEM CHI TIẾT PHÒNG
+// ======================================================
+
+exports.xemChiTietPhong = async (req, res) => {
+
+    try {
+
+        const { id } = req.params;
+
+        const sql = `
+            SELECT
+                p."SoPhong"       AS sophong,
+                p."TinhTrang"    AS tinhtrang,
+                p."GhiChu"       AS ghichu,
+
+                lp."MaLoaiPhong" AS maloaiphong,
+                lp."LoaiPhong"   AS loaiphong,
+                lp."DonGia"      AS dongia
+
+            FROM "PHONG" p
+
+            JOIN "LOAIPHONG" lp
+            ON p."MaLoaiPhong" = lp."MaLoaiPhong"
+
+            WHERE p."SoPhong" = $1
+        `;
+
+        const result = await db.query(sql, [id]);
+
+        if (result.rows.length === 0) {
+
+            return res.status(404).json({
+                success: false,
+                message: 'Không tìm thấy phòng'
+            });
+        }
+
+        res.json({
+            success: true,
+            data: result.rows[0]
+        });
+
+    } catch (err) {
+
+        console.error(err);
+
+        res.status(500).json({
+            success: false,
+            message: err.message
+        });
+    }
+};
+
+// ======================================================
 // THÊM PHÒNG
 // ======================================================
 
@@ -344,3 +398,4 @@ exports.capNhatLoaiPhong = async (req, res) => {
         });
     }
 };
+
