@@ -16,8 +16,12 @@ exports.themKhach = async (req, res) => {
 exports.xemDanhSach = async (req, res) => {
   try {
     const result = await db.query(
-      `SELECT kh.*, lk.LoaiKhach FROM KHACHHANG kh
-       LEFT JOIN LOAIKHACH lk ON kh.MaLoaiKhach = lk.MaLoaiKhach`
+      `SELECT kh.*, lk.LoaiKhach,
+              COUNT(hd.MaHoaDon) AS soLanThue
+       FROM KHACHHANG kh
+       LEFT JOIN LOAIKHACH lk ON kh.MaLoaiKhach = lk.MaLoaiKhach
+       LEFT JOIN HOADON hd ON kh.MaKhachHang = hd.MaKhachHangThanhToan
+       GROUP BY kh.MaKhachHang, lk.LoaiKhach`
     );
     res.json({ success: true, data: result.rows });
   } catch (err) {
