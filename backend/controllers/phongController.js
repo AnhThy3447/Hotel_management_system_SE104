@@ -28,25 +28,28 @@ const getDanhSachPhong = async (req, res) => {
 
 // POST /api/phong
 const themPhong = async (req, res) => {
-  const { sophong, maloaiphong, tinhtrang, ghichu } = req.body;
+  // Vì sophong là SERIAL nên không nhận từ req.body nữa
+  const { maloaiphong, tinhtrang, ghichu } = req.body;
 
-  if (!sophong || !maloaiphong) {
-    return res.status(400).json({ message: 'Thiếu sophong hoặc maloaiphong' });
+  if (!maloaiphong) {
+    return res.status(400).json({ message: 'Thiếu maloaiphong (Mã loại phòng)' });
   }
 
   try {
-    const check = await db.query('SELECT sophong FROM phong WHERE sophong = $1', [sophong]);
-    if (check.rows.length > 0) {
-      return res.status(409).json({ message: 'Mã phòng đã tồn tại' });
-    }
+    // Chuyển đổi maloaiphong sang kiểu số nguyên để khớp với DB
+    const maLoaiInt = parseInt(maloaiphong, 10);
 
-    await db.query(
-      `INSERT INTO phong (sophong, maloaiphong, tinhtrang, ghichu)
-       VALUES ($1, $2, $3, $4)`,
-      [sophong, maloaiphong, tinhtrang || 'available', ghichu || '']
+    const result = await db.query(
+      `INSERT INTO phong (maloaiphong, tinhtrang, ghichu)
+       VALUES ($1, $2, $3)
+       RETURNING sophong`,
+      [maLoaiInt, tinhtrang || 'Trống', ghichu || '']
     );
 
-    res.status(201).json({ message: 'Thêm phòng thành công', sophong });
+    res.status(201).json({ 
+      message: 'Thêm phòng thành công', 
+      sophong: result.rows[0].sophong 
+    });
   } catch (err) {
     console.error('themPhong:', err.message);
     res.status(500).json({ message: 'Lỗi server: ' + err.message });
@@ -55,7 +58,7 @@ const themPhong = async (req, res) => {
 
 // PUT /api/phong/:id
 const capNhatPhong = async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.params; // id này là số phòng (sophong)
   const { maloaiphong, tinhtrang, ghichu } = req.body;
 
   try {
@@ -66,7 +69,7 @@ const capNhatPhong = async (req, res) => {
            ghichu      = COALESCE($3, ghichu)
        WHERE sophong = $4
        RETURNING *`,
-      [maloaiphong, tinhtrang, ghichu, id]
+      [maloaiphong ? parseInt(maloaiphong, 10) : null, tinhtrang, ghichu, parseInt(id, 10)]
     );
 
     if (result.rows.length === 0) {
@@ -85,7 +88,7 @@ const xoaPhong = async (req, res) => {
   try {
     const result = await db.query(
       'DELETE FROM phong WHERE sophong = $1 RETURNING sophong',
-      [id]
+      [parseInt(id, 10)]
     );
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'Không tìm thấy phòng' });
@@ -116,26 +119,23 @@ const getDanhSachLoaiPhong = async (req, res) => {
 
 // POST /api/phong/loai-phong
 const themLoaiPhong = async (req, res) => {
-  const { maloaiphong, tenloaiphong, dongia } = req.body;
+  // maloaiphong là SERIAL nên chỉ cần lấy tenloaiphong (loaiphong) và dongia
+  const { tenloaiphong, dongia } = req.body;
 
-  if (!maloaiphong || !tenloaiphong) {
-    return res.status(400).json({ message: 'Thiếu maloaiphong hoặc tenloaiphong' });
+  if (!tenloaiphong) {
+    return res.status(400).json({ message: 'Thiếu tên loại phòng' });
   }
 
   try {
-    const check = await db.query(
-      'SELECT maloaiphong FROM loaiphong WHERE maloaiphong = $1', [maloaiphong]
-    );
-    if (check.rows.length > 0) {
-      return res.status(409).json({ message: 'Mã loại phòng đã tồn tại' });
-    }
-
-    await db.query(
-      'INSERT INTO loaiphong (maloaiphong, loaiphong, dongia) VALUES ($1, $2, $3)',
-      [maloaiphong, tenloaiphong, dongia || 0]
+    const result = await db.query(
+      'INSERT INTO loaiphong (loaiphong, dongia) VALUES ($1, $2) RETURNING maloaiphong',
+      [tenloaiphong, parseInt(dongia, 10) || 0]
     );
 
-    res.status(201).json({ message: 'Thêm loại phòng thành công', maloaiphong });
+    res.status(201).json({ 
+      message: 'Thêm loại phòng thành công', 
+      maloaiphong: result.rows[0].maloaiphong 
+    });
   } catch (err) {
     console.error('themLoaiPhong:', err.message);
     res.status(500).json({ message: 'Lỗi server: ' + err.message });
@@ -154,7 +154,7 @@ const capNhatDonGiaLoaiPhong = async (req, res) => {
            loaiphong = COALESCE($2, loaiphong)
        WHERE maloaiphong = $3
        RETURNING *`,
-      [dongia, tenloaiphong, id]
+      [dongia ? parseInt(dongia, 10) : null, tenloaiphong, parseInt(id, 10)]
     );
 
     if (result.rows.length === 0) {
