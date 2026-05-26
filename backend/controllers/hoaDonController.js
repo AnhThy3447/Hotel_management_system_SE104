@@ -61,3 +61,14 @@ exports.xemTheoPhieuThue = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+exports.xoaHoaDon = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await db.query(`DELETE FROM CTHOADON WHERE MaHoaDon = $1`, [id]);
+    await db.query(`DELETE FROM HOADON WHERE MaHoaDon = $1`, [id]);
+    res.json({ success: true, message: 'Đã xóa hóa đơn!' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
