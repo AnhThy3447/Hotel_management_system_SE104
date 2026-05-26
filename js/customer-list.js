@@ -62,7 +62,7 @@ async function renderCustomers(list = null) {
                         </span>
                     </td>
                     <td>${kh.diachi || '—'}</td>
-                    <td><span class="badge badge-guests">—</span></td>
+                    <td><span class="badge badge-guests">${kh.solanthue ?? '0'}</span></td>
                     <td>
                         <div class="actions">
                             <button class="btn-icon btn-view" onclick="viewCustomer(${kh.makhachhang})" title="Xem chi tiết">
