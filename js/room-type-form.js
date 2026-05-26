@@ -1,24 +1,21 @@
-const API_URL = "https://hotel-management-system-se104.onrender.com/api/phong";
-
-// ================= INIT =================
-document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("addRoomTypeForm");
-  if (form) {
-    // Loại bỏ gán sự kiện thủ công để nhường quyền xử lý cho onsubmit="handleSubmit(event)" trực tiếp từ HTML
-    console.log("Form 'addRoomTypeForm' đã sẵn sàng điều hướng dữ liệu.");
-  }
-});
+const API_URL =
+  "https://hotel-management-system-se104.onrender.com/api/phong";
 
 // ================= SUBMIT =================
 async function handleSubmit(event) {
   event.preventDefault();
 
-  // Đọc đúng ID từ cấu trúc HTML gốc của bạn
-  const maLoaiPhongVal = document.getElementById("typeCode").value.trim();
-  const loaiPhong = document.getElementById("typeName").value.trim();
-  const donGia = Number(document.getElementById("price").value);
+  const maLoaiPhong =
+    document.getElementById("typeCode").value.trim();
 
-  if (!maLoaiPhongVal) {
+  const loaiPhong =
+    document.getElementById("typeName").value.trim();
+
+  const donGia =
+    Number(document.getElementById("price").value);
+
+  // ===== VALIDATE =====
+  if (!maLoaiPhong) {
     alert("Vui lòng nhập mã loại phòng");
     return;
   }
@@ -33,38 +30,56 @@ async function handleSubmit(event) {
     return;
   }
 
-  // Chuyển mã loại phòng sang kiểu số nguyên (INT) để khớp với kiểu dữ liệu SERIAL của Database
-  const maLoaiPhong = parseInt(maLoaiPhongVal, 10);
-
   const body = {
     maLoaiPhong,
     loaiPhong,
     donGia,
   };
 
+  console.log("BODY SEND:", body);
+
   try {
-    console.log("Gửi gói tin:", body);
+    const response = await fetch(
+      `${API_URL}/loai-phong`,
+      {
+        method: "POST",
 
-    const response = await fetch(`${API_URL}/loai-phong`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
+        headers: {
+          "Content-Type": "application/json",
+        },
 
-    const result = await response.json();
-    console.log("Kết quả từ Server:", result);
+        body: JSON.stringify(body),
+      }
+    );
+
+    // ===== ĐỌC TEXT TRƯỚC =====
+    const text = await response.text();
+
+    console.log("RAW RESPONSE:", text);
+
+    let result;
+
+    try {
+      result = JSON.parse(text);
+    } catch {
+      throw new Error(
+        "Server không trả JSON.\n\n" + text
+      );
+    }
 
     if (!response.ok) {
-      throw new Error(result.message || "Thêm loại phòng thất bại");
+      throw new Error(
+        result.message || "Thêm loại phòng thất bại"
+      );
     }
 
     alert("Thêm loại phòng thành công");
+
     window.location.href = "rooms.html";
 
   } catch (err) {
-    console.error("Lỗi:", err);
+    console.error(err);
+
     alert(err.message);
   }
 }
@@ -76,6 +91,6 @@ function cancelForm() {
   }
 }
 
-// Xuất các hàm ra phạm vi Window để xử lý sự kiện inline HTML hoạt động bình thường
+// ===== EXPORT =====
 window.handleSubmit = handleSubmit;
 window.cancelForm = cancelForm;

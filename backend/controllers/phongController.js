@@ -103,48 +103,70 @@ exports.getRoomTypes = async (req, res) => {
     }
 };
 
+// ================= CREATE ROOM TYPE (BẢN CHỐNG CRASH) =================
+// ================= CREATE ROOM TYPE =================
 exports.createRoomType = async (req, res) => {
     try {
-        // Front-end gửi lên maLoaiPhong, loaiPhong, donGia
-        const { maLoaiPhong, loaiPhong, donGia } = req.body;
 
+        const {
+            maLoaiPhong,
+            loaiPhong,
+            donGia
+        } = req.body;
+
+        // ===== VALIDATE =====
         if (!maLoaiPhong || !loaiPhong || !donGia) {
             return res.status(400).json({
                 success: false,
-                message: "Thiếu thông tin bắt buộc (Mã loại phòng, Tên loại phòng, Đơn giá)"
+                message: "Vui lòng nhập đầy đủ thông tin"
             });
         }
-        const checkExist = await db.query(
-            `SELECT * FROM LOAIPHONG WHERE MaLoaiPhong = $1`,
-            [maLoaiPhong]
-        );
 
-        if (checkExist.rows.length > 0) {
+        // ===== CHECK EXIST =====
+        const check = await db.query(`
+            SELECT *
+            FROM LOAIPHONG
+            WHERE MaLoaiPhong = $1
+        `, [maLoaiPhong]);
+
+        if (check.rows.length > 0) {
             return res.status(400).json({
                 success: false,
-                message: `Mã loại phòng số ${maLoaiPhong} đã tồn tại trong hệ thống!`
+                message: "Mã loại phòng đã tồn tại"
             });
         }
 
-        // 2. Thực hiện chèn dữ liệu số nguyên thủ công vào cột MaLoaiPhong
+        // ===== INSERT =====
         const result = await db.query(`
-            INSERT INTO LOAIPHONG (MaLoaiPhong, LoaiPhong, DonGia)
+            INSERT INTO LOAIPHONG
+            (
+                MaLoaiPhong,
+                LoaiPhong,
+                DonGia
+            )
             VALUES ($1, $2, $3)
             RETURNING *
-        `, [maLoaiPhong, loaiPhong, donGia]);
+        `, [
+            maLoaiPhong,
+            loaiPhong,
+            donGia
+        ]);
 
-        // Trả về JSON thành công chuẩn chỉnh
-        return res.status(201).json({
+        res.status(201).json({
             success: true,
+            message: "Thêm loại phòng thành công",
             data: result.rows[0]
         });
 
     } catch (err) {
-        console.error("❌ LỖI TẠI CREATE_ROOM_TYPE_CONTROLLER:", err.message);
-            return res.status(500).json({
+
+        console.error("CREATE ROOM TYPE ERROR:", err);
+
+        res.status(500).json({
             success: false,
-            message: "Lỗi hệ thống cơ sở dữ liệu: " + err.message
+            message: err.message
         });
+
     }
 };
 // ================= UPDATE ROOM TYPE =================
