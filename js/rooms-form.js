@@ -12,8 +12,6 @@ function handleSubmit(event) {
 
     const data = {
         id: document.getElementById("roomCode").value.trim(),
-        name: document.getElementById("roomName").value.trim(),
-
         type: select.value,
         typeName: selectedOption.text,
 
@@ -22,7 +20,7 @@ function handleSubmit(event) {
         notes: document.getElementById("notes").value.trim()
     };
 
-    if (!data.id || !data.name || !data.type) {
+    if (!data.id || !data.type) {
         alert("Thiếu dữ liệu!");
         return;
     }
