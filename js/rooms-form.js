@@ -1,44 +1,73 @@
-let rooms = JSON.parse(localStorage.getItem("rooms")) || [];
+// ============================================================
+// js/room-type-form.js  –  Thêm loại phòng  POST /api/phong/loai-phong
+// Gửi: maloaiphong, tenloaiphong, dongia
+// Controller insert vào cột: maloaiphong, loaiphong, dongia
+// ============================================================
 
-function saveRooms() {
-    localStorage.setItem("rooms", JSON.stringify(rooms));
-}
+const API_LOAI = 'https://hotel-management-system-se104.onrender.com/api/phong/loai-phong';
 
-function handleSubmit(event) {
-    event.preventDefault();
+document.addEventListener('DOMContentLoaded', () => {
+  const nameEl = document.getElementById('typeName');
+  const codeEl = document.getElementById('typeCode');
 
-    const select = document.getElementById("roomType");
-    const selectedOption = select.options[select.selectedIndex];
-
-    const data = {
-        id: document.getElementById("roomCode").value.trim(),
-        type: select.value,
-        typeName: selectedOption.text,
-
-        price: Number(document.getElementById("price").value),
-        status: document.getElementById("status").value,
-        notes: document.getElementById("notes").value.trim()
-    };
-
-    if (!data.id || !data.type) {
-        alert("Thiếu dữ liệu!");
-        return;
+  nameEl?.addEventListener('input', () => {
+    if (codeEl && !codeEl.dataset.manual) {
+      const initials = nameEl.value.trim().split(/\s+/).map(w => w[0]?.toUpperCase() || '').join('');
+      codeEl.value = 'LP' + initials.substring(0, 3);
     }
+  });
+  codeEl?.addEventListener('input', () => { if (codeEl) codeEl.dataset.manual = '1'; });
+});
 
-    if (rooms.some(r => r.id === data.id)) {
-        alert("Trùng mã phòng!");
-        return;
-    }
+async function handleSubmit(e) {
+  e.preventDefault();
 
-    rooms.push(data);
-    saveRooms();
+  const payload = {
+    maloaiphong:  document.getElementById('typeCode').value.trim().toUpperCase(),
+    tenloaiphong: document.getElementById('typeName').value.trim(),
+    dongia:       Number(document.getElementById('price').value) || 0,
+  };
 
-    alert("Thêm phòng thành công!");
-    window.location.href = "rooms.html";
+  if (!payload.maloaiphong || !payload.tenloaiphong || !payload.dongia) {
+    toast('Vui lòng nhập đầy đủ thông tin!', 'error');
+    return;
+  }
+
+  const btn = e.submitter || document.querySelector('.btn-submit');
+  if (btn) { btn.disabled = true; btn.textContent = 'Đang lưu...'; }
+
+  try {
+    const res  = await fetch(API_LOAI, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
+
+    toast('Thêm loại phòng thành công!', 'success');
+    setTimeout(() => { location.href = 'rooms.html'; }, 1200);
+  } catch (err) {
+    toast('Thêm thất bại: ' + err.message, 'error');
+    if (btn) { btn.disabled = false; btn.textContent = 'Thêm loại phòng'; }
+  }
 }
 
 function cancelForm() {
-    if (confirm("Hủy?")) {
-        window.location.href = "rooms.html";
-    }
+  if (confirm('Hủy bỏ thao tác?')) location.href = 'rooms.html';
+}
+
+function toast(msg, type = 'success') {
+  let el = document.getElementById('_toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = '_toast';
+    el.style.cssText = 'position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:8px;color:#fff;font-size:14px;z-index:9999;opacity:0;transition:opacity .3s;max-width:320px;box-shadow:0 4px 12px rgba(0,0,0,.2)';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.style.background = type === 'success' ? '#22c55e' : '#ef4444';
+  el.style.opacity = '1';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.style.opacity = '0'; }, 3200);
 }

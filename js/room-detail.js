@@ -1,85 +1,48 @@
+// ============================================================
+// js/room-detail.js  –  tên cột DB chữ thường
+// ============================================================
+
 const API = 'https://hotel-management-system-se104.onrender.com/api/phong';
- 
+
 document.addEventListener('DOMContentLoaded', async () => {
-  // Nạp danh sách loại phòng vào <select>
+  const id = new URLSearchParams(location.search).get('id');
+  if (!id) { setText('roomTitle', 'Không tìm thấy phòng'); return; }
+
   try {
-    const types = await fetch(`${API}/loai-phong`).then(r => r.json());
-    const sel   = document.getElementById('roomType');
-    if (sel) {
-      sel.innerHTML = `<option value="">-- Chọn loại phòng --</option>`;
-      types.forEach(t => {
-        const o = document.createElement('option');
-        o.value           = t.MALOAIPHONG  || '';
-        o.textContent     = t.TENLOAIPHONG || '';
-        o.dataset.price   = t.DONGIA       || 0;
-        sel.appendChild(o);
-      });
-    }
+    const rooms = await fetch(API).then(r => r.json());
+    const room  = (rooms || []).find(r => r.sophong === id);
+
+    if (!room) { setText('roomTitle', 'Không tìm thấy phòng'); return; }
+
+    setText('roomTitle', `Phòng ${room.sophong}`);
+    setText('id',    room.sophong);
+    setText('type',  room.tenloaiphong || '');
+    setText('price', Number(room.dongia || 0).toLocaleString('vi-VN') + ' VNĐ');
+    setText('notes', room.ghichu || 'Không có ghi chú');
+
+    // badge trạng thái
+    const map = {
+      available:   ['Trống',    'badge-available'],
+      occupied:    ['Đang thuê','badge-occupied'],
+      maintenance: ['Dọn dẹp', 'badge-maintenance'],
+    };
+    const [label, cls] = map[(room.tinhtrang || '').toLowerCase()] || [room.tinhtrang, 'badge-maintenance'];
+    const badge = document.getElementById('roomStatus');
+    if (badge) { badge.textContent = label; badge.className = `badge ${cls}`; }
+
+    // nút cập nhật
+    const btn = document.getElementById('editBtn');
+    if (btn) btn.onclick = () => {
+      location.href = `edit-room.html?id=${encodeURIComponent(room.sophong)}`;
+    };
+
   } catch (e) {
-    toast('Không tải được danh sách loại phòng', 'error');
+    setText('roomTitle', 'Lỗi tải dữ liệu');
+    console.error(e);
   }
 });
- 
-// Tự điền giá khi chọn loại phòng
-function updatePrice() {
-  const sel = document.getElementById('roomType');
-  const opt = sel?.options[sel.selectedIndex];
-  const inp = document.getElementById('price');
-  if (opt && inp) inp.value = opt.dataset.price || '';
-}
-window.updatePrice = updatePrice;
- 
-async function handleSubmit(e) {
-  e.preventDefault();
- 
-  const sel = document.getElementById('roomType');
-  const payload = {
-    SOPHONG:     document.getElementById('roomCode').value.trim(),
-    MALOAIPHONG: sel?.value || '',
-    DONGIA:      Number(document.getElementById('price').value) || 0,
-    TINHTRANG:   document.getElementById('status').value,
-    GHICHU:      document.getElementById('notes').value.trim(),
-  };
- 
-  if (!payload.SOPHONG || !payload.MALOAIPHONG) {
-    toast('Vui lòng nhập đầy đủ thông tin bắt buộc!', 'error');
-    return;
-  }
- 
-  const btn = e.submitter || document.querySelector('.btn-submit');
-  if (btn) { btn.disabled = true; btn.textContent = 'Đang lưu...'; }
- 
-  try {
-    const res = await fetch(API, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify(payload),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
- 
-    toast('Thêm phòng thành công!', 'success');
-    setTimeout(() => { location.href = 'rooms.html'; }, 1200);
-  } catch (err) {
-    toast('Thêm thất bại: ' + err.message, 'error');
-    if (btn) { btn.disabled = false; btn.textContent = 'Thêm phòng'; }
-  }
-}
- 
-function cancelForm() {
-  if (confirm('Hủy bỏ thao tác?')) location.href = 'rooms.html';
-}
- 
-function toast(msg, type = 'success') {
-  let el = document.getElementById('_toast');
-  if (!el) {
-    el = Object.assign(document.createElement('div'), { id: '_toast' });
-    el.style.cssText = 'position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:8px;color:#fff;font-size:14px;z-index:9999;opacity:0;transition:opacity .3s;max-width:320px;box-shadow:0 4px 12px rgba(0,0,0,.2)';
-    document.body.appendChild(el);
-  }
-  el.textContent = msg;
-  el.style.background = type === 'success' ? '#22c55e' : '#ef4444';
-  el.style.opacity = '1';
-  clearTimeout(el._t);
-  el._t = setTimeout(() => { el.style.opacity = '0'; }, 3200);
+
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
 }

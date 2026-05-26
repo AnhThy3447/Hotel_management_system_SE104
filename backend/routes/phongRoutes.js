@@ -23,4 +23,3 @@ router.put   ('/:id', capNhatPhong);
 router.delete('/:id', xoaPhong);
 
 module.exports = router;
-module.exports = router;

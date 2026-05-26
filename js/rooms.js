@@ -1,10 +1,13 @@
+// ============================================================
+// js/rooms.js  –  tên cột DB: sophong, maloaiphong, tenloaiphong,
+//                              dongia, tinhtrang, ghichu (chữ thường)
+// ============================================================
 
 const API = 'https://hotel-management-system-se104.onrender.com/api/phong';
 
 let rooms     = [];
 let roomTypes = [];
 
-// ── helper fetch ──────────────────────────────────────────────
 async function http(url, opts = {}) {
   const res = await fetch(url, {
     headers: { 'Content-Type': 'application/json' },
@@ -17,7 +20,7 @@ async function http(url, opts = {}) {
   return res.status === 204 ? null : res.json();
 }
 
-// ── INIT ──────────────────────────────────────────────────────
+// ── INIT ─────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   showLoading(true);
   try {
@@ -30,7 +33,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupSearch();
 });
 
-// ── LOAD ──────────────────────────────────────────────────────
 async function loadRooms() {
   rooms = await http(API);
   renderRooms();
@@ -42,7 +44,7 @@ async function loadRoomTypes() {
   fillTypeFilter();
 }
 
-// ── RENDER ROOMS ──────────────────────────────────────────────
+// ── RENDER ROOMS ─────────────────────────────────────────────
 function renderRooms(list = rooms) {
   const tbody = document.getElementById('roomTableBody');
   const total = document.getElementById('totalRooms');
@@ -52,16 +54,17 @@ function renderRooms(list = rooms) {
   tbody.innerHTML = '';
 
   if (!list.length) {
-    tbody.innerHTML = `<tr><td colspan="7" class="empty-row">Không có phòng nào</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:32px;color:#888">Không có phòng nào</td></tr>`;
     return;
   }
 
   list.forEach((r, i) => {
-    const id       = r.SOPHONG      || '';
-    const typeName = r.TENLOAIPHONG || '';
-    const price    = r.DONGIA       || 0;
-    const status   = r.TINHTRANG    || '';
-    const notes    = r.GHICHU       || '';
+    // DB trả về chữ thường
+    const id       = r.sophong      || '';
+    const typeName = r.tenloaiphong || '';
+    const price    = r.dongia       || 0;
+    const status   = r.tinhtrang    || '';
+    const notes    = r.ghichu       || '';
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -72,7 +75,7 @@ function renderRooms(list = rooms) {
       <td>${badge(status)}</td>
       <td>${notes}</td>
       <td class="action-cell">
-        <button class="btn-action btn-edit"   title="Cập nhật" onclick="editRoom('${id}')">
+        <button class="btn-action btn-edit" title="Cập nhật" onclick="editRoom('${id}')">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -96,7 +99,7 @@ function renderRooms(list = rooms) {
   });
 }
 
-// ── RENDER ROOM TYPES ─────────────────────────────────────────
+// ── RENDER ROOM TYPES ────────────────────────────────────────
 function renderRoomTypes(list = roomTypes) {
   const tbody = document.getElementById('room-types-table');
   const total = document.getElementById('total-types');
@@ -106,14 +109,14 @@ function renderRoomTypes(list = roomTypes) {
   tbody.innerHTML = '';
 
   if (!list.length) {
-    tbody.innerHTML = `<tr><td colspan="5" class="empty-row">Không có loại phòng nào</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:32px;color:#888">Không có loại phòng nào</td></tr>`;
     return;
   }
 
   list.forEach((t, i) => {
-    const id    = t.MALOAIPHONG  || '';
-    const name  = t.TENLOAIPHONG || '';
-    const price = t.DONGIA       || 0;
+    const id    = t.maloaiphong  || '';
+    const name  = t.tenloaiphong || '';   // controller đã alias loaiphong → tenloaiphong
+    const price = t.dongia       || 0;
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -122,7 +125,7 @@ function renderRoomTypes(list = roomTypes) {
       <td>${name}</td>
       <td>${fmtPrice(price)}</td>
       <td class="action-cell">
-        <button class="btn-action btn-edit"   title="Chỉnh đơn giá" onclick="editRoomType('${id}')">
+        <button class="btn-action btn-edit" title="Chỉnh đơn giá" onclick="editRoomType('${id}')">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -140,20 +143,20 @@ function renderRoomTypes(list = roomTypes) {
   });
 }
 
-// ── FILL FILTER SELECT ────────────────────────────────────────
+// ── FILTER SELECT ────────────────────────────────────────────
 function fillTypeFilter() {
   const sel = document.getElementById('filterType');
   if (!sel) return;
   while (sel.options.length > 1) sel.remove(1);
   roomTypes.forEach(t => {
     const o = document.createElement('option');
-    o.value = t.MALOAIPHONG || '';
-    o.textContent = t.TENLOAIPHONG || '';
+    o.value       = t.maloaiphong  || '';
+    o.textContent = t.tenloaiphong || '';
     sel.appendChild(o);
   });
 }
 
-// ── DELETE ────────────────────────────────────────────────────
+// ── DELETE ───────────────────────────────────────────────────
 async function deleteRoom(id) {
   if (!confirm(`Xóa phòng ${id}?`)) return;
   try {
@@ -166,10 +169,10 @@ async function deleteRoom(id) {
 }
 
 async function deleteRoomType(id) {
-  toast('Chức năng xóa loại phòng chưa được hỗ trợ bởi API.', 'error');
+  toast('Chức năng xóa loại phòng chưa được hỗ trợ.', 'error');
 }
 
-// ── EDIT ──────────────────────────────────────────────────────
+// ── EDIT ─────────────────────────────────────────────────────
 function editRoom(id) {
   location.href = `edit-room.html?id=${encodeURIComponent(id)}`;
 }
@@ -184,27 +187,27 @@ function editRoomType(id) {
   }
 }
 
-// ── SEARCH & FILTER ───────────────────────────────────────────
+// ── SEARCH & FILTER ──────────────────────────────────────────
 function setupSearch() {
-  ['searchInput', 'filterStatus', 'filterType'].forEach(id => {
-    document.getElementById(id)?.addEventListener('input',  applyFilter);
-    document.getElementById(id)?.addEventListener('change', applyFilter);
+  ['searchInput', 'filterStatus', 'filterType'].forEach(elId => {
+    document.getElementById(elId)?.addEventListener('input',  applyFilter);
+    document.getElementById(elId)?.addEventListener('change', applyFilter);
   });
 }
 
 function applyFilter() {
-  const kw     = (document.getElementById('searchInput')?.value  || '').toLowerCase();
-  const status = document.getElementById('filterStatus')?.value  || '';
-  const typeId = document.getElementById('filterType')?.value    || '';
+  const kw     = (document.getElementById('searchInput')?.value || '').toLowerCase();
+  const status = document.getElementById('filterStatus')?.value || '';
+  const typeId = document.getElementById('filterType')?.value   || '';
 
   renderRooms(rooms.filter(r =>
-    (!kw     || (r.SOPHONG || '').toLowerCase().includes(kw)) &&
-    (!status || (r.TINHTRANG || '').toLowerCase() === status) &&
-    (!typeId || (r.MALOAIPHONG || '') === typeId)
+    (!kw     || (r.sophong || '').toLowerCase().includes(kw)) &&
+    (!status || (r.tinhtrang || '').toLowerCase() === status) &&
+    (!typeId || (r.maloaiphong || '') === typeId)
   ));
 }
 
-// ── TAB ───────────────────────────────────────────────────────
+// ── TAB ──────────────────────────────────────────────────────
 function switchTab(tab) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -212,7 +215,7 @@ function switchTab(tab) {
   event.target.classList.add('active');
 }
 
-// ── HELPERS ───────────────────────────────────────────────────
+// ── HELPERS ──────────────────────────────────────────────────
 function fmtPrice(n) {
   return Number(n || 0).toLocaleString('vi-VN') + ' VNĐ';
 }
@@ -230,7 +233,8 @@ function badge(status) {
 function showLoading(show) {
   let el = document.getElementById('_loading');
   if (!el) {
-    el = Object.assign(document.createElement('div'), { id: '_loading' });
+    el = document.createElement('div');
+    el.id = '_loading';
     el.style.cssText = 'position:fixed;inset:0;background:rgba(255,255,255,.75);display:flex;align-items:center;justify-content:center;font-size:17px;color:#555;z-index:9999';
     el.innerHTML = '<span>⏳ Đang tải...</span>';
     document.body.appendChild(el);
@@ -241,7 +245,8 @@ function showLoading(show) {
 function toast(msg, type = 'success') {
   let el = document.getElementById('_toast');
   if (!el) {
-    el = Object.assign(document.createElement('div'), { id: '_toast' });
+    el = document.createElement('div');
+    el.id = '_toast';
     el.style.cssText = 'position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:8px;color:#fff;font-size:14px;z-index:9999;opacity:0;transition:opacity .3s;max-width:320px;box-shadow:0 4px 12px rgba(0,0,0,.2)';
     document.body.appendChild(el);
   }
@@ -252,7 +257,6 @@ function toast(msg, type = 'success') {
   el._t = setTimeout(() => { el.style.opacity = '0'; }, 3200);
 }
 
-// ── EXPORTS ───────────────────────────────────────────────────
 window.switchTab      = switchTab;
 window.editRoom       = editRoom;
 window.deleteRoom     = deleteRoom;

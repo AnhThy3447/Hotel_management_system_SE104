@@ -1,23 +1,23 @@
-const db = require('../db'); // pool hoặc client từ neon/postgres
- 
+const db = require('../db');
+
 // ================================================================
 // PHONG
 // ================================================================
- 
-// GET /api/phong  → danh sách phòng kèm tên loại phòng
+
+// GET /api/phong
 const getDanhSachPhong = async (req, res) => {
   try {
     const result = await db.query(`
       SELECT
-        p.SOPHONG,
-        p.MALOAIPHONG,
-        lp.TENLOAIPHONG,
-        p.DONGIA,
-        p.TINHTRANG,
-        p.GHICHU
-      FROM PHONG p
-      LEFT JOIN LOAIPHONG lp ON p.MALOAIPHONG = lp.MALOAIPHONG
-      ORDER BY p.SOPHONG
+        p.sophong,
+        p.maloaiphong,
+        lp.loaiphong   AS tenloaiphong,
+        lp.dongia,
+        p.tinhtrang,
+        p.ghichu
+      FROM phong p
+      LEFT JOIN loaiphong lp ON p.maloaiphong = lp.maloaiphong
+      ORDER BY p.sophong
     `);
     res.json(result.rows);
   } catch (err) {
@@ -25,96 +25,87 @@ const getDanhSachPhong = async (req, res) => {
     res.status(500).json({ message: 'Lỗi server: ' + err.message });
   }
 };
- 
-// POST /api/phong  → thêm phòng mới
+
+// POST /api/phong
 const themPhong = async (req, res) => {
-  const { SOPHONG, MALOAIPHONG, DONGIA, TINHTRANG, GHICHU } = req.body;
- 
-  if (!SOPHONG || !MALOAIPHONG) {
-    return res.status(400).json({ message: 'Thiếu SOPHONG hoặc MALOAIPHONG' });
+  const { sophong, maloaiphong, tinhtrang, ghichu } = req.body;
+
+  if (!sophong || !maloaiphong) {
+    return res.status(400).json({ message: 'Thiếu sophong hoặc maloaiphong' });
   }
- 
+
   try {
-    // Kiểm tra trùng mã phòng
-    const check = await db.query(
-      'SELECT SOPHONG FROM PHONG WHERE SOPHONG = $1',
-      [SOPHONG]
-    );
+    const check = await db.query('SELECT sophong FROM phong WHERE sophong = $1', [sophong]);
     if (check.rows.length > 0) {
       return res.status(409).json({ message: 'Mã phòng đã tồn tại' });
     }
- 
+
     await db.query(
-      `INSERT INTO PHONG (SOPHONG, MALOAIPHONG, DONGIA, TINHTRANG, GHICHU)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [SOPHONG, MALOAIPHONG, DONGIA || 0, TINHTRANG || 'available', GHICHU || '']
+      `INSERT INTO phong (sophong, maloaiphong, tinhtrang, ghichu)
+       VALUES ($1, $2, $3, $4)`,
+      [sophong, maloaiphong, tinhtrang || 'available', ghichu || '']
     );
- 
-    res.status(201).json({ message: 'Thêm phòng thành công', SOPHONG });
+
+    res.status(201).json({ message: 'Thêm phòng thành công', sophong });
   } catch (err) {
     console.error('themPhong:', err.message);
     res.status(500).json({ message: 'Lỗi server: ' + err.message });
   }
 };
- 
-// PUT /api/phong/:id  → cập nhật thông tin phòng
+
+// PUT /api/phong/:id
 const capNhatPhong = async (req, res) => {
   const { id } = req.params;
-  const { MALOAIPHONG, DONGIA, TINHTRANG, GHICHU } = req.body;
- 
+  const { maloaiphong, tinhtrang, ghichu } = req.body;
+
   try {
     const result = await db.query(
-      `UPDATE PHONG
-       SET MALOAIPHONG = COALESCE($1, MALOAIPHONG),
-           DONGIA      = COALESCE($2, DONGIA),
-           TINHTRANG   = COALESCE($3, TINHTRANG),
-           GHICHU      = COALESCE($4, GHICHU)
-       WHERE SOPHONG = $5
+      `UPDATE phong
+       SET maloaiphong = COALESCE($1, maloaiphong),
+           tinhtrang   = COALESCE($2, tinhtrang),
+           ghichu      = COALESCE($3, ghichu)
+       WHERE sophong = $4
        RETURNING *`,
-      [MALOAIPHONG, DONGIA, TINHTRANG, GHICHU, id]
+      [maloaiphong, tinhtrang, ghichu, id]
     );
- 
+
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'Không tìm thấy phòng' });
     }
- 
     res.json({ message: 'Cập nhật thành công', phong: result.rows[0] });
   } catch (err) {
     console.error('capNhatPhong:', err.message);
     res.status(500).json({ message: 'Lỗi server: ' + err.message });
   }
 };
- 
-// DELETE /api/phong/:id  → xóa phòng
+
+// DELETE /api/phong/:id
 const xoaPhong = async (req, res) => {
   const { id } = req.params;
- 
   try {
     const result = await db.query(
-      'DELETE FROM PHONG WHERE SOPHONG = $1 RETURNING SOPHONG',
+      'DELETE FROM phong WHERE sophong = $1 RETURNING sophong',
       [id]
     );
- 
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'Không tìm thấy phòng' });
     }
- 
     res.json({ message: `Đã xóa phòng ${id}` });
   } catch (err) {
     console.error('xoaPhong:', err.message);
     res.status(500).json({ message: 'Lỗi server: ' + err.message });
   }
 };
- 
+
 // ================================================================
 // LOAI PHONG
 // ================================================================
- 
-// GET /api/phong/loai-phong  → danh sách loại phòng
+
+// GET /api/phong/loai-phong
 const getDanhSachLoaiPhong = async (req, res) => {
   try {
     const result = await db.query(
-      'SELECT MALOAIPHONG, TENLOAIPHONG, DONGIA FROM LOAIPHONG ORDER BY MALOAIPHONG'
+      'SELECT maloaiphong, loaiphong AS tenloaiphong, dongia FROM loaiphong ORDER BY maloaiphong'
     );
     res.json(result.rows);
   } catch (err) {
@@ -122,70 +113,61 @@ const getDanhSachLoaiPhong = async (req, res) => {
     res.status(500).json({ message: 'Lỗi server: ' + err.message });
   }
 };
- 
-// POST /api/phong/loai-phong  → thêm loại phòng mới
+
+// POST /api/phong/loai-phong
 const themLoaiPhong = async (req, res) => {
-  const { MALOAIPHONG, TENLOAIPHONG, DONGIA } = req.body;
- 
-  if (!MALOAIPHONG || !TENLOAIPHONG) {
-    return res.status(400).json({ message: 'Thiếu MALOAIPHONG hoặc TENLOAIPHONG' });
+  const { maloaiphong, tenloaiphong, dongia } = req.body;
+
+  if (!maloaiphong || !tenloaiphong) {
+    return res.status(400).json({ message: 'Thiếu maloaiphong hoặc tenloaiphong' });
   }
- 
+
   try {
     const check = await db.query(
-      'SELECT MALOAIPHONG FROM LOAIPHONG WHERE MALOAIPHONG = $1',
-      [MALOAIPHONG]
+      'SELECT maloaiphong FROM loaiphong WHERE maloaiphong = $1', [maloaiphong]
     );
     if (check.rows.length > 0) {
       return res.status(409).json({ message: 'Mã loại phòng đã tồn tại' });
     }
- 
+
     await db.query(
-      'INSERT INTO LOAIPHONG (MALOAIPHONG, TENLOAIPHONG, DONGIA) VALUES ($1, $2, $3)',
-      [MALOAIPHONG, TENLOAIPHONG, DONGIA || 0]
+      'INSERT INTO loaiphong (maloaiphong, loaiphong, dongia) VALUES ($1, $2, $3)',
+      [maloaiphong, tenloaiphong, dongia || 0]
     );
- 
-    res.status(201).json({ message: 'Thêm loại phòng thành công', MALOAIPHONG });
+
+    res.status(201).json({ message: 'Thêm loại phòng thành công', maloaiphong });
   } catch (err) {
     console.error('themLoaiPhong:', err.message);
     res.status(500).json({ message: 'Lỗi server: ' + err.message });
   }
 };
- 
-// PUT /api/phong/loai-phong/:id  → chỉnh sửa đơn giá loại phòng
+
+// PUT /api/phong/loai-phong/:id
 const capNhatDonGiaLoaiPhong = async (req, res) => {
   const { id } = req.params;
-  const { DONGIA, TENLOAIPHONG } = req.body;
- 
+  const { dongia, tenloaiphong } = req.body;
+
   try {
     const result = await db.query(
-      `UPDATE LOAIPHONG
-       SET DONGIA      = COALESCE($1, DONGIA),
-           TENLOAIPHONG= COALESCE($2, TENLOAIPHONG)
-       WHERE MALOAIPHONG = $3
+      `UPDATE loaiphong
+       SET dongia    = COALESCE($1, dongia),
+           loaiphong = COALESCE($2, loaiphong)
+       WHERE maloaiphong = $3
        RETURNING *`,
-      [DONGIA, TENLOAIPHONG, id]
+      [dongia, tenloaiphong, id]
     );
- 
+
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'Không tìm thấy loại phòng' });
     }
- 
-    // Đồng bộ đơn giá các phòng thuộc loại này
-    if (DONGIA) {
-      await db.query(
-        'UPDATE PHONG SET DONGIA = $1 WHERE MALOAIPHONG = $2',
-        [DONGIA, id]
-      );
-    }
- 
+
     res.json({ message: 'Cập nhật thành công', loaiPhong: result.rows[0] });
   } catch (err) {
     console.error('capNhatDonGiaLoaiPhong:', err.message);
     res.status(500).json({ message: 'Lỗi server: ' + err.message });
   }
 };
- 
+
 module.exports = {
   getDanhSachPhong,
   themPhong,
