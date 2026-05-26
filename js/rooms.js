@@ -6,7 +6,9 @@ let roomTypes = [];
 
 // ================= INIT =================
 document.addEventListener("DOMContentLoaded", async () => {
+
   await loadRooms();
+
   await loadRoomTypes();
 
   setupEvents();
@@ -14,10 +16,25 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 // ================= LOAD ROOMS =================
 async function loadRooms() {
-  try {
-    const response = await fetch(API_URL);
 
-    const data = await response.json();
+  try {
+
+    const response =
+      await fetch(API_URL);
+
+    const text =
+      await response.text();
+
+    let data;
+
+    try {
+      data = JSON.parse(text);
+    } catch {
+
+      throw new Error(
+        "API phòng trả về HTML thay vì JSON"
+      );
+    }
 
     rooms = data.map((r) => ({
       id: r.sophong,
@@ -25,39 +42,69 @@ async function loadRooms() {
       typeName: r.loaiphong,
       price: r.dongia,
       status: convertStatus(r.tinhtrang),
-      notes: r.ghichu,
+      notes: r.ghichu
     }));
 
     renderRooms();
+
   } catch (err) {
-    console.error("Load rooms error:", err);
+
+    console.error(
+      "LOAD ROOMS ERROR:",
+      err
+    );
   }
 }
 
 // ================= LOAD ROOM TYPES =================
 async function loadRoomTypes() {
-  try {
-    const response = await fetch(`${API_URL}/loai-phong`);
 
-    const data = await response.json();
+  try {
+
+    const response =
+      await fetch(`${API_URL}/loai-phong`);
+
+    const text =
+      await response.text();
+
+    let data;
+
+    try {
+      data = JSON.parse(text);
+    } catch {
+
+      throw new Error(
+        "API loại phòng trả về HTML"
+      );
+    }
 
     roomTypes = data.map((t) => ({
       id: t.maloaiphong,
       name: t.loaiphong,
-      price: t.dongia,
+      price: t.dongia
     }));
 
     renderRoomTypes();
+
     renderTypeFilter();
+
   } catch (err) {
-    console.error(err);
+
+    console.error(
+      "LOAD ROOM TYPES ERROR:",
+      err
+    );
   }
 }
 
 // ================= RENDER ROOMS =================
 function renderRooms(list = rooms) {
-  const tbody = document.getElementById("roomTableBody");
-  const total = document.getElementById("totalRooms");
+
+  const tbody =
+    document.getElementById("roomTableBody");
+
+  const total =
+    document.getElementById("totalRooms");
 
   if (!tbody) return;
 
@@ -66,34 +113,46 @@ function renderRooms(list = rooms) {
   total.textContent = list.length;
 
   list.forEach((room, index) => {
-    const tr = document.createElement("tr");
+
+    const tr =
+      document.createElement("tr");
 
     tr.innerHTML = `
-        <td>${index + 1}</td>
-        <td>${room.id}</td>
-        <td>${room.typeName}</td>
-        <td>${formatPrice(room.price)}</td>
-        <td>${renderStatus(room.status)}</td>
-        <td>${room.notes || ""}</td>
+      <td>${index + 1}</td>
 
-        <td>
+      <td>${room.id}</td>
 
-            <button class="btn-action btn-edit"
-                onclick="editRoom('${room.id}')">
-                ✏️
-            </button>
+      <td>${room.typeName}</td>
 
-            <button class="btn-action btn-delete"
-                onclick="deleteRoom('${room.id}')">
-                🗑️
-            </button>
+      <td>${formatPrice(room.price)}</td>
 
-        </td>
+      <td>${renderStatus(room.status)}</td>
+
+      <td>${room.notes || ""}</td>
+
+      <td>
+
+        <button
+          class="btn-action btn-edit"
+          onclick="editRoom('${room.id}')"
+        >
+          ✏️
+        </button>
+
+        <button
+          class="btn-action btn-delete"
+          onclick="deleteRoom('${room.id}')"
+        >
+          🗑️
+        </button>
+
+      </td>
     `;
 
     tr.style.cursor = "pointer";
 
     tr.addEventListener("click", (e) => {
+
       if (e.target.closest("button")) return;
 
       viewRoomDetail(room.id);
@@ -105,8 +164,12 @@ function renderRooms(list = rooms) {
 
 // ================= RENDER ROOM TYPES =================
 function renderRoomTypes() {
-  const tbody = document.getElementById("room-types-table");
-  const total = document.getElementById("total-types");
+
+  const tbody =
+    document.getElementById("room-types-table");
+
+  const total =
+    document.getElementById("total-types");
 
   if (!tbody) return;
 
@@ -115,27 +178,36 @@ function renderRoomTypes() {
   total.textContent = roomTypes.length;
 
   roomTypes.forEach((type, index) => {
-    const tr = document.createElement("tr");
+
+    const tr =
+      document.createElement("tr");
 
     tr.innerHTML = `
-        <td>${index + 1}</td>
-        <td>${type.id}</td>
-        <td>${type.name}</td>
-        <td>${formatPrice(type.price)}</td>
+      <td>${index + 1}</td>
 
-        <td>
+      <td>${type.id}</td>
 
-            <button class="btn-action btn-edit"
-                onclick="editRoomType('${type.id}')">
-                ✏️
-            </button>
+      <td>${type.name}</td>
 
-            <button class="btn-action btn-delete"
-                onclick="deleteRoomType('${type.id}')">
-                🗑️
-            </button>
+      <td>${formatPrice(type.price)}</td>
 
-        </td>
+      <td>
+
+        <button
+          class="btn-action btn-edit"
+          onclick="editRoomType('${type.id}')"
+        >
+          ✏️
+        </button>
+
+        <button
+          class="btn-action btn-delete"
+          onclick="deleteRoomType('${type.id}')"
+        >
+          🗑️
+        </button>
+
+      </td>
     `;
 
     tbody.appendChild(tr);
@@ -144,6 +216,7 @@ function renderRoomTypes() {
 
 // ================= STATUS =================
 function renderStatus(status) {
+
   if (status === "available") {
     return `<span class="badge badge-available">Trống</span>`;
   }
@@ -156,67 +229,110 @@ function renderStatus(status) {
 }
 
 function convertStatus(status) {
-  if (status === "Trống") return "available";
 
-  if (status === "Đang thuê") return "occupied";
+  if (status === "Trống") {
+    return "available";
+  }
+
+  if (status === "Đang thuê") {
+    return "occupied";
+  }
 
   return "maintenance";
 }
 
 function reverseStatus(status) {
-  if (status === "available") return "Trống";
 
-  if (status === "occupied") return "Đang thuê";
+  if (status === "available") {
+    return "Trống";
+  }
+
+  if (status === "occupied") {
+    return "Đang thuê";
+  }
 
   return "Dọn dẹp";
 }
 
 // ================= FORMAT =================
 function formatPrice(price) {
-  return Number(price).toLocaleString("vi-VN") + " VNĐ";
+
+  return Number(price)
+    .toLocaleString("vi-VN")
+    + " VNĐ";
 }
 
 // ================= DELETE ROOM =================
 async function deleteRoom(id) {
-  if (!confirm("Bạn có chắc muốn xóa phòng này?")) return;
+
+  if (!confirm("Bạn có chắc muốn xóa phòng này?")) {
+    return;
+  }
 
   try {
-    await fetch(`${API_URL}/${id}`, {
-      method: "DELETE",
-    });
+
+    const response =
+      await fetch(`${API_URL}/${id}`, {
+        method: "DELETE"
+      });
+
+    if (!response.ok) {
+      throw new Error("Xóa phòng thất bại");
+    }
+
+    alert("Xóa phòng thành công");
 
     await loadRooms();
 
-    alert("Xóa phòng thành công");
   } catch (err) {
+
     console.error(err);
+
+    alert(err.message);
   }
 }
 
 // ================= DELETE ROOM TYPE =================
 async function deleteRoomType(id) {
-  if (!confirm("Bạn có chắc muốn xóa loại phòng?")) return;
+
+  if (!confirm("Bạn có chắc muốn xóa loại phòng?")) {
+    return;
+  }
 
   try {
-    await fetch(`${API_URL}/loai-phong/${id}`, {
-      method: "DELETE",
-    });
+
+    const response =
+      await fetch(`${API_URL}/loai-phong/${id}`, {
+        method: "DELETE"
+      });
+
+    if (!response.ok) {
+      throw new Error("Xóa loại phòng thất bại");
+    }
+
+    alert("Xóa loại phòng thành công");
 
     await loadRoomTypes();
 
-    alert("Xóa loại phòng thành công");
   } catch (err) {
+
     console.error(err);
+
+    alert(err.message);
   }
 }
 
 // ================= SEARCH =================
 function setupEvents() {
-  const search = document.getElementById("searchInput");
 
-  const status = document.getElementById("filterStatus");
+  const search =
+    document.getElementById("searchInput");
 
-  const type = document.getElementById("filterType");
+  const status =
+    document.getElementById("filterStatus");
+
+  const type =
+    document.getElementById("filterType");
 
   if (!search) return;
 
@@ -228,53 +344,84 @@ function setupEvents() {
 }
 
 function applyFilter() {
-  const keyword = document
-    .getElementById("searchInput")
-    .value.toLowerCase();
 
-  const status = document.getElementById("filterStatus").value;
+  const keyword =
+    document.getElementById("searchInput")
+      .value
+      .toLowerCase();
 
-  const type = document.getElementById("filterType").value;
+  const status =
+    document.getElementById("filterStatus")
+      .value;
 
-  const filtered = rooms.filter((r) => {
-    return (
-      String(r.id).includes(keyword) &&
-      (status === "" || r.status === status) &&
-      (type === "" || String(r.typeId) === type)
-    );
-  });
+  const type =
+    document.getElementById("filterType")
+      .value;
+
+  const filtered =
+    rooms.filter((r) => {
+
+      return (
+        String(r.id)
+          .toLowerCase()
+          .includes(keyword)
+
+        &&
+
+        (
+          status === ""
+          ||
+          r.status === status
+        )
+
+        &&
+
+        (
+          type === ""
+          ||
+          String(r.typeId) === type
+        )
+      );
+    });
 
   renderRooms(filtered);
 }
 
 // ================= FILTER TYPE =================
 function renderTypeFilter() {
-  const filter = document.getElementById("filterType");
+
+  const filter =
+    document.getElementById("filterType");
 
   if (!filter) return;
 
-  filter.innerHTML = `
-        <option value="">Tất cả loại phòng</option>
-    `;
+  filter.innerHTML =
+    `<option value="">Tất cả loại phòng</option>`;
 
   roomTypes.forEach((t) => {
+
     filter.innerHTML += `
-            <option value="${t.id}">
-                ${t.name}
-            </option>
-        `;
+      <option value="${t.id}">
+        ${t.name}
+      </option>
+    `;
   });
 }
 
 // ================= TAB =================
 function switchTab(tab) {
+
   document
     .querySelectorAll(".tab-content")
-    .forEach((t) => t.classList.remove("active"));
+    .forEach((t) => {
+      t.classList.remove("active");
+    });
 
   document
     .querySelectorAll(".tab-btn")
-    .forEach((b) => b.classList.remove("active"));
+    .forEach((b) => {
+      b.classList.remove("active");
+    });
 
   document
     .getElementById(tab + "-tab")
@@ -285,39 +432,58 @@ function switchTab(tab) {
 
 // ================= VIEW DETAIL =================
 function viewRoomDetail(id) {
-  window.location.href = `room-detail.html?id=${id}`;
+
+  window.location.href =
+    `room-detail.html?id=${id}`;
 }
 
 // ================= EDIT ROOM =================
 function editRoom(id) {
-  window.location.href = `edit-room.html?id=${id}`;
+
+  window.location.href =
+    `edit-room.html?id=${id}`;
 }
 
 // ================= EDIT ROOM TYPE =================
 async function editRoomType(id) {
-  const newPrice = prompt("Nhập đơn giá mới");
+
+  const newPrice =
+    prompt("Nhập đơn giá mới");
 
   if (!newPrice) return;
 
   try {
-    await fetch(`${API_URL}/loai-phong/${id}`, {
-      method: "PUT",
 
-      headers: {
-        "Content-Type": "application/json",
-      },
+    const response =
+      await fetch(`${API_URL}/loai-phong/${id}`, {
 
-      body: JSON.stringify({
-        donGia: Number(newPrice),
-      }),
-    });
+        method: "PUT",
+
+        headers: {
+          "Content-Type":
+            "application/json"
+        },
+
+        body: JSON.stringify({
+          donGia: Number(newPrice)
+        })
+      });
+
+    if (!response.ok) {
+      throw new Error("Cập nhật thất bại");
+    }
 
     alert("Cập nhật thành công");
 
     await loadRoomTypes();
+
     await loadRooms();
+
   } catch (err) {
+
     console.error(err);
+
+    alert(err.message);
   }
 }
 
