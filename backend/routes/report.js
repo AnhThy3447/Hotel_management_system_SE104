@@ -1,30 +1,12 @@
-const express = require('express');
+const router = require('express').Router();
 
-const router = express.Router();
-
-const reportController = require('../controllers/reportController');
-
-console.log('📊 Report Route Loaded');
+const ctrl = require('../controllers/reportController');
 
 
-router.get('/', (req, res) => {
+router.get('/', ctrl.testAPI);
 
-    res.json({
-        success: true,
-        message: 'Report API working'
-    });
+router.get('/doanh-thu', ctrl.xemBaoCaoDoanhThu);
 
-});
-
-router.get(
-    '/doanh-thu',
-    reportController.getRevenueReport
-);
-
-
-router.get(
-    '/khach',
-    reportController.getGuestReport
-);
+router.get('/khach', ctrl.xemBaoCaoKhach);
 
 module.exports = router;
