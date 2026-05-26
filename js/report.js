@@ -48,18 +48,23 @@ function updateDisplayTimeText() {
     let timeText = '';
 
     if (filterType === 'month') {
-        const monthVal = document.getElementById('reportMonth').value; // YYYY-MM
+        const monthVal = document.getElementById('reportMonth').value; // Định dạng từ ô input: YYYY-MM
         if (monthVal) {
             const [year, month] = monthVal.split('-');
             timeText = `Tháng ${parseInt(month)}/${year}`;
+        } else {
+            timeText = "Chưa chọn tháng";
         }
     } else {
         const yearVal = document.getElementById('reportYear').value;
         timeText = `Năm ${yearVal}`;
     }
 
-    document.getElementById('displayMonth').textContent = timeText;
-    document.getElementById('displayMonth2').textContent = timeText;
+    const displayMonth1 = document.getElementById('displayMonth');
+    const displayMonth2 = document.getElementById('displayMonth2');
+    
+    if (displayMonth1) displayMonth1.textContent = timeText;
+    if (displayMonth2) displayMonth2.textContent = timeText;
 }
 
 function getFilterData() {
@@ -82,46 +87,51 @@ async function loadRevenueReport() {
     const tbody = document.getElementById('revenueBody');
     if (!tbody) return;
 
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">Đang tải dữ liệu...</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color: #666;">Đang tải dữ liệu...</td></tr>`;
 
     try {
         const filter = getFilterData();
         if (!filter.value) {
-            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">Vui lòng chọn thời gian hợp lệ</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color: red;">Vui lòng chọn thời gian hợp lệ</td></tr>`;
             return;
         }
 
         const res = await fetch(`${API_URL}/doanh-thu?filterType=${filter.filterType}&value=${filter.value}`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-        const json = await res.getFilterData ? {} : await res.json();
+        // ĐÃ SỬA: Đọc JSON trực tiếp, loại bỏ hoàn toàn câu lệnh lỗi logic cũ
+        const json = await res.json();
         const data = json.data || [];
 
+        const elTotalRevenue = document.getElementById('totalRevenue');
+        const elTotalCount = document.getElementById('totalCount');
+
         if (data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">Không có dữ liệu doanh thu</td></tr>`;
-            document.getElementById('totalRevenue').textContent = '0 VNĐ';
-            document.getElementById('totalCount').textContent = '0';
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color: #ff9800;">Không có dữ liệu doanh thu</td></tr>`;
+            if (elTotalRevenue) elTotalRevenue.textContent = '0 VNĐ';
+            if (elTotalCount) elTotalCount.textContent = '0';
             return;
         }
 
-        document.getElementById('totalRevenue').textContent = formatCurrency(json.totalRevenue) + ' VNĐ';
-        document.getElementById('totalCount').textContent = json.totalCount;
+        if (elTotalRevenue) elTotalRevenue.textContent = formatCurrency(json.totalRevenue) + ' VNĐ';
+        if (elTotalCount) elTotalCount.textContent = json.totalCount;
 
+        // Render dữ liệu, map đúng item.type từ API trả về ('A', 'B', 'C')
         tbody.innerHTML = data.map((item, index) => `
             <tr>
                 <td>${index + 1}</td>
-                <td>Phòng ${item.type}</td>
+                <td>Loại ${item.type}</td>
                 <td>${formatCurrency(item.revenue)} VNĐ</td>
                 <td>${item.percent}%</td>
                 <td>${item.count}</td>
                 <td>${item.rentPercent}%</td>
-                <td>${item.count > 0 ? 'Có lượt thuê' : 'Không có'}</td>
+                <td><span style="color: ${item.count > 0 ? 'green' : '#999'}">${item.count > 0 ? 'Có lượt thuê' : 'Không có'}</span></td>
             </tr>
         `).join('');
 
     } catch (err) {
-        console.error(err);
-        tbody.innerHTML = `<tr><td colspan="7" style="color:red; text-align:center;">Lỗi: ${err.message}</td></tr>`;
+        console.error("Lỗi Client Doanh Thu:", err);
+        tbody.innerHTML = `<tr><td colspan="7" style="color:red; text-align:center; font-weight:bold;">Lỗi hệ thống: ${err.message}</td></tr>`;
     }
 }
 
@@ -132,12 +142,12 @@ async function loadGuestReport() {
     const tbody = document.getElementById('customerBody');
     if (!tbody) return;
 
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Đang tải dữ liệu...</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: #666;">Đang tải dữ liệu...</td></tr>`;
 
     try {
         const filter = getFilterData();
         if (!filter.value) {
-            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Vui lòng chọn thời gian hợp lệ</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: red;">Vui lòng chọn thời gian hợp lệ</td></tr>`;
             return;
         }
 
@@ -147,26 +157,28 @@ async function loadGuestReport() {
         const json = await res.json();
         const data = json.data || [];
 
+        const elTotalCustomer = document.getElementById('totalCustomer');
+
         if (data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Không có dữ liệu khách</td></tr>`;
-            document.getElementById('totalCustomer').textContent = '0';
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: #ff9800;">Không có dữ liệu khách</td></tr>`;
+            if (elTotalCustomer) elTotalCustomer.textContent = '0';
             return;
         }
 
-        document.getElementById('totalCustomer').textContent = json.total || 0;
+        if (elTotalCustomer) elTotalCustomer.textContent = json.total || 0;
 
         tbody.innerHTML = data.map(item => `
             <tr>
                 <td>${item.month}</td>
-                <td>${item.type}</td>
+                <td><strong>${item.type}</strong></td>
                 <td>${item.count}</td>
                 <td>${item.percent}%</td>
             </tr>
         `).join('');
 
     } catch (err) {
-        console.error(err);
-        tbody.innerHTML = `<tr><td colspan="4" style="color:red; text-align:center;">Lỗi: ${err.message}</td></tr>`;
+        console.error("Lỗi Client Khách:", err);
+        tbody.innerHTML = `<tr><td colspan="4" style="color:red; text-align:center; font-weight:bold;">Lỗi hệ thống: ${err.message}</td></tr>`;
     }
 }
 
