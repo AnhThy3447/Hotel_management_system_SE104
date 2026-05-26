@@ -2,7 +2,6 @@
 let rooms = [
     {
         id: "P101",
-        name: "Phòng 101",
         type: "standard",
         typeName: "Phòng tiêu chuẩn",
         price: 150000,
@@ -11,7 +10,6 @@ let rooms = [
     },
     {
         id: "P102",
-        name: "Phòng 102",
         type: "deluxe",
         typeName: "Phòng cao cấp",
         price: 170000,
@@ -85,7 +83,6 @@ function renderRooms(list = rooms) {
         tr.innerHTML = `
             <td>${index + 1}</td>   <!-- STT -->
             <td>${room.id}</td>
-            <td>${room.name}</td>
             <td>${room.typeName}</td>
             <td>${formatPrice(room.price)}</td>
             <td>${renderStatus(room.status)}</td>
