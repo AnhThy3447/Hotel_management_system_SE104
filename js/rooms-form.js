@@ -1,104 +1,44 @@
-const API_URL =
-'https://hotel-management-system-se104.onrender.com/api/phong';
+let rooms = JSON.parse(localStorage.getItem("rooms")) || [];
 
-// ======================================================
-// LOAD ROOM TYPES
-// ======================================================
-
-document.addEventListener('DOMContentLoaded', () => {
-
-    loadRoomTypes();
-});
-
-async function loadRoomTypes() {
-
-    try {
-
-        const res =
-        await fetch(`${API_URL}/loai-phong`);
-
-        const json =
-        await res.json();
-
-        const data =
-        json.data || [];
-
-        const select =
-        document.getElementById('roomType');
-
-        select.innerHTML =
-        `<option value="">-- Chọn loại phòng --</option>`;
-
-        data.forEach(item => {
-
-            select.innerHTML += `
-                <option value="${item.maloaiphong}">
-                    ${item.loaiphong}
-                </option>
-            `;
-        });
-
-    } catch (err) {
-
-        console.error(err);
-    }
+function saveRooms() {
+    localStorage.setItem("rooms", JSON.stringify(rooms));
 }
 
-// ======================================================
-// SUBMIT
-// ======================================================
-
-async function handleSubmit(event) {
-
+function handleSubmit(event) {
     event.preventDefault();
 
-    const soPhong =
-    document.getElementById('roomId').value;
+    const select = document.getElementById("roomType");
+    const selectedOption = select.options[select.selectedIndex];
 
-    const maLoaiPhong =
-    document.getElementById('roomType').value;
+    const data = {
+        id: document.getElementById("roomCode").value.trim(),
+        type: select.value,
+        typeName: selectedOption.text,
 
-    const tinhTrang =
-    document.getElementById('status').value;
+        price: Number(document.getElementById("price").value),
+        status: document.getElementById("status").value,
+        notes: document.getElementById("notes").value.trim()
+    };
 
-    const ghiChu =
-    document.getElementById('notes').value;
-
-    try {
-
-        const res =
-        await fetch(`${API_URL}`, {
-
-            method: 'POST',
-
-            headers: {
-                'Content-Type': 'application/json'
-            },
-
-            body: JSON.stringify({
-                soPhong,
-                maLoaiPhong,
-                tinhTrang,
-                ghiChu
-            })
-        });
-
-        const json = await res.json();
-
-        if (!res.ok) {
-            throw new Error(json.message);
-        }
-
-        alert('Thêm phòng thành công');
-
-        window.location.href = 'rooms.html';
-
-    } catch (err) {
-
-        console.error(err);
-
-        alert(err.message);
+    if (!data.id || !data.type) {
+        alert("Thiếu dữ liệu!");
+        return;
     }
+
+    if (rooms.some(r => r.id === data.id)) {
+        alert("Trùng mã phòng!");
+        return;
+    }
+
+    rooms.push(data);
+    saveRooms();
+
+    alert("Thêm phòng thành công!");
+    window.location.href = "rooms.html";
 }
 
-window.handleSubmit = handleSubmit;
+function cancelForm() {
+    if (confirm("Hủy?")) {
+        window.location.href = "rooms.html";
+    }
+}

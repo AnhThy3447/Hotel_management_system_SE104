@@ -1,163 +1,260 @@
-const API_URL = 'https://hotel-management-system-se104.onrender.com/api/phong';
 
-let rooms = [];
+const API = 'https://hotel-management-system-se104.onrender.com/api/phong';
+
+let rooms     = [];
 let roomTypes = [];
 
-// ======================================================
-// KHỞI TẠO ỨNG DỤNG (INIT)
-// ======================================================
-document.addEventListener('DOMContentLoaded', () => {
-    loadRooms();
-    loadRoomTypes();
+// ── helper fetch ──────────────────────────────────────────────
+async function http(url, opts = {}) {
+  const res = await fetch(url, {
+    headers: { 'Content-Type': 'application/json' },
+    ...opts,
+  });
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    throw new Error(e.message || `HTTP ${res.status}`);
+  }
+  return res.status === 204 ? null : res.json();
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  showLoading(true);
+  try {
+    await Promise.all([loadRooms(), loadRoomTypes()]);
+  } catch (e) {
+    toast('Không tải được dữ liệu: ' + e.message, 'error');
+  } finally {
+    showLoading(false);
+  }
+  setupSearch();
 });
 
-// ======================================================
-// TẢI DANH SÁCH PHÒNG (LOAD ROOMS)
-// ======================================================
+// ── LOAD ──────────────────────────────────────────────────────
 async function loadRooms() {
-    try {
-        // Đã sửa: Gọi thẳng về gốc API_URL thay vì API_URL/danh-sach để tránh lỗi Cannot GET
-        const res = await fetch(`${API_URL}`);
-
-        if (!res.ok) {
-            throw new Error(`HTTP ${res.status}`);
-        }
-
-        const json = await res.json();
-        rooms = json.data || [];
-        renderRooms();
-
-    } catch (err) {
-        console.error('Lỗi khi tải danh sách phòng:', err);
-    }
+  rooms = await http(API);
+  renderRooms();
 }
 
-// ======================================================
-// TẢI DANH SÁCH LOẠI PHÒNG (LOAD ROOM TYPES)
-// ======================================================
 async function loadRoomTypes() {
-    try {
-        const res = await fetch(`${API_URL}/loai-phong`);
-
-        if (!res.ok) {
-            throw new Error(`HTTP ${res.status}`);
-        }
-
-        const json = await res.json();
-        roomTypes = json.data || [];
-        renderRoomTypes();
-
-    } catch (err) {
-        console.error('Lỗi khi tải danh sách loại phòng:', err);
-    }
+  roomTypes = await http(`${API}/loai-phong`);
+  renderRoomTypes();
+  fillTypeFilter();
 }
 
-// ======================================================
-// HIỂN THỊ DANH SÁCH PHÒNG (RENDER ROOMS)
-// ======================================================
-function renderRooms() {
-    const tbody = document.getElementById('roomTableBody');
-    if (!tbody) return;
+// ── RENDER ROOMS ──────────────────────────────────────────────
+function renderRooms(list = rooms) {
+  const tbody = document.getElementById('roomTableBody');
+  const total = document.getElementById('totalRooms');
+  if (!tbody) return;
 
-    // Cập nhật tổng số lượng phòng lên giao diện HTML
-    const totalRoomsEl = document.getElementById('totalRooms');
-    if (totalRoomsEl) totalRoomsEl.textContent = rooms.length;
+  if (total) total.textContent = list.length;
+  tbody.innerHTML = '';
 
-    tbody.innerHTML = '';
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="7" class="empty-row">Không có phòng nào</td></tr>`;
+    return;
+  }
 
-    if (rooms.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color: #888;">Không có dữ liệu phòng</td></tr>`;
-        return;
-    }
+  list.forEach((r, i) => {
+    const id       = r.SOPHONG      || '';
+    const typeName = r.TENLOAIPHONG || '';
+    const price    = r.DONGIA       || 0;
+    const status   = r.TINHTRANG    || '';
+    const notes    = r.GHICHU       || '';
 
-    rooms.forEach((room, index) => {
-        tbody.innerHTML += `
-            <tr>
-                <td>${index + 1}</td>
-                <td>
-                    <a href="room-detail.html?id=${room.sophong}" style="font-weight: bold; color: #8b5e3c;">
-                        Phòng ${room.sophong}
-                    </a>
-                </td>
-                <td>Loại ${room.loaiphong}</td>
-                <td>${formatCurrency(room.dongia)}</td>
-                <td>
-                    <span class="status-badge ${room.tinhtrang === 'Trống' ? 'available' : room.tinhtrang === 'Đang thuê' ? 'occupied' : 'maintenance'}">
-                        ${room.tinhtrang}
-                    </span>
-                </td>
-                <td>${room.ghichu || ''}</td>
-                <td>
-                     <button class="btn-secondary" onclick="location.href='rooms-form.html?id=${room.sophong}'">Sửa</button>
-                </td>
-            </tr>
-        `;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${i + 1}</td>
+      <td><strong>${id}</strong></td>
+      <td>${typeName}</td>
+      <td>${fmtPrice(price)}</td>
+      <td>${badge(status)}</td>
+      <td>${notes}</td>
+      <td class="action-cell">
+        <button class="btn-action btn-edit"   title="Cập nhật" onclick="editRoom('${id}')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+        </button>
+        <button class="btn-action btn-delete" title="Xóa" onclick="deleteRoom('${id}')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+            <line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
+          </svg>
+        </button>
+      </td>`;
+
+    tr.style.cursor = 'pointer';
+    tr.addEventListener('click', e => {
+      if (e.target.closest('button')) return;
+      location.href = `room-detail.html?id=${encodeURIComponent(id)}`;
     });
+    tbody.appendChild(tr);
+  });
 }
 
-// ======================================================
-// HIỂN THỊ DANH SÁCH LOẠI PHÒNG (RENDER ROOM TYPES)
-// ======================================================
-function renderRoomTypes() {
-    const tbody = document.getElementById('room-types-table');
-    if (!tbody) return;
+// ── RENDER ROOM TYPES ─────────────────────────────────────────
+function renderRoomTypes(list = roomTypes) {
+  const tbody = document.getElementById('room-types-table');
+  const total = document.getElementById('total-types');
+  if (!tbody) return;
 
-    // Cập nhật tổng số lượng loại phòng lên giao diện HTML
-    const totalTypesEl = document.getElementById('total-types');
-    if (totalTypesEl) totalTypesEl.textContent = roomTypes.length;
+  if (total) total.textContent = list.length;
+  tbody.innerHTML = '';
 
-    tbody.innerHTML = '';
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="5" class="empty-row">Không có loại phòng nào</td></tr>`;
+    return;
+  }
 
-    if (roomTypes.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: #888;">Không có dữ liệu loại phòng</td></tr>`;
-        return;
-    }
+  list.forEach((t, i) => {
+    const id    = t.MALOAIPHONG  || '';
+    const name  = t.TENLOAIPHONG || '';
+    const price = t.DONGIA       || 0;
 
-    roomTypes.forEach((type, index) => {
-        tbody.innerHTML += `
-            <tr>
-                <td>${index + 1}</td>
-                <td><strong>LP0${type.maloaiphong}</strong></td>
-                <td>Phòng tiêu chuẩn (Loại ${type.loaiphong})</td>
-                <td>${formatCurrency(type.dongia)}</td>
-                <td>
-                     <button class="btn-secondary" onclick="location.href='room-type-form.html?id=${type.maloaiphong}'">Sửa</button>
-                </td>
-            </tr>
-        `;
-    });
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${i + 1}</td>
+      <td><strong>${id}</strong></td>
+      <td>${name}</td>
+      <td>${fmtPrice(price)}</td>
+      <td class="action-cell">
+        <button class="btn-action btn-edit"   title="Chỉnh đơn giá" onclick="editRoomType('${id}')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+        </button>
+        <button class="btn-action btn-delete" title="Xóa" onclick="deleteRoomType('${id}')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+            <line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
+          </svg>
+        </button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
 }
 
-// ======================================================
-// CHUYỂN ĐỔI GIAO DIỆN TAB (SWITCH TAB)
-// ======================================================
-function switchTab(tabName) {
-    // 1. Ẩn tất cả các nội dung tab
-    document.querySelectorAll('.tab-content').forEach(content => {
-        content.classList.remove('active');
-    });
-
-    // 2. Gỡ bỏ trạng thái active của tất cả các nút tab
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-
-    // 3. Hiển thị tab được chọn và kích hoạt nút tương ứng công khai
-    if (tabName === 'rooms') {
-        document.getElementById('rooms-tab').classList.add('active');
-        document.querySelector("button[onclick*='rooms']").classList.add('active');
-    } else if (tabName === 'room-types') {
-        document.getElementById('room-types-tab').classList.add('active');
-        document.querySelector("button[onclick*='room-types']").classList.add('active');
-    }
+// ── FILL FILTER SELECT ────────────────────────────────────────
+function fillTypeFilter() {
+  const sel = document.getElementById('filterType');
+  if (!sel) return;
+  while (sel.options.length > 1) sel.remove(1);
+  roomTypes.forEach(t => {
+    const o = document.createElement('option');
+    o.value = t.MALOAIPHONG || '';
+    o.textContent = t.TENLOAIPHONG || '';
+    sel.appendChild(o);
+  });
 }
 
-// ======================================================
-// ĐỊNH DẠNG TIỀN TỆ (FORMAT CURRENCY)
-// ======================================================
-function formatCurrency(number) {
-    return new Intl.NumberFormat('vi-VN').format(number || 0) + ' VNĐ';
+// ── DELETE ────────────────────────────────────────────────────
+async function deleteRoom(id) {
+  if (!confirm(`Xóa phòng ${id}?`)) return;
+  try {
+    await http(`${API}/${encodeURIComponent(id)}`, { method: 'DELETE' });
+    toast(`Đã xóa phòng ${id}`, 'success');
+    await loadRooms();
+  } catch (e) {
+    toast('Xóa thất bại: ' + e.message, 'error');
+  }
 }
 
-// Đăng ký hàm switchTab ra phạm vi toàn cục (window) để thuộc tính onclick ngoài HTML gọi được
-window.switchTab = switchTab;
+async function deleteRoomType(id) {
+  toast('Chức năng xóa loại phòng chưa được hỗ trợ bởi API.', 'error');
+}
+
+// ── EDIT ──────────────────────────────────────────────────────
+function editRoom(id) {
+  location.href = `edit-room.html?id=${encodeURIComponent(id)}`;
+}
+
+function editRoomType(id) {
+  const modal = document.getElementById('changePriceFrame');
+  if (modal) {
+    window.openChangePrice = id;
+    modal.style.display = 'flex';
+  } else {
+    location.href = `change-price.html?id=${encodeURIComponent(id)}`;
+  }
+}
+
+// ── SEARCH & FILTER ───────────────────────────────────────────
+function setupSearch() {
+  ['searchInput', 'filterStatus', 'filterType'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input',  applyFilter);
+    document.getElementById(id)?.addEventListener('change', applyFilter);
+  });
+}
+
+function applyFilter() {
+  const kw     = (document.getElementById('searchInput')?.value  || '').toLowerCase();
+  const status = document.getElementById('filterStatus')?.value  || '';
+  const typeId = document.getElementById('filterType')?.value    || '';
+
+  renderRooms(rooms.filter(r =>
+    (!kw     || (r.SOPHONG || '').toLowerCase().includes(kw)) &&
+    (!status || (r.TINHTRANG || '').toLowerCase() === status) &&
+    (!typeId || (r.MALOAIPHONG || '') === typeId)
+  ));
+}
+
+// ── TAB ───────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(tab + '-tab').classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ── HELPERS ───────────────────────────────────────────────────
+function fmtPrice(n) {
+  return Number(n || 0).toLocaleString('vi-VN') + ' VNĐ';
+}
+
+function badge(status) {
+  const map = {
+    available:   ['Trống',    'badge-available'],
+    occupied:    ['Đang thuê','badge-occupied'],
+    maintenance: ['Dọn dẹp', 'badge-maintenance'],
+  };
+  const [label, cls] = map[(status || '').toLowerCase()] || [status, 'badge-maintenance'];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+
+function showLoading(show) {
+  let el = document.getElementById('_loading');
+  if (!el) {
+    el = Object.assign(document.createElement('div'), { id: '_loading' });
+    el.style.cssText = 'position:fixed;inset:0;background:rgba(255,255,255,.75);display:flex;align-items:center;justify-content:center;font-size:17px;color:#555;z-index:9999';
+    el.innerHTML = '<span>⏳ Đang tải...</span>';
+    document.body.appendChild(el);
+  }
+  el.style.display = show ? 'flex' : 'none';
+}
+
+function toast(msg, type = 'success') {
+  let el = document.getElementById('_toast');
+  if (!el) {
+    el = Object.assign(document.createElement('div'), { id: '_toast' });
+    el.style.cssText = 'position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:8px;color:#fff;font-size:14px;z-index:9999;opacity:0;transition:opacity .3s;max-width:320px;box-shadow:0 4px 12px rgba(0,0,0,.2)';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.style.background = type === 'success' ? '#22c55e' : '#ef4444';
+  el.style.opacity = '1';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.style.opacity = '0'; }, 3200);
+}
+
+// ── EXPORTS ───────────────────────────────────────────────────
+window.switchTab      = switchTab;
+window.editRoom       = editRoom;
+window.deleteRoom     = deleteRoom;
+window.editRoomType   = editRoomType;
+window.deleteRoomType = deleteRoomType;

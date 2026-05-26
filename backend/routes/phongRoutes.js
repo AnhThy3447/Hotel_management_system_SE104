@@ -1,20 +1,26 @@
-const router = require('express').Router();
-const ctrl = require('../controllers/phongController');
-router.get('/test', ctrl.testAPI);
-router.get('/', ctrl.xemDanhSachPhong);
+const express = require('express');
+const router  = express.Router();
 
-router.get('/chi-tiet/:id', ctrl.xemChiTietPhong);
+const {
+  getDanhSachPhong,
+  themPhong,
+  capNhatPhong,
+  xoaPhong,
+  getDanhSachLoaiPhong,
+  themLoaiPhong,
+  capNhatDonGiaLoaiPhong,
+} = require('../controllers/phongController');
 
-router.post('/', ctrl.themPhong);
+// ── Loại phòng (khai báo TRƯỚC /api/phong/:id để tránh conflict) ──
+router.get   ('/loai-phong',     getDanhSachLoaiPhong);
+router.post  ('/loai-phong',     themLoaiPhong);
+router.put   ('/loai-phong/:id', capNhatDonGiaLoaiPhong);
 
-router.put('/:id', ctrl.capNhatPhong);
+// ── Phòng ──
+router.get   ('/',    getDanhSachPhong);
+router.post  ('/',    themPhong);
+router.put   ('/:id', capNhatPhong);
+router.delete('/:id', xoaPhong);
 
-router.delete('/:id', ctrl.xoaPhong);
-
-// URL: GET http://localhost:3000/api/phong/loai-phong
-router.get('/loai-phong', ctrl.xemLoaiPhong);
-
-router.post('/loai-phong', ctrl.themLoaiPhong);
-router.put('/loai-phong/:id', ctrl.capNhatLoaiPhong);
-
+module.exports = router;
 module.exports = router;
