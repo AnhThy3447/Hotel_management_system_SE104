@@ -26,7 +26,6 @@ const reportRoutes = require('./routes/report');
 app.use('/api/bao-cao', reportRoutes);
 
 const phongRoutes = require('./routes/phongRoutes');
-
 app.use('/api/phong', phongRoutes);
 
 app.get('/', (req, res) => {
