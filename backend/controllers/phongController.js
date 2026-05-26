@@ -103,7 +103,7 @@ exports.getRoomTypes = async (req, res) => {
     }
 };
 
-// ================= CREATE ROOM TYPE (BẢN CHỐNG CRASH) =================
+
 // ================= CREATE ROOM TYPE =================
 exports.createRoomType = async (req, res) => {
     try {
@@ -114,59 +114,81 @@ exports.createRoomType = async (req, res) => {
             donGia
         } = req.body;
 
-        // ===== VALIDATE =====
-        if (!maLoaiPhong || !loaiPhong || !donGia) {
+        // validate
+        if (!loaiPhong || !donGia) {
             return res.status(400).json({
                 success: false,
-                message: "Vui lòng nhập đầy đủ thông tin"
+                message: "Thiếu dữ liệu"
             });
         }
 
-        // ===== CHECK EXIST =====
-        const check = await db.query(`
-            SELECT *
-            FROM LOAIPHONG
-            WHERE MaLoaiPhong = $1
-        `, [maLoaiPhong]);
+        // kiểm tra mã loại phòng nếu user tự nhập
+        if (maLoaiPhong) {
 
-        if (check.rows.length > 0) {
-            return res.status(400).json({
-                success: false,
-                message: "Mã loại phòng đã tồn tại"
+            const check = await db.query(`
+                SELECT "MaLoaiPhong"
+                FROM "LOAIPHONG"
+                WHERE "MaLoaiPhong" = $1
+            `, [maLoaiPhong]);
+
+            if (check.rows.length > 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Mã loại phòng đã tồn tại"
+                });
+            }
+
+            // insert có mã
+            const result = await db.query(`
+                INSERT INTO "LOAIPHONG"
+                (
+                    "MaLoaiPhong",
+                    "LoaiPhong",
+                    "DonGia"
+                )
+                VALUES ($1, $2, $3)
+                RETURNING *
+            `, [
+                maLoaiPhong,
+                loaiPhong,
+                donGia
+            ]);
+
+            return res.status(201).json({
+                success: true,
+                data: result.rows[0]
+            });
+
+        } else {
+
+            // insert tự tăng SERIAL
+            const result = await db.query(`
+                INSERT INTO "LOAIPHONG"
+                (
+                    "LoaiPhong",
+                    "DonGia"
+                )
+                VALUES ($1, $2)
+                RETURNING *
+            `, [
+                loaiPhong,
+                donGia
+            ]);
+
+            return res.status(201).json({
+                success: true,
+                data: result.rows[0]
             });
         }
-
-        // ===== INSERT =====
-        const result = await db.query(`
-            INSERT INTO LOAIPHONG
-            (
-                MaLoaiPhong,
-                LoaiPhong,
-                DonGia
-            )
-            VALUES ($1, $2, $3)
-            RETURNING *
-        `, [
-            maLoaiPhong,
-            loaiPhong,
-            donGia
-        ]);
-
-        res.status(201).json({
-            success: true,
-            message: "Thêm loại phòng thành công",
-            data: result.rows[0]
-        });
 
     } catch (err) {
 
         console.error("CREATE ROOM TYPE ERROR:", err);
 
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             message: err.message
         });
-
     }
 };
 // ================= UPDATE ROOM TYPE =================
