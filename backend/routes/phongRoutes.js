@@ -1,25 +1,24 @@
-const express = require('express');
-const router  = express.Router();
+const express = require("express");
+const router = express.Router();
 
-const {
-  getDanhSachPhong,
-  themPhong,
-  capNhatPhong,
-  xoaPhong,
-  getDanhSachLoaiPhong,
-  themLoaiPhong,
-  capNhatDonGiaLoaiPhong,
-} = require('../controllers/phongController');
+const phongController = require("../controllers/phongController");
 
-// ── Loại phòng (khai báo TRƯỚC /api/phong/:id để tránh conflict) ──
-router.get   ('/loai-phong',     getDanhSachLoaiPhong);
-router.post  ('/loai-phong',     themLoaiPhong);
-router.put   ('/loai-phong/:id', capNhatDonGiaLoaiPhong);
+// ================= ROOMS =================
+router.get("/", phongController.getRooms);
 
-// ── Phòng ──
-router.get   ('/',    getDanhSachPhong);
-router.post  ('/',    themPhong);
-router.put   ('/:id', capNhatPhong);
-router.delete('/:id', xoaPhong);
+router.post("/", phongController.addRoom);
+
+router.put("/:id", phongController.updateRoom);
+
+router.delete("/:id", phongController.deleteRoom);
+
+// ================= ROOM TYPES =================
+router.get("/loai-phong", phongController.getRoomTypes);
+
+router.post("/loai-phong", phongController.addRoomType);
+
+router.put("/loai-phong/:id", phongController.updateRoomType);
+
+router.delete("/loai-phong/:id", phongController.deleteRoomType);
 
 module.exports = router;

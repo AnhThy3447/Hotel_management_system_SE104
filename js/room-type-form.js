@@ -1,41 +1,72 @@
-const API_LOAI = 'https://hotel-management-system-se104.onrender.com/api/phong/loai-phong';
+const API_URL = "https://hotel-management-system-se104.onrender.com/api/phong";
 
-document.addEventListener('DOMContentLoaded', () => {
-  // Ẩn ô nhập mã loại phòng (typeCode) vì DB tự tăng bằng SERIAL số nguyên
-  const codeGroup = document.getElementById('typeCode')?.closest('.form-group');
-  if (codeGroup) codeGroup.style.display = 'none';
+// ================= LOAD ROOM TYPES =================
+document.addEventListener("DOMContentLoaded", async () => {
+
+    const res = await fetch(`${API_URL}/loai-phong`);
+
+    const roomTypes = await res.json();
+
+    const select = document.getElementById("roomType");
+
+    roomTypes.forEach(type => {
+
+        select.innerHTML += `
+            <option value="${type.maloaiphong}">
+                ${type.loaiphong}
+            </option>
+        `;
+    });
 });
 
-async function handleSubmit(e) {
-  e.preventDefault();
+// ================= SUBMIT =================
+async function handleSubmit(event) {
 
-  // Chỉ gửi tên loại phòng và đơn giá
-  const payload = {
-    tenloaiphong: document.getElementById('typeName').value.trim(),
-    dongia:       Number(document.getElementById('price').value) || 0,
-  };
+    event.preventDefault();
 
-  if (!payload.tenloaiphong || !payload.dongia) {
-    toast('Vui lòng nhập đầy đủ thông tin!', 'error');
-    return;
-  }
+    const data = {
 
-  const btn = e.submitter || document.querySelector('.btn-submit');
-  if (btn) { btn.disabled = true; btn.textContent = 'Đang lưu...'; }
+        maLoaiPhong:
+            document.getElementById("roomType").value,
 
-  try {
-    const res  = await fetch(API_LOAI, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify(payload),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
+        tinhTrang:
+            document.getElementById("status").value,
 
-    toast(`Thêm loại phòng thành công! Mã số: ${data.maloaiphong}`, 'success');
-    setTimeout(() => { location.href = 'rooms.html'; }, 2000);
-  } catch (err) {
-    toast('Thêm thất bại: ' + err.message, 'error');
-    if (btn) { btn.disabled = false; btn.textContent = 'Thêm loại phòng'; }
-  }
+        ghiChu:
+            document.getElementById("notes").value
+    };
+
+    try {
+
+        const res = await fetch(API_URL, {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify(data)
+        });
+
+        if (!res.ok) {
+
+            throw new Error("Lỗi thêm phòng");
+        }
+
+        alert("Thêm phòng thành công!");
+
+        window.location.href = "rooms.html";
+
+    } catch (err) {
+
+        console.error(err);
+
+        alert("Không thể thêm phòng");
+    }
+}
+
+function cancelForm() {
+
+    window.location.href = "rooms.html";
 }

@@ -1,48 +1,34 @@
-// ============================================================
-// js/room-detail.js  –  tên cột DB chữ thường
-// ============================================================
+const API_URL = "https://hotel-management-system-se104.onrender.com/api/phong";
 
-const API = 'https://hotel-management-system-se104.onrender.com/api/phong';
+document.addEventListener("DOMContentLoaded", async () => {
 
-document.addEventListener('DOMContentLoaded', async () => {
-  const id = new URLSearchParams(location.search).get('id');
-  if (!id) { setText('roomTitle', 'Không tìm thấy phòng'); return; }
+    const params = new URLSearchParams(window.location.search);
 
-  try {
-    const rooms = await fetch(API).then(r => r.json());
-    const room  = (rooms || []).find(r => r.sophong === id);
+    const id = params.get("id");
 
-    if (!room) { setText('roomTitle', 'Không tìm thấy phòng'); return; }
+    const res = await fetch(API_URL);
 
-    setText('roomTitle', `Phòng ${room.sophong}`);
-    setText('id',    room.sophong);
-    setText('type',  room.tenloaiphong || '');
-    setText('price', Number(room.dongia || 0).toLocaleString('vi-VN') + ' VNĐ');
-    setText('notes', room.ghichu || 'Không có ghi chú');
+    const rooms = await res.json();
 
-    // badge trạng thái
-    const map = {
-      available:   ['Trống',    'badge-available'],
-      occupied:    ['Đang thuê','badge-occupied'],
-      maintenance: ['Dọn dẹp', 'badge-maintenance'],
-    };
-    const [label, cls] = map[(room.tinhtrang || '').toLowerCase()] || [room.tinhtrang, 'badge-maintenance'];
-    const badge = document.getElementById('roomStatus');
-    if (badge) { badge.textContent = label; badge.className = `badge ${cls}`; }
+    const room = rooms.find(r => r.sophong == id);
 
-    // nút cập nhật
-    const btn = document.getElementById('editBtn');
-    if (btn) btn.onclick = () => {
-      location.href = `edit-room.html?id=${encodeURIComponent(room.sophong)}`;
-    };
+    if (!room) return;
 
-  } catch (e) {
-    setText('roomTitle', 'Lỗi tải dữ liệu');
-    console.error(e);
-  }
+    document.getElementById("roomTitle").textContent =
+        `Phòng ${room.sophong}`;
+
+    document.getElementById("id").textContent =
+        room.sophong;
+
+    document.getElementById("type").textContent =
+        room.loaiphong;
+
+    document.getElementById("price").textContent =
+        Number(room.dongia).toLocaleString("vi-VN") + " VNĐ";
+
+    document.getElementById("notes").textContent =
+        room.ghichu || "Không có ghi chú";
+
+    document.getElementById("roomStatus").textContent =
+        room.tinhtrang;
 });
-
-function setText(id, val) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = val;
-}

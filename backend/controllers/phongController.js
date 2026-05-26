@@ -1,179 +1,221 @@
-const db = require('../db');
+const db = require("../db");
 
-// ================================================================
-// PHONG
-// ================================================================
+// ================= GET ALL ROOMS =================
+exports.getRooms = async (req, res) => {
+    try {
+        const result = await db.query(`
+            SELECT
+                p.SoPhong,
+                p.TinhTrang,
+                p.GhiChu,
+                lp.MaLoaiPhong,
+                lp.LoaiPhong,
+                lp.DonGia
+            FROM PHONG p
+            JOIN LOAIPHONG lp
+                ON p.MaLoaiPhong = lp.MaLoaiPhong
+            ORDER BY p.SoPhong ASC
+        `);
 
-// GET /api/phong
-const getDanhSachPhong = async (req, res) => {
-  try {
-    const result = await db.query(`
-      SELECT
-        p.sophong,
-        p.maloaiphong,
-        lp.loaiphong   AS tenloaiphong,
-        lp.dongia,
-        p.tinhtrang,
-        p.ghichu
-      FROM phong p
-      LEFT JOIN loaiphong lp ON p.maloaiphong = lp.maloaiphong
-      ORDER BY p.sophong
-    `);
-    res.json(result.rows);
-  } catch (err) {
-    console.error('getDanhSachPhong:', err.message);
-    res.status(500).json({ message: 'Lỗi server: ' + err.message });
-  }
-};
+        res.json(result.rows);
 
-// POST /api/phong
-const themPhong = async (req, res) => {
-  // Vì sophong là SERIAL nên không nhận từ req.body nữa
-  const { maloaiphong, tinhtrang, ghichu } = req.body;
-
-  if (!maloaiphong) {
-    return res.status(400).json({ message: 'Thiếu maloaiphong (Mã loại phòng)' });
-  }
-
-  try {
-    // Chuyển đổi maloaiphong sang kiểu số nguyên để khớp với DB
-    const maLoaiInt = parseInt(maloaiphong, 10);
-
-    const result = await db.query(
-      `INSERT INTO phong (maloaiphong, tinhtrang, ghichu)
-       VALUES ($1, $2, $3)
-       RETURNING sophong`,
-      [maLoaiInt, tinhtrang || 'Trống', ghichu || '']
-    );
-
-    res.status(201).json({ 
-      message: 'Thêm phòng thành công', 
-      sophong: result.rows[0].sophong 
-    });
-  } catch (err) {
-    console.error('themPhong:', err.message);
-    res.status(500).json({ message: 'Lỗi server: ' + err.message });
-  }
-};
-
-// PUT /api/phong/:id
-const capNhatPhong = async (req, res) => {
-  const { id } = req.params; // id này là số phòng (sophong)
-  const { maloaiphong, tinhtrang, ghichu } = req.body;
-
-  try {
-    const result = await db.query(
-      `UPDATE phong
-       SET maloaiphong = COALESCE($1, maloaiphong),
-           tinhtrang   = COALESCE($2, tinhtrang),
-           ghichu      = COALESCE($3, ghichu)
-       WHERE sophong = $4
-       RETURNING *`,
-      [maloaiphong ? parseInt(maloaiphong, 10) : null, tinhtrang, ghichu, parseInt(id, 10)]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'Không tìm thấy phòng' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            message: "Lỗi lấy danh sách phòng"
+        });
     }
-    res.json({ message: 'Cập nhật thành công', phong: result.rows[0] });
-  } catch (err) {
-    console.error('capNhatPhong:', err.message);
-    res.status(500).json({ message: 'Lỗi server: ' + err.message });
-  }
 };
 
-// DELETE /api/phong/:id
-const xoaPhong = async (req, res) => {
-  const { id } = req.params;
-  try {
-    const result = await db.query(
-      'DELETE FROM phong WHERE sophong = $1 RETURNING sophong',
-      [parseInt(id, 10)]
-    );
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'Không tìm thấy phòng' });
+// ================= ADD ROOM =================
+exports.addRoom = async (req, res) => {
+    try {
+        const {
+            maLoaiPhong,
+            tinhTrang,
+            ghiChu
+        } = req.body;
+
+        const result = await db.query(`
+            INSERT INTO PHONG
+            (MaLoaiPhong, TinhTrang, GhiChu)
+            VALUES ($1, $2, $3)
+            RETURNING *
+        `, [maLoaiPhong, tinhTrang, ghiChu]);
+
+        res.status(201).json(result.rows[0]);
+
+    } catch (err) {
+        console.error(err);
+
+        res.status(500).json({
+            message: "Lỗi thêm phòng"
+        });
     }
-    res.json({ message: `Đã xóa phòng ${id}` });
-  } catch (err) {
-    console.error('xoaPhong:', err.message);
-    res.status(500).json({ message: 'Lỗi server: ' + err.message });
-  }
 };
 
-// ================================================================
-// LOAI PHONG
-// ================================================================
+// ================= UPDATE ROOM =================
+exports.updateRoom = async (req, res) => {
+    try {
+        const { id } = req.params;
 
-// GET /api/phong/loai-phong
-const getDanhSachLoaiPhong = async (req, res) => {
-  try {
-    const result = await db.query(
-      'SELECT maloaiphong, loaiphong AS tenloaiphong, dongia FROM loaiphong ORDER BY maloaiphong'
-    );
-    res.json(result.rows);
-  } catch (err) {
-    console.error('getDanhSachLoaiPhong:', err.message);
-    res.status(500).json({ message: 'Lỗi server: ' + err.message });
-  }
-};
+        const {
+            maLoaiPhong,
+            tinhTrang,
+            ghiChu
+        } = req.body;
 
-// POST /api/phong/loai-phong
-const themLoaiPhong = async (req, res) => {
-  // maloaiphong là SERIAL nên chỉ cần lấy tenloaiphong (loaiphong) và dongia
-  const { tenloaiphong, dongia } = req.body;
+        const result = await db.query(`
+            UPDATE PHONG
+            SET
+                MaLoaiPhong = $1,
+                TinhTrang = $2,
+                GhiChu = $3
+            WHERE SoPhong = $4
+            RETURNING *
+        `, [
+            maLoaiPhong,
+            tinhTrang,
+            ghiChu,
+            id
+        ]);
 
-  if (!tenloaiphong) {
-    return res.status(400).json({ message: 'Thiếu tên loại phòng' });
-  }
+        res.json(result.rows[0]);
 
-  try {
-    const result = await db.query(
-      'INSERT INTO loaiphong (loaiphong, dongia) VALUES ($1, $2) RETURNING maloaiphong',
-      [tenloaiphong, parseInt(dongia, 10) || 0]
-    );
+    } catch (err) {
+        console.error(err);
 
-    res.status(201).json({ 
-      message: 'Thêm loại phòng thành công', 
-      maloaiphong: result.rows[0].maloaiphong 
-    });
-  } catch (err) {
-    console.error('themLoaiPhong:', err.message);
-    res.status(500).json({ message: 'Lỗi server: ' + err.message });
-  }
-};
-
-// PUT /api/phong/loai-phong/:id
-const capNhatDonGiaLoaiPhong = async (req, res) => {
-  const { id } = req.params;
-  const { dongia, tenloaiphong } = req.body;
-
-  try {
-    const result = await db.query(
-      `UPDATE loaiphong
-       SET dongia    = COALESCE($1, dongia),
-           loaiphong = COALESCE($2, loaiphong)
-       WHERE maloaiphong = $3
-       RETURNING *`,
-      [dongia ? parseInt(dongia, 10) : null, tenloaiphong, parseInt(id, 10)]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'Không tìm thấy loại phòng' });
+        res.status(500).json({
+            message: "Lỗi cập nhật phòng"
+        });
     }
-
-    res.json({ message: 'Cập nhật thành công', loaiPhong: result.rows[0] });
-  } catch (err) {
-    console.error('capNhatDonGiaLoaiPhong:', err.message);
-    res.status(500).json({ message: 'Lỗi server: ' + err.message });
-  }
 };
 
-module.exports = {
-  getDanhSachPhong,
-  themPhong,
-  capNhatPhong,
-  xoaPhong,
-  getDanhSachLoaiPhong,
-  themLoaiPhong,
-  capNhatDonGiaLoaiPhong,
+// ================= DELETE ROOM =================
+exports.deleteRoom = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        await db.query(`
+            DELETE FROM PHONG
+            WHERE SoPhong = $1
+        `, [id]);
+
+        res.json({
+            message: "Xóa phòng thành công"
+        });
+
+    } catch (err) {
+        console.error(err);
+
+        res.status(500).json({
+            message: "Lỗi xóa phòng"
+        });
+    }
+};
+
+// ================= GET ROOM TYPES =================
+exports.getRoomTypes = async (req, res) => {
+    try {
+        const result = await db.query(`
+            SELECT *
+            FROM LOAIPHONG
+            ORDER BY MaLoaiPhong ASC
+        `);
+
+        res.json(result.rows);
+
+    } catch (err) {
+        console.error(err);
+
+        res.status(500).json({
+            message: "Lỗi lấy loại phòng"
+        });
+    }
+};
+
+// ================= ADD ROOM TYPE =================
+exports.addRoomType = async (req, res) => {
+    try {
+
+        const {
+            loaiPhong,
+            donGia
+        } = req.body;
+
+        const result = await db.query(`
+            INSERT INTO LOAIPHONG
+            (LoaiPhong, DonGia)
+            VALUES ($1, $2)
+            RETURNING *
+        `, [loaiPhong, donGia]);
+
+        res.status(201).json(result.rows[0]);
+
+    } catch (err) {
+        console.error(err);
+
+        res.status(500).json({
+            message: "Lỗi thêm loại phòng"
+        });
+    }
+};
+
+// ================= UPDATE ROOM TYPE =================
+exports.updateRoomType = async (req, res) => {
+    try {
+
+        const { id } = req.params;
+
+        const {
+            loaiPhong,
+            donGia
+        } = req.body;
+
+        const result = await db.query(`
+            UPDATE LOAIPHONG
+            SET
+                LoaiPhong = $1,
+                DonGia = $2
+            WHERE MaLoaiPhong = $3
+            RETURNING *
+        `, [
+            loaiPhong,
+            donGia,
+            id
+        ]);
+
+        res.json(result.rows[0]);
+
+    } catch (err) {
+        console.error(err);
+
+        res.status(500).json({
+            message: "Lỗi cập nhật loại phòng"
+        });
+    }
+};
+
+// ================= DELETE ROOM TYPE =================
+exports.deleteRoomType = async (req, res) => {
+    try {
+
+        const { id } = req.params;
+
+        await db.query(`
+            DELETE FROM LOAIPHONG
+            WHERE MaLoaiPhong = $1
+        `, [id]);
+
+        res.json({
+            message: "Xóa loại phòng thành công"
+        });
+
+    } catch (err) {
+        console.error(err);
+
+        res.status(500).json({
+            message: "Lỗi xóa loại phòng"
+        });
+    }
 };
