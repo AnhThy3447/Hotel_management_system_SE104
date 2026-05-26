@@ -1,75 +1,49 @@
-// ==========================
-// LOAD STORAGE
-// ==========================
-let roomTypes = JSON.parse(localStorage.getItem("roomTypes")) || [];
+const API_URL =
+  "https://hotel-management-system-se104.onrender.com/api/phong";
 
-// ==========================
-// SUBMIT FORM
-// ==========================
-function handleSubmit(event) {
-    event.preventDefault();
+// ================= SUBMIT =================
+async function handleSubmit(event) {
+  event.preventDefault();
 
-    const data = {
-        id: document.getElementById("typeCode").value.trim(),
-        name: document.getElementById("typeName").value.trim(),
-        price: Number(document.getElementById("price").value),
-        
-    };
+  const body = {
+    loaiPhong:
+      document.getElementById("typeName").value,
 
-    // VALIDATE
-    if (!data.id || !data.name || !data.price ) {
-        alert("Vui lòng nhập đầy đủ thông tin!");
-        return;
+    donGia:
+      Number(document.getElementById("price").value),
+  };
+
+  try {
+    const response = await fetch(
+      `${API_URL}/loai-phong`,
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify(body),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Thêm loại phòng thất bại");
     }
 
-    // CHECK TRÙNG
-    const exists = roomTypes.some(t => t.id === data.id);
-    if (exists) {
-        alert("Mã loại phòng đã tồn tại!");
-        return;
-    }
+    alert("Thêm loại phòng thành công");
 
-    // THÊM MỚI
-    roomTypes.push(data);
-
-    // SAVE
-    localStorage.setItem("roomTypes", JSON.stringify(roomTypes));
-
-    // THÔNG BÁO
-    alert("Thêm loại phòng thành công!");
-
-    // QUAY LẠI
     window.location.href = "rooms.html";
+  } catch (err) {
+    console.error(err);
+
+    alert(err.message);
+  }
 }
 
-// ==========================
-// CANCEL
-// ==========================
+// ================= CANCEL =================
 function cancelForm() {
-    if (confirm("Bạn có chắc muốn hủy?")) {
-        window.location.href = "rooms.html";
-    }
+  if (confirm("Bạn có chắc muốn hủy?")) {
+    window.location.href = "rooms.html";
+  }
 }
-
-// ==========================
-// AUTO CODE
-// ==========================
-document.addEventListener("DOMContentLoaded", () => {
-    const nameInput = document.getElementById("typeName");
-    const codeInput = document.getElementById("typeCode");
-
-    nameInput.addEventListener("input", () => {
-        const name = nameInput.value.trim();
-
-        if (name && !codeInput.value) {
-            const code = name
-                .split(" ")
-                .map(w => w[0])
-                .join("")
-                .substring(0, 3)
-                .toUpperCase();
-
-            codeInput.value = code;
-        }
-    });
-});

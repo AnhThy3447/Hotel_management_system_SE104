@@ -1,44 +1,95 @@
-let rooms = JSON.parse(localStorage.getItem("rooms")) || [];
+const API_URL =
+  "https://hotel-management-system-se104.onrender.com/api/phong";
 
-function saveRooms() {
-    localStorage.setItem("rooms", JSON.stringify(rooms));
-}
+// ================= LOAD ROOM TYPES =================
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const response = await fetch(`${API_URL}/loai-phong`);
 
-function handleSubmit(event) {
-    event.preventDefault();
+    const data = await response.json();
 
     const select = document.getElementById("roomType");
-    const selectedOption = select.options[select.selectedIndex];
 
-    const data = {
-        id: document.getElementById("roomCode").value.trim(),
-        type: select.value,
-        typeName: selectedOption.text,
+    select.innerHTML =
+      '<option value="">-- Chọn loại phòng --</option>';
 
-        price: Number(document.getElementById("price").value),
-        status: document.getElementById("status").value,
-        notes: document.getElementById("notes").value.trim()
-    };
+    data.forEach((type) => {
+      select.innerHTML += `
+            <option
+                value="${type.maloaiphong}"
+                data-price="${type.dongia}"
+            >
+                ${type.loaiphong}
+            </option>
+        `;
+    });
+  } catch (err) {
+    console.error(err);
+  }
+});
 
-    if (!data.id || !data.type) {
-        alert("Thiếu dữ liệu!");
-        return;
-    }
+// ================= UPDATE PRICE =================
+function updatePrice() {
+  const select = document.getElementById("roomType");
 
-    if (rooms.some(r => r.id === data.id)) {
-        alert("Trùng mã phòng!");
-        return;
-    }
+  const option = select.options[select.selectedIndex];
 
-    rooms.push(data);
-    saveRooms();
+  const price = option.getAttribute("data-price");
 
-    alert("Thêm phòng thành công!");
-    window.location.href = "rooms.html";
+  document.getElementById("price").value = price || "";
 }
 
-function cancelForm() {
-    if (confirm("Hủy?")) {
-        window.location.href = "rooms.html";
+// ================= SUBMIT =================
+async function handleSubmit(event) {
+  event.preventDefault();
+
+  const body = {
+    maLoaiPhong:
+      document.getElementById("roomType").value,
+
+    tinhTrang:
+      convertStatus(document.getElementById("status").value),
+
+    ghiChu:
+      document.getElementById("notes").value,
+  };
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json",
+      },
+
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      throw new Error("Thêm phòng thất bại");
     }
+
+    alert("Thêm phòng thành công");
+
+    window.location.href = "rooms.html";
+  } catch (err) {
+    console.error(err);
+
+    alert(err.message);
+  }
+}
+
+function convertStatus(status) {
+  if (status === "available") return "Trống";
+
+  if (status === "occupied") return "Đang thuê";
+
+  return "Dọn dẹp";
+}
+
+// ================= CANCEL =================
+function cancelForm() {
+  if (confirm("Bạn có chắc muốn hủy?")) {
+    window.location.href = "rooms.html";
+  }
 }
