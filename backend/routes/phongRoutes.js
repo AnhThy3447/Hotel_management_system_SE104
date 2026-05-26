@@ -1,53 +1,20 @@
 const router = require('express').Router();
+const ctrl = require('../controllers/phongController');
+router.get('/test', ctrl.testAPI);
+router.get('/', ctrl.xemDanhSachPhong);
 
-const ctrl =
-    require('../controllers/phongController');
+router.get('/chi-tiet/:id', ctrl.xemChiTietPhong);
 
-router.get(
-    '/',
-    ctrl.testAPI
-);
+router.post('/', ctrl.themPhong);
 
+router.put('/:id', ctrl.capNhatPhong);
 
-router.get(
-    '/loai-phong',
-    ctrl.xemLoaiPhong
-);
+router.delete('/:id', ctrl.xoaPhong);
 
-router.post(
-    '/loai-phong',
-    ctrl.themLoaiPhong
-);
+// URL: GET http://localhost:3000/api/phong/loai-phong
+router.get('/loai-phong', ctrl.xemLoaiPhong);
 
-router.put(
-    '/loai-phong/:id',
-    ctrl.capNhatLoaiPhong
-);
-
-
-router.get(
-    '/danh-sach',
-    ctrl.xemDanhSachPhong
-);
-
-router.get(
-    '/chi-tiet/:id',
-    ctrl.xemChiTietPhong
-);
-
-router.post(
-    '/',
-    ctrl.themPhong
-);
-
-router.put(
-    '/:id',
-    ctrl.capNhatPhong
-);
-
-router.delete(
-    '/:id',
-    ctrl.xoaPhong
-);
+router.post('/loai-phong', ctrl.themLoaiPhong);
+router.put('/loai-phong/:id', ctrl.capNhatLoaiPhong);
 
 module.exports = router;
