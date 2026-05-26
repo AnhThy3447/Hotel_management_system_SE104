@@ -36,7 +36,7 @@ async function loadInvoices(filtered = null) {
                     <td><strong>${maHD}</strong></td>
                     <td>${invoice.tenkhachhang || 'N/A'}</td>
                     <td>${formatDateVN(invoice.ngaythanhToan?.split('T')[0] || invoice.ngaythanhtoan?.split('T')[0])}</td>
-                    <td><span class="badge badge-room">—</span></td>
+                    <td><span class="badge badge-room">${invoice.mathuephong || '—'}</span></td>
                     <td><strong style="color: #4CAF50;">${formatCurrency(invoice.tongtien)} VNĐ</strong></td>
                     <td>
                         <div class="actions">
@@ -84,9 +84,9 @@ async function viewInvoice(maHoaDon) {
             <tr>
                 <td>${index + 1}</td>
                 <td><strong>${ct.sophong || 'N/A'}</strong></td>
-                <td>—</td>
+                <td>${ct.loaiphong || '—'}</td>
                 <td>${ct.songaythue || 0}</td>
-                <td>—</td>
+                <td>${ct.dongia ? formatCurrency(ct.dongia) + ' VNĐ' : '—'}</td>
                 <td><strong style="color:#4CAF50">${formatCurrency(ct.trigia)} VNĐ</strong></td>
             </tr>
         `).join('');
