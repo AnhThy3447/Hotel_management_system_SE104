@@ -11,50 +11,50 @@ exports.testAPI = async (req, res) => {
     });
 };
 
-// ======================================================
-// XEM DANH SÁCH PHÒNG
-// ======================================================
 
 exports.xemDanhSachPhong = async (req, res) => {
-
+    // Ép buộc phản hồi luôn luôn ở định dạng JSON
+    res.setHeader('Content-Type', 'application/json');
     try {
-
         const sql = `
             SELECT
-                p."SoPhong"       AS sophong,
-                p."TinhTrang"    AS tinhtrang,
-                p."GhiChu"       AS ghichu,
-
+                p."SoPhong"     AS sophong,
+                p."TinhTrang"   AS tinhtrang,
+                p."GhiChu"      AS ghichu,
                 lp."MaLoaiPhong" AS maloaiphong,
                 lp."LoaiPhong"   AS loaiphong,
                 lp."DonGia"      AS dongia
-
             FROM "PHONG" p
-
-            JOIN "LOAIPHONG" lp
-            ON p."MaLoaiPhong" = lp."MaLoaiPhong"
-
+            JOIN "LOAIPHONG" lp ON p."MaLoaiPhong" = lp."MaLoaiPhong"
             ORDER BY p."SoPhong" ASC
         `;
-
         const result = await db.query(sql);
-
-        res.json({
-            success: true,
-            data: result.rows
-        });
-
+        return res.json({ success: true, data: result.rows });
     } catch (err) {
-
-        console.error(err);
-
-        res.status(500).json({
-            success: false,
-            message: err.message
-        });
+        console.error("🚨 Lỗi tại xemDanhSachPhong:", err.message);
+        // Trả về mảng rỗng để Front-end không bị lỗi phân tích JSON (Unexpected token)
+        return res.status(200).json({ success: false, data: [], message: err.message });
     }
 };
 
+exports.xemLoaiPhong = async (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    try {
+        const sql = `
+            SELECT
+                "MaLoaiPhong" AS maloaiphong,
+                "LoaiPhong"   AS loaiphong,
+                "DonGia"      AS dongia
+            FROM "LOAIPHONG"
+            ORDER BY "MaLoaiPhong" ASC
+        `;
+        const result = await db.query(sql);
+        return res.json({ success: true, data: result.rows });
+    } catch (err) {
+        console.error("🚨 Lỗi tại xemLoaiPhong:", err.message);
+        return res.status(200).json({ success: false, data: [], message: err.message });
+    }
+};
 // ======================================================
 // XEM CHI TIẾT PHÒNG
 // ======================================================
@@ -266,41 +266,6 @@ exports.xoaPhong = async (req, res) => {
     }
 };
 
-// ======================================================
-// XEM LOẠI PHÒNG
-// ======================================================
-
-exports.xemLoaiPhong = async (req, res) => {
-
-    try {
-
-        const sql = `
-            SELECT
-                "MaLoaiPhong" AS maloaiphong,
-                "LoaiPhong"   AS loaiphong,
-                "DonGia"      AS dongia
-            FROM "LOAIPHONG"
-
-            ORDER BY "MaLoaiPhong" ASC
-        `;
-
-        const result = await db.query(sql);
-
-        res.json({
-            success: true,
-            data: result.rows
-        });
-
-    } catch (err) {
-
-        console.error(err);
-
-        res.status(500).json({
-            success: false,
-            message: err.message
-        });
-    }
-};
 
 // ======================================================
 // THÊM LOẠI PHÒNG
