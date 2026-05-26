@@ -1,96 +1,53 @@
-const API_URL =
-  "https://hotel-management-system-se104.onrender.com/api/phong";
+const API_URL = "https://hotel-management-system-se104.onrender.com/api/phong";
 
-// ================= SUBMIT =================
 async function handleSubmit(event) {
   event.preventDefault();
 
-  const maLoaiPhong =
-    document.getElementById("typeCode").value.trim();
+  const typeCodeVal = document.getElementById("typeCode").value.trim();
+  const typeNameVal = document.getElementById("typeName").value.trim();
+  const priceVal = document.getElementById("price").value.trim();
 
-  const loaiPhong =
-    document.getElementById("typeName").value.trim();
-
-  const donGia =
-    Number(document.getElementById("price").value);
-
-  // ===== VALIDATE =====
-  if (!maLoaiPhong) {
-    alert("Vui lòng nhập mã loại phòng");
+  if (!typeCodeVal || !typeNameVal || !priceVal) {
+    alert("Vui lòng nhập đầy đủ thông tin!");
     return;
   }
 
-  if (!loaiPhong) {
-    alert("Vui lòng nhập tên loại phòng");
-    return;
-  }
-
-  if (!donGia || donGia <= 0) {
-    alert("Đơn giá không hợp lệ");
-    return;
-  }
-
-  const body = {
-    maLoaiPhong,
-    loaiPhong,
-    donGia,
+  const bodyData = {
+    maLoaiPhong: parseInt(typeCodeVal, 10),
+    loaiPhong: typeNameVal,
+    donGia: parseFloat(priceVal)
   };
 
-  console.log("BODY SEND:", body);
-
   try {
-    const response = await fetch(
-      `${API_URL}/loai-phong`,
-      {
-        method: "POST",
+    // Gọi chính xác link Render không kèm gạch chéo cuối cùng
+    const response = await fetch(`${API_URL}/loai-phong`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(bodyData),
+    });
 
-        headers: {
-          "Content-Type": "application/json",
-        },
-
-        body: JSON.stringify(body),
-      }
-    );
-
-    // ===== ĐỌC TEXT TRƯỚC =====
-    const text = await response.text();
-
-    console.log("RAW RESPONSE:", text);
-
-    let result;
-
-    try {
-      result = JSON.parse(text);
-    } catch {
-      throw new Error(
-        "Server không trả JSON.\n\n" + text
-      );
-    }
+    const result = await response.json();
 
     if (!response.ok) {
-      throw new Error(
-        result.message || "Thêm loại phòng thất bại"
-      );
+      throw new Error(result.message || "Thêm loại phòng thất bại!");
     }
 
-    alert("Thêm loại phòng thành công");
-
+    alert("Thêm loại phòng thành công!");
     window.location.href = "rooms.html";
 
   } catch (err) {
-    console.error(err);
-
+    console.error("Lỗi:", err);
     alert(err.message);
   }
 }
 
-// ================= CANCEL =================
 function cancelForm() {
-  if (confirm("Bạn có chắc muốn hủy?")) {
+  if (confirm("Bạn có chắc chắn muốn hủy?")) {
     window.location.href = "rooms.html";
   }
 }
 
-// ===== EXPORT =====
 window.handleSubmit = handleSubmit;
 window.cancelForm = cancelForm;

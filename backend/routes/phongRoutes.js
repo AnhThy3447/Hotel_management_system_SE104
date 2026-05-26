@@ -1,19 +1,22 @@
 const express = require("express");
 const router = express.Router();
-const roomController = require("../controllers/phongController");
 
-router.get("/", roomController.getRooms);
+const phongController = require("../controllers/phongController");
 
-router.post("/", roomController.createRoom);
+// ROOM
+router.get("/", phongController.getRooms);
+router.get("/:id", phongController.getRoomDetail);
+router.post("/", phongController.createRoom);
+router.put("/:id", phongController.updateRoom);
+router.delete("/:id", phongController.deleteRoom);
 
-router.put("/:id", roomController.updateRoom);
-router.delete("/:id", roomController.deleteRoom);
-router.get("/loai-phong", roomController.getRoomTypes);
+// ROOM TYPE
+router.get("/loai-phong", phongController.getRoomTypes);
 
-router.post("/loai-phong", roomController.createRoomType);
+router.post("/loai-phong", phongController.createRoomType);
 
-router.put("/loai-phong/:id", roomController.updateRoomType);
-router.delete("/loai-phong/:id", roomController.deleteRoomType);
-router.get("/:id", roomController.getRoomDetail);
+router.put("/loai-phong/:id", phongController.updateRoomType);
+
+router.delete("/loai-phong/:id", phongController.deleteRoomType);
 
 module.exports = router;
