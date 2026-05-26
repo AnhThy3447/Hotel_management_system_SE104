@@ -1,108 +1,190 @@
 const API_URL =
-  "https://hotel-management-system-se104.onrender.com/api/phong";
+  'https://hotel-management-system-se104.onrender.com/api/phong';
 
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener('DOMContentLoaded', () => {
+    loadRoomDetail();
+});
 
-  const params =
-    new URLSearchParams(window.location.search);
+// ======================================================
+// LOAD ROOM DETAIL
+// ======================================================
+async function loadRoomDetail() {
 
-  const id =
-    params.get("id");
+    const params =
+        new URLSearchParams(window.location.search);
 
-  try {
+    const id = params.get('id');
 
-    const response =
-      await fetch(`${API_URL}/${id}`);
-
-    const text =
-      await response.text();
-
-    let room;
-
-    try {
-      room = JSON.parse(text);
-    } catch {
-
-      throw new Error(
-        "API trả về HTML thay vì JSON"
-      );
-    }
-
-    if (!room) {
-
-      document.getElementById("roomTitle")
-        .textContent =
-        "Không tìm thấy phòng";
-
-      return;
-    }
-
-    document.getElementById("roomTitle")
-      .textContent =
-      `Phòng ${room.sophong}`;
-
-    document.getElementById("id")
-      .textContent =
-      room.sophong;
-
-    document.getElementById("type")
-      .textContent =
-      room.loaiphong;
-
-    document.getElementById("price")
-      .textContent =
-      Number(room.dongia)
-        .toLocaleString("vi-VN")
-      + " VNĐ";
-
-    document.getElementById("notes")
-      .textContent =
-      room.ghichu ||
-      "Không có ghi chú";
+    const title =
+        document.getElementById('roomTitle');
 
     const statusEl =
-      document.getElementById("roomStatus");
+        document.getElementById('roomStatus');
 
-    if (room.tinhtrang === "Trống") {
+    const idEl =
+        document.getElementById('id');
 
-      statusEl.textContent = "Trống";
+    const typeEl =
+        document.getElementById('type');
 
-      statusEl.className =
-        "badge badge-available";
+    const priceEl =
+        document.getElementById('price');
 
-    } else if (
-      room.tinhtrang === "Đang thuê"
-    ) {
+    const notesEl =
+        document.getElementById('notes');
 
-      statusEl.textContent =
-        "Đang thuê";
+    if (!id) {
 
-      statusEl.className =
-        "badge badge-occupied";
+        if (title) {
+            title.textContent =
+                'Không tìm thấy phòng';
+        }
 
-    } else {
-
-      statusEl.textContent =
-        "Dọn dẹp";
-
-      statusEl.className =
-        "badge badge-maintenance";
+        return;
     }
 
-    document.getElementById("editBtn")
-      .onclick = () => {
+    try {
 
-      window.location.href =
-        `edit-room.html?id=${room.sophong}`;
-    };
+        if (title) {
+            title.textContent =
+                'Đang tải dữ liệu...';
+        }
 
-  } catch (err) {
+        const response =
+            await fetch(`${API_URL}/${id}`);
 
-    console.error(
-      "ROOM DETAIL ERROR:",
-      err
-    );
+        if (!response.ok) {
+            throw new Error(
+                `HTTP ${response.status}`
+            );
+        }
 
-    alert(err.message);
-  }
-});
+        const room =
+            await response.json();
+
+        if (!room) {
+
+            if (title) {
+                title.textContent =
+                    'Không tìm thấy phòng';
+            }
+
+            return;
+        }
+
+        // ================= TITLE =================
+
+        if (title) {
+            title.textContent =
+                `Phòng ${room.sophong}`;
+        }
+
+        // ================= DATA =================
+
+        if (idEl) {
+            idEl.textContent =
+                room.sophong || '';
+        }
+
+        if (typeEl) {
+            typeEl.textContent =
+                room.loaiphong || '';
+        }
+
+        if (priceEl) {
+            priceEl.textContent =
+                formatCurrency(room.dongia) +
+                ' VNĐ';
+        }
+
+        if (notesEl) {
+            notesEl.textContent =
+                room.ghichu ||
+                'Không có ghi chú';
+        }
+
+        // ================= STATUS =================
+
+        renderStatus(
+            room.tinhtrang,
+            statusEl
+        );
+
+        // ================= EDIT BUTTON =================
+
+        const editBtn =
+            document.getElementById('editBtn');
+
+        if (editBtn) {
+
+            editBtn.onclick = () => {
+
+                window.location.href =
+                    `edit-room.html?id=${room.sophong}`;
+            };
+        }
+
+    } catch (err) {
+
+        console.error(
+            'Lỗi load chi tiết phòng:',
+            err
+        );
+
+        if (title) {
+            title.textContent =
+                'Lỗi tải dữ liệu';
+        }
+
+        if (notesEl) {
+            notesEl.textContent =
+                err.message;
+        }
+    }
+}
+
+// ======================================================
+// RENDER STATUS
+// ======================================================
+function renderStatus(status, el) {
+
+    if (!el) return;
+
+    if (status === 'Trống') {
+
+        el.textContent =
+            'Trống';
+
+        el.className =
+            'badge badge-available';
+
+        return;
+    }
+
+    if (status === 'Đang thuê') {
+
+        el.textContent =
+            'Đang thuê';
+
+        el.className =
+            'badge badge-occupied';
+
+        return;
+    }
+
+    el.textContent =
+        'Dọn dẹp';
+
+    el.className =
+        'badge badge-maintenance';
+}
+
+// ======================================================
+// FORMAT PRICE
+// ======================================================
+function formatCurrency(amount) {
+
+    return new Intl
+        .NumberFormat('vi-VN')
+        .format(amount || 0);
+}
