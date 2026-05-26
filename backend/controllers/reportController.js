@@ -1,70 +1,327 @@
-const db = require('../db');
-exports.getRevenueReport = async (req, res) => {
-    const { filterType, value } = req.query; // filterType: "month" hoặc "year"
-    try {
-        let condition = '';
-        let params = [value];
+const pool = require('../db');
 
-        // Chuẩn hóa điều kiện lọc theo đúng tên cột chữ thường trong database thực tế
-        if (filterType === 'month') {
-            condition = `TO_CHAR(hd.ngaythanhtoan, 'YYYY-MM') = $1`;
-        } else {
-            condition = `EXTRACT(YEAR FROM hd.ngaythanhtoan) = $1`;
+// ======================================================
+// BÁO CÁO DOANH THU
+// ======================================================
+
+exports.getRevenueReport = async (req, res) => {
+
+    try {
+
+        const { filterType, value } = req.query;
+
+        let month;
+        let year;
+
+        // ==================================================
+        // KIỂM TRA INPUT
+        // ==================================================
+
+        if (!filterType || !value) {
+
+            return res.status(400).json({
+
+                success: false,
+
+                message: 'Thiếu filterType hoặc value'
+            });
         }
-        const query = `
-            SELECT 
-                lp.loaiphong AS "type",
-                COALESCE(SUM(cthd.trigia), 0)::INTEGER AS "revenue",
-                COUNT(DISTINCT tp.mathuephong)::INTEGER AS "count"
-            FROM loaiphong lp
-            LEFT JOIN phong p ON lp.maloaiphong = p.maloaiphong
-            LEFT JOIN thuephong tp ON p.sophong = tp.sophong
-            LEFT JOIN cthoadon cthd ON tp.mathuephong = cthd.mathuephong
-            LEFT JOIN hoadon hd ON cthd.mahoadon = hd.mahoadon
-            WHERE ${condition}
-            GROUP BY lp.loaiphong;
+
+        // ==================================================
+        // XỬ LÝ THỜI GIAN
+        // ==================================================
+
+        if (filterType === 'month') {
+
+            const parts = value.split('-');
+
+            year = parseInt(parts[0]);
+
+            month = parseInt(parts[1]);
+
+        } else {
+
+            year = parseInt(value);
+        }
+
+        // ==================================================
+        // QUERY
+        // ==================================================
+
+        let query = `
+            SELECT
+                lp.LoaiPhong AS type,
+
+                SUM(ct.DoanhThu) AS revenue,
+
+                SUM(ct.SoLuotThue) AS count
+
+            FROM CTBAOCAODOANHTHU ct
+
+            JOIN BAOCAODOANHTHU bc
+                ON ct.MaBaoCao = bc.MaBaoCao
+
+            JOIN LOAIPHONG lp
+                ON ct.LoaiPhong = lp.MaLoaiPhong
+
+            WHERE bc.Nam = $1
         `;
 
+        let params = [year];
 
-        const result = await db.query(query, params);
-        res.status(200).json(result.rows);
+        if (filterType === 'month') {
+
+            query += ` AND bc.Thang = $2`;
+
+            params.push(month);
+        }
+
+        query += `
+            GROUP BY lp.LoaiPhong
+            ORDER BY revenue DESC
+        `;
+
+        const result =
+            await pool.query(query, params);
+
+        // ==================================================
+        // TÍNH TỔNG
+        // ==================================================
+
+        let totalRevenue = 0;
+        let totalCount = 0;
+
+        result.rows.forEach(item => {
+
+            totalRevenue += Number(item.revenue || 0);
+
+            totalCount += Number(item.count || 0);
+        });
+
+        // ==================================================
+        // FORMAT
+        // ==================================================
+
+        const data = result.rows.map(item => {
+
+            const revenue =
+                Number(item.revenue || 0);
+
+            const count =
+                Number(item.count || 0);
+
+            return {
+
+                type: item.type,
+
+                revenue,
+
+                count,
+
+                percent:
+                    totalRevenue > 0
+                        ? (
+                            (revenue / totalRevenue) * 100
+                        ).toFixed(1)
+                        : 0,
+
+                rentPercent:
+                    totalCount > 0
+                        ? (
+                            (count / totalCount) * 100
+                        ).toFixed(1)
+                        : 0
+            };
+        });
+
+        // ==================================================
+        // RESPONSE
+        // ==================================================
+
+        res.status(200).json({
+
+            success: true,
+
+            totalRevenue,
+
+            totalCount,
+
+            data
+        });
+
     } catch (error) {
-        res.status(500).json({ error: "Lỗi backend lấy báo cáo doanh thu: " + error.message });
+
+        console.error(
+            '❌ Revenue Report Error:',
+            error
+        );
+
+        res.status(500).json({
+
+            success: false,
+
+            message: 'Lỗi server doanh thu',
+
+            error: error.message
+        });
     }
 };
 
-exports.getGuestReport = async (req, res) => {
-    const { filterType, value } = req.query; // filterType: "month" hoặc "year"
-    try {
-        let condition = '';
-        let params = [value];
+// ======================================================
+// BÁO CÁO KHÁCH
+// ======================================================
 
-        // Chuẩn hóa điều kiện lọc thời gian theo cột ngày bắt đầu thuê
-        if (filterType === 'month') {
-            condition = `TO_CHAR(tp.ngaybatdauthue, 'YYYY-MM') = $1`;
-        } else {
-            condition = `EXTRACT(YEAR FROM tp.ngaybatdauthue) = $1`;
+exports.getGuestReport = async (req, res) => {
+
+    try {
+
+        const { filterType, value } = req.query;
+
+        let month;
+        let year;
+
+        // ==================================================
+        // VALIDATE
+        // ==================================================
+
+        if (!filterType || !value) {
+
+            return res.status(400).json({
+
+                success: false,
+
+                message: 'Thiếu filterType hoặc value'
+            });
         }
 
-        // Câu lệnh SQL truy vấn đếm lượng khách lưu trú theo phân loại khách
-        const query = `
-            SELECT 
-                TO_CHAR(tp.ngaybatdauthue, 'YYYY-MM') AS "month",
-                lk.loaikhach AS "type",
-                COUNT(cttp.makhachhang)::INTEGER AS "count"
-            FROM loaikhach lk
-            LEFT JOIN khachhang kh ON lk.maloaikhach = kh.maloaikhach
-            LEFT JOIN ctthuephong cttp ON kh.makhachhang = cttp.makhachhang
-            LEFT JOIN thuephong tp ON cttp.mathuephong = tp.mathuephong
-            WHERE ${condition}
-            GROUP BY TO_CHAR(tp.ngaybatdauthue, 'YYYY-MM'), lk.loaikhach
-            ORDER BY "month" ASC, lk.loaikhach ASC;
+        // ==================================================
+        // XỬ LÝ THỜI GIAN
+        // ==================================================
+
+        if (filterType === 'month') {
+
+            const parts = value.split('-');
+
+            year = parseInt(parts[0]);
+
+            month = parseInt(parts[1]);
+
+        } else {
+
+            year = parseInt(value);
+        }
+
+        // ==================================================
+        // QUERY
+        // ==================================================
+
+        let query = `
+            SELECT
+
+                bc.Thang,
+                bc.Nam,
+
+                lk.LoaiKhach AS type,
+
+                SUM(ct.SoLuongKhach) AS count
+
+            FROM CTBAOCAOKHACH ct
+
+            JOIN BAOCAOKHACH bc
+                ON ct.MaBaoCaoKhach = bc.MaBaoCaoKhach
+
+            JOIN LOAIKHACH lk
+                ON ct.LoaiKhach = lk.MaLoaiKhach
+
+            WHERE bc.Nam = $1
         `;
 
-        // Thực hiện gọi hàm truy vấn trực tiếp từ pool (db)
-        const result = await db.query(query, params);
-        res.status(200).json(result.rows);
+        let params = [year];
+
+        if (filterType === 'month') {
+
+            query += ` AND bc.Thang = $2`;
+
+            params.push(month);
+        }
+
+        query += `
+            GROUP BY
+                bc.Thang,
+                bc.Nam,
+                lk.LoaiKhach
+
+            ORDER BY count DESC
+        `;
+
+        const result =
+            await pool.query(query, params);
+
+        // ==================================================
+        // TOTAL
+        // ==================================================
+
+        let total = 0;
+
+        result.rows.forEach(item => {
+
+            total += Number(item.count || 0);
+        });
+
+        // ==================================================
+        // FORMAT
+        // ==================================================
+
+        const data = result.rows.map(item => {
+
+            const count =
+                Number(item.count || 0);
+
+            return {
+
+                month:
+                    `${item.nam}-${String(item.thang).padStart(2, '0')}`,
+
+                type: item.type,
+
+                count,
+
+                percent:
+                    total > 0
+                        ? (
+                            (count / total) * 100
+                        ).toFixed(1)
+                        : 0
+            };
+        });
+
+        // ==================================================
+        // RESPONSE
+        // ==================================================
+
+        res.status(200).json({
+
+            success: true,
+
+            total,
+
+            data
+        });
+
     } catch (error) {
-        res.status(500).json({ error: "Lỗi backend lấy báo cáo khách: " + error.message });
+
+        console.error(
+            '❌ Guest Report Error:',
+            error
+        );
+
+        res.status(500).json({
+
+            success: false,
+
+            message: 'Lỗi server báo cáo khách',
+
+            error: error.message
+        });
     }
 };

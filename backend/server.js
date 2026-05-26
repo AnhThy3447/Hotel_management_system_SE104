@@ -21,7 +21,9 @@ app.use('/api/quy-dinh',    require('./routes/quyDinh'));
 
 app.use('/api/co-quan',     require('./routes/coQuan'));
 
-app.use('/api/baocao',      require('./routes/report'));
+const reportRoutes = require('./routes/report');
+
+app.use('/api/bao-cao', reportRoutes);
 
 app.get('/', (req, res) => {
 
