@@ -19,7 +19,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // ================= FILL DATA =================
     document.getElementById("roomTitle").textContent = room.name;
     document.getElementById("id").textContent = room.id;
-    document.getElementById("name").textContent = room.name;
     document.getElementById("type").textContent = room.typeName;
     document.getElementById("notes").textContent = room.notes || "Không có ghi chú";
     // FIX GIÁ 
