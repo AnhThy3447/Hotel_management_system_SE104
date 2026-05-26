@@ -39,11 +39,20 @@ exports.xemTatCa = async (req, res) => {
 exports.xemChiTiet = async (req, res) => {
   try {
     const { id } = req.params;
-    const hd = await db.query(`SELECT * FROM HOADON WHERE MaHoaDon = $1`, [id]);
+    const hd = await db.query(`
+      SELECT hd.*, kh.TenKhachHang, cq.TenCoQuan
+      FROM HOADON hd
+      LEFT JOIN KHACHHANG kh ON hd.MaKhachHangThanhToan = kh.MaKhachHang
+      LEFT JOIN COQUAN cq ON hd.MaCoQuan = cq.MaCoQuan
+      WHERE hd.MaHoaDon = $1
+    `, [id]);
     const ct = await db.query(`
-      SELECT ct.*, tp.SoPhong, tp.SoNgayThue
+      SELECT ct.*, tp.SoPhong, tp.SoNgayThue,
+             lp.LoaiPhong, lp.DonGia
       FROM CTHOADON ct
       LEFT JOIN THUEPHONG tp ON ct.MaThuePhong = tp.MaThuePhong
+      LEFT JOIN PHONG p ON tp.SoPhong = p.SoPhong
+      LEFT JOIN LOAIPHONG lp ON p.MaLoaiPhong = lp.MaLoaiPhong
       WHERE ct.MaHoaDon = $1
     `, [id]);
     res.json({ success: true, data: { hoaDon: hd.rows[0], chiTiet: ct.rows } });
