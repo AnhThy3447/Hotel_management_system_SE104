@@ -75,7 +75,7 @@ async function viewInvoice(maHoaDon) {
         const maHD = 'HD' + String(invoice.mahoadon).padStart(3, '0');
         document.getElementById('modal-invoice-id').textContent = maHD;
         document.getElementById('modal-customer').textContent = invoice.tenkhachhang || 'N/A';
-        document.getElementById('modal-agency').textContent = invoice.tenco quan || 'Không có';
+        document.getElementById('modal-agency').textContent = invoice.tencoquan || 'Không có';
         document.getElementById('modal-date').textContent = formatDateVN(invoice.ngaythanhtoan?.split('T')[0]);
         document.getElementById('modal-total').textContent = formatCurrency(invoice.tongtien) + ' VNĐ';
 
