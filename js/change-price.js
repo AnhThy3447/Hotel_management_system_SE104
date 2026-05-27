@@ -1,10 +1,31 @@
-let roomTypes = JSON.parse(localStorage.getItem("roomTypes")) || [];
-let rooms = JSON.parse(localStorage.getItem("rooms")) || [];
+const API_BASE = "https://hotel-management-system-se104-hgkg.onrender.com/api/phong";
 
-document.addEventListener("DOMContentLoaded", render);
+let roomTypes = [];
+
+document.addEventListener("DOMContentLoaded", loadRoomTypes);
+
+async function loadRoomTypes() {
+    try {
+        const response = await fetch(`${API_BASE}/loai-phong`);
+        
+        if (!response.ok) {
+            throw new Error("Không thể tải dữ liệu loại phòng");
+        }
+
+        roomTypes = await response.json();
+
+        render();
+    } catch (error) {
+        console.error(error);
+        alert("Lỗi tải dữ liệu loại phòng!");
+    }
+}
 
 function render() {
     const tbody = document.getElementById("priceBody");
+
+    if (!tbody) return;
+
     tbody.innerHTML = "";
 
     roomTypes.forEach((type) => {
@@ -13,48 +34,61 @@ function render() {
                 <td>${type.id}</td>
                 <td>${type.name}</td>
                 <td>
-                    <input type="number"
+                    <input 
+                        type="number"
                         class="price-input"
                         data-id="${type.id}"
-                        value="${type.price}">
+                        value="${type.price}"
+                    >
                 </td>
             </tr>
         `;
     });
 }
 
-function saveChanges() {
+async function saveChanges() {
     const inputs = document.querySelectorAll(".price-input");
 
-    inputs.forEach(input => {
-        const id = input.dataset.id;
-        const type = roomTypes.find(t => t.id === id);
+    try {
 
-        if (type) {
-            type.price = Number(input.value);
+        for (const input of inputs) {
+
+            const id = input.dataset.id;
+            const price = Number(input.value);
+
+            const response = await fetch(
+                `${API_BASE}/loai-phong/${id}`,
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        price: price
+                    })
+                }
+            );
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || "Cập nhật thất bại");
+            }
         }
-    });
 
-    localStorage.setItem("roomTypes", JSON.stringify(roomTypes));
+        alert("Cập nhật giá thành công!");
 
-    // sync rooms
-    rooms.forEach(r => {
-        const match = roomTypes.find(t => t.name === r.typeName);
-        if (match) {
-            r.price = match.price;
-        }
-    });
+        window.location.href = "rooms.html";
 
-    localStorage.setItem("rooms", JSON.stringify(rooms));
-
-    alert("Cập nhật giá thành công!");
-
-    // đóng modal
-    window.parent.document.getElementById("changePriceFrame").style.display = "none";
-
-    window.parent.location.reload();
+    } catch (error) {
+        console.error(error);
+        alert(error.message);
+    }
 }
 
 function closeModal() {
-    window.parent.document.getElementById("changePriceFrame").style.display = "none";
+    window.location.href = "rooms.html";
 }
+
+window.saveChanges = saveChanges;
+window.closeModal = closeModal;
