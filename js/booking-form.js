@@ -130,8 +130,8 @@ async function loadBooking(id) {
             isViewMode ? 'Chi tiết Phiếu Thuê Phòng (BM2)' : 'Cập nhật Phiếu Thuê Phòng (BM2)';
         document.getElementById('form-subtitle').textContent = `Mã phiếu: #${id}`;
         document.getElementById('save-btn-text').textContent = 'Cập nhật';
-        document.getElementById('form-date').value = currentBooking?.ngaylap?.split('T')[0] || '';
-        document.getElementById('start-date').value = currentBooking?.ngaybatdauthue?.split('T')[0] || '';
+        setDateValue(document.getElementById('form-date'), currentBooking?.ngaylap?.split('T')[0] || '');
+        setDateValue(document.getElementById('start-date'), currentBooking?.ngaybatdauthue?.split('T')[0] || '');
 
         // Set giá trị dropdown phòng
         const select = document.getElementById('room-select');
