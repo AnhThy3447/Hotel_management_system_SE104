@@ -8,7 +8,11 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
     background-color: rgba(93, 64, 55, 0.1);
 }
-
+body{
+    margin: 0;
+    background: transparent !important;
+    overflow: hidden;
+}
 /* Overlay */
 .overlay {
     position: fixed;
