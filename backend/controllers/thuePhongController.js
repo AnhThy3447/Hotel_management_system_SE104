@@ -11,6 +11,10 @@ exports.taoPhieuThue = async (req, res) => {
       [SoPhong, NgayLap, NgayBatDauThue]
     );
     const MaThuePhong = phieu.rows[0].mathuephong;
+    await db.query(
+    `UPDATE PHONG SET TinhTrang = 'Đang thuê' WHERE SoPhong = $1`,
+    [SoPhong]
+    );
 
     for (let i = 0; i < danhSach.length; i++) {
       const k = danhSach[i];
@@ -129,6 +133,10 @@ exports.traPhong = async (req, res) => {
       `UPDATE THUEPHONG SET NgayTraPhong=$1, SoNgayThue=$2, ThanhTien=$3
        WHERE MaThuePhong=$4 RETURNING *`,
       [NgayTraPhong, SoNgayThue, ThanhTien, id]
+    );
+    await db.query(
+      `UPDATE PHONG SET TinhTrang = 'Trống' WHERE SoPhong = (SELECT SoPhong FROM THUEPHONG WHERE MaThuePhong = $1)`,
+      [id]
     );
     res.json({ success: true, data: result.rows[0] });
   } catch (err) {
