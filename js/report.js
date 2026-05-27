@@ -1,4 +1,4 @@
-alert("REPORT JS LOADED");
+
 const API_URL = 'https://hotel-management-system-se104.onrender.com/api/bao-cao';
 
 document.addEventListener('DOMContentLoaded', () => {
