@@ -78,23 +78,17 @@ async function saveChanges() {
 
         alert("Cập nhật giá thành công!");
 
-        // xóa popup
-        const overlay =
-            window.parent.document.getElementById("changePriceOverlay");
+        // reload rooms
+        window.opener.location.reload();
 
-        if (overlay) {
-            overlay.remove();
-        }
-
-        // reload rooms.html bên ngoài
-        window.parent.location.reload();
+        // đóng popup
+        window.close();
 
     } catch (error) {
         console.error(error);
         alert(error.message);
     }
 }
-
 function closeModal() {
 
     const overlay =
