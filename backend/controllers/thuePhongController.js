@@ -60,11 +60,14 @@ exports.xemTatCa = async (req, res) => {
   try {
     const result = await db.query(`
       SELECT tp.MaThuePhong, tp.NgayLap, tp.NgayBatDauThue, tp.NgayTraPhong, tp.SoNgayThue, tp.ThanhTien, tp.SoPhong,
-             kh.TenKhachHang, kh.CMND, kh.DiaChi, lk.LoaiKhach
+       kh.TenKhachHang, kh.CMND, kh.DiaChi, lk.LoaiKhach,
+       lp.LoaiPhong, lp.DonGia
       FROM THUEPHONG tp
       LEFT JOIN CTTHUEPHONG ct ON tp.MaThuePhong = ct.MaThuePhong
       LEFT JOIN KHACHHANG kh ON ct.MaKhachHang = kh.MaKhachHang
       LEFT JOIN LOAIKHACH lk ON kh.MaLoaiKhach = lk.MaLoaiKhach
+      LEFT JOIN PHONG p ON tp.SoPhong = p.SoPhong
+      LEFT JOIN LOAIPHONG lp ON p.MaLoaiPhong = lp.MaLoaiPhong
       ORDER BY tp.NgayLap DESC
     `);
     const grouped = {};
@@ -79,6 +82,8 @@ exports.xemTatCa = async (req, res) => {
         songaythue: row.songaythue,
         thanhtien: row.thanhtien,
         sophong: row.sophong,
+        loaiphong: row.loaiphong,
+        dongia: row.dongia,
         guests: []
         };
       }
@@ -100,7 +105,13 @@ exports.xemTatCa = async (req, res) => {
 exports.xemChiTiet = async (req, res) => {
   try {
     const { id } = req.params;
-    const phieu = await db.query(`SELECT * FROM THUEPHONG WHERE MaThuePhong = $1`, [id]);
+    const phieu = await db.query(`
+    SELECT tp.*, lp.LoaiPhong, lp.DonGia
+    FROM THUEPHONG tp
+    LEFT JOIN PHONG p ON tp.SoPhong = p.SoPhong
+    LEFT JOIN LOAIPHONG lp ON p.MaLoaiPhong = lp.MaLoaiPhong
+    WHERE tp.MaThuePhong = $1
+`, [id]);
     const chitiet = await db.query(`
       SELECT ct.*, kh.TenKhachHang, kh.CMND, kh.DiaChi, lk.LoaiKhach
       FROM CTTHUEPHONG ct
