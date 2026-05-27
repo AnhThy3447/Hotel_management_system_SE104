@@ -209,20 +209,6 @@ function updateGuestCount() {
     document.getElementById('add-guest-btn').disabled = guests.length >= maxKhach;
 }
 
-// Thêm hàm hỗ trợ này để chuyển đổi DD/MM/YYYY sang YYYY-MM-DD
-function formatToYMD(dateString) {
-    if (!dateString) return dateString;
-    // Kiểm tra xem chuỗi có chứa dấu '/' không
-    if (dateString.includes('/')) {
-        const parts = dateString.split('/');
-        if (parts.length === 3) {
-            // parts[0]: Ngày, parts[1]: Tháng, parts[2]: Năm
-            return `${parts[2]}-${parts[1]}-${parts[0]}`; 
-        }
-    }
-    return dateString; // Trả về nguyên bản nếu không khớp (ví dụ như đã là YYYY-MM-DD sẵn)
-}
-
 function validateForm() {
     const formDate = document.getElementById('form-date').value;
     const roomNumber = document.getElementById('room-select').value;
@@ -232,8 +218,6 @@ function validateForm() {
         alert('Vui lòng điền đầy đủ thông tin cơ bản!');
         return false;
     }
-    
-    // Validate danh sách khách
     for (let i = 0; i < guests.length; i++) {
         if (!guests[i].name || !guests[i].idNumber) {
             alert(`Vui lòng điền đầy đủ thông tin cho khách hàng ${i + 1}!`);
@@ -247,14 +231,10 @@ function validateForm() {
 async function saveBooking() {
     if (!validateForm()) return;
 
-    // Lấy giá trị ngày tháng thô từ form (đang là DD/MM/YYYY)
-    const rawFormDate = document.getElementById('form-date').value;
-    const rawStartDate = document.getElementById('start-date').value;
-
     const bookingData = {
         SoPhong: document.getElementById('room-select').value,
-        NgayLap: formatToYMD(rawFormDate), // Đã format chuẩn YYYY-MM-DD cho DB
-        NgayBatDauThue: formatToYMD(rawStartDate), // Đã format chuẩn YYYY-MM-DD cho DB
+        NgayLap: document.getElementById('form-date').value,
+        NgayBatDauThue: document.getElementById('start-date').value,
         DanhSachKhach: guests.map(g => ({
             name: g.name,
             type: g.type,
@@ -275,19 +255,15 @@ async function saveBooking() {
             body: JSON.stringify(bookingData)
         });
 
-        // Parse kết quả trả về
         const json = await res.json();
-        
-        // Kiểm tra success dựa vào json.success hoặc HTTP status code (res.ok)
-        if (json.success || res.ok) {
+        if (json.success) {
             alert('Phiếu thuê phòng đã được lưu thành công!');
             window.location.href = 'booking-list.html';
         } else {
-            alert('Lỗi khi lưu phiếu: ' + (json.message || 'Dữ liệu không hợp lệ'));
+            alert('Lỗi: ' + json.message);
         }
     } catch (err) {
         alert('Lỗi kết nối backend: ' + err.message);
-        console.error("Lưu chi tiết lỗi:", err);
     }
 }
 
