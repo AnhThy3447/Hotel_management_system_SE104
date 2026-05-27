@@ -68,6 +68,7 @@ exports.xemTatCa = async (req, res) => {
   try {
     const result = await db.query(`
       SELECT tp.MaThuePhong, tp.NgayLap, tp.NgayBatDauThue, tp.NgayTraPhong, tp.SoNgayThue, tp.ThanhTien, tp.SoPhong,
+       (SELECT COUNT(*) FROM CTHOADON ct WHERE ct.MaThuePhong = tp.MaThuePhong) > 0 AS DaHoaDon,
        kh.TenKhachHang, kh.CMND, kh.DiaChi, lk.LoaiKhach,
        lp.LoaiPhong, lp.DonGia
       FROM THUEPHONG tp
@@ -92,6 +93,7 @@ exports.xemTatCa = async (req, res) => {
         sophong: row.sophong,
         loaiphong: row.loaiphong,
         dongia: row.dongia,
+        dahoadon: row.dahoadon,
         guests: []
         };
       }
