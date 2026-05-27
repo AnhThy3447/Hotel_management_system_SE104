@@ -1,4 +1,4 @@
-const API_URL = 'https://hotel-management-system-se104.onrender.com/api';
+const API_URL = 'https://hotel-management-system-se104-hgkg.onrender.com/api';
 let currentBooking = null;
 let guests = [];
 let isViewMode = false;
@@ -27,21 +27,26 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function loadRooms() {
     try {
         const res = await fetch(`${API_URL}/phong`);
-        const json = await res.json();
-        allRooms = Array.isArray(json) ? json : (json.data || []);
+        if (!res.ok) throw new Error('Không thể tải danh sách phòng');
+        
+        const data = await res.json();
+        console.log("Dữ liệu phòng chuẩn từ API:", data); 
 
         const select = document.getElementById('room-select');
-        const availableRooms = allRooms.filter(p =>
-            (p.tinhtrang || '').toLowerCase() === 'trống' ||
-            (p.tinhtrang || '').toLowerCase() === 'trong'
-        );
+        if (!select) return;
+
+        const availableRooms = data.filter(room => {
+            return room.status && room.status.trim().toLowerCase() === 'trống';
+        });
 
         select.innerHTML = '<option value="">-- Chọn phòng trống --</option>' +
-            availableRooms.map(p =>
-                `<option value="${p.sophong}">${p.sophong} - ${p.loaiphong || ''} (${formatCurrency(p.dongia)} VNĐ/ngày)</option>`
-            ).join('');
+            availableRooms.map(room => {
+                return `<option value="${room.id}">${room.id} - Loại ${room.typeName} (${formatCurrency(room.price)} VNĐ/ngày)</option>`;
+            }).join('');
+            
     } catch (err) {
         console.error('Lỗi load phòng:', err);
+        alert('Không thể tải danh sách phòng. Vui lòng kiểm tra console (F12).');
     }
 }
 
