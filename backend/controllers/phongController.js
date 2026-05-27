@@ -18,25 +18,32 @@ exports.getRooms = async (req, res) => {
 };
 
 exports.createRoom = async (req, res) => {
-    const { type, status, notes } = req.body;
+    // Lấy thêm trường id do người dùng nhập từ Frontend
+    const { id, type, status, notes } = req.body; 
     try {
-        // Ánh xạ trạng thái từ tiếng Anh sang giá trị thực tế trong DB
+        if (!id) {
+            return res.status(400).json({ error: "Vui lòng nhập Số phòng!" });
+        }
+
         const dbStatus = status === 'available' ? 'Trống' : 
                          status === 'occupied' ? 'Đang thuê' : 'Dọn dẹp';
 
-        // Do SoPhong là SERIAL nên không cần Insert
+        // Bổ sung cột SoPhong vào câu lệnh INSERT
         const query = `
-            INSERT INTO PHONG (MaLoaiPhong, TinhTrang, GhiChu)
-            VALUES ($1, $2, $3) RETURNING SoPhong as id
+            INSERT INTO PHONG (SoPhong, MaLoaiPhong, TinhTrang, GhiChu)
+            VALUES ($1, $2, $3, $4) RETURNING SoPhong as id
         `;
-        const result = await pool.query(query, [type, dbStatus, notes || '']);
+        const result = await pool.query(query, [id, type, dbStatus, notes || '']);
         res.status(201).json({ success: true, message: "Thêm phòng thành công!", id: result.rows[0].id });
     } catch (error) {
         console.error("Lỗi thêm phòng:", error);
+        // Xử lý trường hợp người dùng nhập trùng Số phòng đã có trong DB
+        if (error.code === '23505') { 
+            return res.status(400).json({ error: "Số phòng này đã tồn tại! Vui lòng nhập số khác." });
+        }
         res.status(500).json({ error: "Lỗi hệ thống khi thêm phòng" });
     }
 };
-
 exports.updateRoom = async (req, res) => {
     const { id } = req.params;
     const { type, status, notes } = req.body;
@@ -91,21 +98,29 @@ exports.getRoomTypes = async (req, res) => {
 };
 
 exports.createRoomType = async (req, res) => {
-    const { name, price } = req.body;
+    // Lấy thêm trường id (Mã loại phòng) do người dùng nhập từ giao diện
+    const { id, name, price } = req.body;
     try {
-        // Do MaLoaiPhong là SERIAL nên không cần Insert ID
+        if (!id) {
+            return res.status(400).json({ error: "Vui lòng nhập Mã loại phòng!" });
+        }
+
+        // Bổ sung cột MaLoaiPhong vào câu lệnh INSERT câu truy vấn
         const query = `
-            INSERT INTO LOAIPHONG (LoaiPhong, DonGia)
-            VALUES ($1, $2) RETURNING MaLoaiPhong as id
+            INSERT INTO LOAIPHONG (MaLoaiPhong, LoaiPhong, DonGia)
+            VALUES ($1, $2, $3) RETURNING MaLoaiPhong as id
         `;
-        const result = await pool.query(query, [name, price]);
+        const result = await pool.query(query, [id, name, price]);
         res.status(201).json({ success: true, message: "Thêm loại phòng thành công!", id: result.rows[0].id });
     } catch (error) {
         console.error("Lỗi thêm loại phòng:", error);
+        // Xử lý trường hợp nhập trùng Mã loại phòng đã tồn tại trong DB
+        if (error.code === '23505') {
+            return res.status(400).json({ error: "Mã loại phòng này đã tồn tại! Vui lòng nhập mã khác." });
+        }
         res.status(500).json({ error: "Lỗi hệ thống khi thêm loại phòng" });
     }
 };
-
 exports.updateRoomTypePrice = async (req, res) => {
     const { id } = req.params;
     const { price } = req.body;

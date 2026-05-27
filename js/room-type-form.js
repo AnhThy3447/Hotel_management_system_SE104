@@ -1,22 +1,31 @@
 const API_BASE = "https://hotel-management-system-se104.onrender.com/api/phong/loai-phong";
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Vô hiệu hóa input Mã loại phòng vì DB dùng SERIAL tự tạo
+    // Bật lại ô nhập mã loại phòng (không để disabled nữa)
     const codeInput = document.getElementById("typeCode");
-    if(codeInput) {
-        codeInput.disabled = true;
-        codeInput.placeholder = "Hệ thống tự động sinh mã loại phòng";
+    if (codeInput) {
+        codeInput.disabled = false;
+        codeInput.placeholder = "Nhập mã loại phòng (Ví dụ: 1, 2, 3...)";
+        codeInput.value = "";
     }
 });
 
 async function handleSubmit(event) {
     event.preventDefault();
 
+    const typeCodeValue = document.getElementById("typeCode").value.trim();
+
     const data = {
+        id: typeCodeValue, // Đóng gói Mã loại phòng gửi lên Server
         name: document.getElementById("typeName").value.trim(),
         price: Number(document.getElementById("price").value)
     };
 
+    // Kiểm tra tính hợp lệ dữ liệu đầu vào
+    if (!data.id) {
+        alert("Vui lòng nhập Mã loại phòng!");
+        return;
+    }
     if (!data.name || !data.price) {
         alert("Vui lòng nhập đầy đủ Tên loại phòng và Đơn giá!");
         return;
