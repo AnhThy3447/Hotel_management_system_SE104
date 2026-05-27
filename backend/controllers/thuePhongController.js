@@ -5,6 +5,14 @@ exports.taoPhieuThue = async (req, res) => {
     const { SoPhong, NgayLap, NgayBatDauThue, DanhSachKhach } = req.body;
     const danhSach = Array.isArray(DanhSachKhach) ? DanhSachKhach : [];
 
+    // Kiểm tra phòng có đang được thuê không
+    const phongCheck = await db.query(
+        `SELECT TinhTrang FROM PHONG WHERE SoPhong = $1`, [SoPhong]
+    );
+    if (phongCheck.rows[0]?.tinhtrang === 'Đang thuê') {
+        return res.status(400).json({ success: false, message: 'Phòng này đang được thuê!' });
+    }
+
     const phieu = await db.query(
       `INSERT INTO THUEPHONG (SoPhong, NgayLap, NgayBatDauThue)
        VALUES ($1, $2, $3) RETURNING *`,
