@@ -103,7 +103,7 @@ async function deleteBooking(id) {
 async function checkoutBooking(id) {
     if (!confirm('Xác nhận trả phòng?')) return;
     try {
-        const res = await fetch(`${API_URL}/thue-phong/${id}/tra-phong`, { method: 'PUT' });
+        const res = await fetch(`${API_URL}/thue-phong/${id}/tra-phong`, { method: 'PATCH' });
         const json = await res.json();
         if (json.success) {
             alert('Trả phòng thành công!');
