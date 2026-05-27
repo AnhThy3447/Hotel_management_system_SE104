@@ -25,11 +25,12 @@ exports.xemTatCa = async (req, res) => {
   try {
     const result = await db.query(`
       SELECT hd.*, kh.TenKhachHang, cq.TenCoQuan,
-             ct.MaThuePhong
+             (SELECT ct.MaThuePhong FROM CTHOADON ct 
+              WHERE ct.MaHoaDon = hd.MaHoaDon 
+              LIMIT 1) AS MaThuePhong
       FROM HOADON hd
       LEFT JOIN KHACHHANG kh ON hd.MaKhachHangThanhToan = kh.MaKhachHang
       LEFT JOIN COQUAN cq ON hd.MaCoQuan = cq.MaCoQuan
-      LEFT JOIN CTHOADON ct ON hd.MaHoaDon = ct.MaHoaDon
       ORDER BY hd.NgayThanhToan DESC
     `);
     res.json({ success: true, data: result.rows });
