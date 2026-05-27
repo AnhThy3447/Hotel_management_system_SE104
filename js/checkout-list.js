@@ -121,13 +121,14 @@ function calculateTotal(booking, chitiet) {
     document.getElementById('modal-days').textContent = soNgay;
 
     // Tính tiền mỗi ngày theo QĐ2
-    let tongMotNgay = 0;
-    chitiet.forEach((ct, i) => {
-        const pt = tiLePhuThu.find(t => t.thutukhach === (i + 1));
-        const heSoThuTu = pt ? pt.hesophuthu : 1.0;
-        const heSoLoai = ct.loaikhach === 'Nước ngoài' ? 1.5 : 1.0;
-        tongMotNgay += (booking.dongia || 0) * heSoThuTu * heSoLoai;
-    });
+    let tongMotNgay = booking.dongia || 0;
+    if (chitiet.length >= 3) {
+        tongMotNgay *= 1.25;
+    }
+    const coNuocNgoai = chitiet.some(ct => ct.loaikhach === 'Nước ngoài');
+    if (coNuocNgoai) {
+        tongMotNgay *= 1.5;
+    }
 
     const tongTien = tongMotNgay * soNgay;
 
