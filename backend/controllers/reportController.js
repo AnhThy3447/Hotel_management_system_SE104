@@ -8,7 +8,7 @@ exports.testAPI = async (req, res) => {
 };
 
 // ======================================================
-// BÁO CÁO DOANH THU (Đã sửa đổi khớp Schema)
+// BÁO CÁO DOANH THU
 // ======================================================
 exports.xemBaoCaoDoanhThu = async (req, res) => {
     try {
@@ -24,27 +24,26 @@ exports.xemBaoCaoDoanhThu = async (req, res) => {
             year = parseInt(value);
         }
 
-        // Câu SQL chuẩn hóa theo đúng tên trường viết hoa/thường của Schema bạn tạo
         let sql = `
             SELECT
-                lp."LoaiPhong" AS loaiphong,
-                SUM(ct."DoanhThu") AS doanhthu,
-                SUM(ct."SoLuotThue") AS soluotthue
-            FROM "CTBAOCAODOANHTHU" ct
-            JOIN "BAOCAODOANHTHU" bc ON ct."MaBaoCao" = bc."MaBaoCao"
-            JOIN "LOAIPHONG" lp ON ct."LoaiPhong" = lp."MaLoaiPhong"
-            WHERE bc."Nam" = $1
+                lp.loaiphong AS loaiphong,
+                SUM(ct.doanhthu) AS doanhthu,
+                SUM(ct.soluotthue) AS soluotthue
+            FROM ctbaocaodoanhthu ct
+            JOIN baocaodoanhthu bc ON ct.mabaocao = bc.mabaocao
+            JOIN loaiphong lp ON ct.loaiphong = lp.maloaiphong
+            WHERE bc.nam = $1
         `;
 
         const params = [year];
 
         if (filterType === 'month') {
-            sql += ` AND bc."Thang" = $2 `;
+            sql += ` AND bc.thang = $2 `;
             params.push(month);
         }
 
         sql += `
-            GROUP BY lp."LoaiPhong"
+            GROUP BY lp.loaiphong
             ORDER BY doanhthu DESC
         `;
 
@@ -63,7 +62,7 @@ exports.xemBaoCaoDoanhThu = async (req, res) => {
             const soLuotThue = Number(item.soluotthue || 0);
 
             return {
-                type: item.loaiphong, // Trả về 'A', 'B', 'C'
+                type: item.loaiphong,
                 revenue: doanhThu,
                 count: soLuotThue,
                 percent: tongDoanhThu > 0 ? ((doanhThu / tongDoanhThu) * 100).toFixed(1) : 0,
@@ -88,7 +87,7 @@ exports.xemBaoCaoDoanhThu = async (req, res) => {
 };
 
 // ======================================================
-// BÁO CÁO KHÁCH (Đã sửa đổi khớp Schema)
+// BÁO CÁO KHÁCH
 // ======================================================
 exports.xemBaoCaoKhach = async (req, res) => {
     try {
@@ -106,25 +105,25 @@ exports.xemBaoCaoKhach = async (req, res) => {
 
         let sql = `
             SELECT
-                bc."Thang" AS thang,
-                bc."Nam" AS nam,
-                lk."LoaiKhach" AS loaikhach,
-                SUM(ct."SoLuongKhach") AS soluong
-            FROM "CTBAOCAOKHACH" ct
-            JOIN "BAOCAOKHACH" bc ON ct."MaBaoCaoKhach" = bc."MaBaoCaoKhach"
-            JOIN "LOAIKHACH" lk ON ct."LoaiKhach" = lk."MaLoaiKhach"
-            WHERE bc."Nam" = $1
+                bc.thang AS thang,
+                bc.nam AS nam,
+                lk.loaikhach AS loaikhach,
+                SUM(ct.soluongkhach) AS soluong
+            FROM ctbaocaokhach ct
+            JOIN baocaokhach bc ON ct.mabaocaokhach = bc.mabaocaokhach
+            JOIN loaikhach lk ON ct.loaikhach = lk.maloaikhach
+            WHERE bc.nam = $1
         `;
 
         const params = [year];
 
         if (filterType === 'month') {
-            sql += ` AND bc."Thang" = $2 `;
+            sql += ` AND bc.thang = $2 `;
             params.push(month);
         }
 
         sql += `
-            GROUP BY bc."Thang", bc."Nam", lk."LoaiKhach"
+            GROUP BY bc.thang, bc.nam, lk.loaikhach
             ORDER BY soluong DESC
         `;
 
@@ -139,7 +138,7 @@ exports.xemBaoCaoKhach = async (req, res) => {
             const soLuong = Number(item.soluong || 0);
             return {
                 month: `${item.thang}/${item.nam}`,
-                type: item.loaikhach, // 'Nội địa' hoặc 'Nước ngoài'
+                type: item.loaikhach,
                 count: soLuong,
                 percent: tongKhach > 0 ? ((soLuong / tongKhach) * 100).toFixed(1) : 0
             };

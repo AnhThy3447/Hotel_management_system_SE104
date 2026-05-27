@@ -1,5 +1,5 @@
 
-const API_URL = 'https://hotel-management-system-se104.onrender.com/api/bao-cao';
+const API_URL = 'https://hotel-management-system-se104-hgkg.onrender.com/api/bao-cao';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Tự động tải báo cáo doanh thu lần đầu khi vào trang
