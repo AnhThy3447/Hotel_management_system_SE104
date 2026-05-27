@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!response.ok) throw new Error();
         
         const rooms = await response.json();
-        const room = rooms.find(r => r.id.toString() === id);
+        const room = rooms.find(r => r.id.toString() === id.toString());
 
         if (!room) {
             document.getElementById("roomTitle").textContent = "Số phòng không tồn tại";

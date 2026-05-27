@@ -113,7 +113,6 @@ function renderRoomTypes() {
     });
 }
 
-// Đồng bộ trạng thái DB -> Giao diện
 function renderStatus(status) {
     if (status === "Trống" || status === "available") return `<span class="badge badge-available">Trống</span>`;
     if (status === "Đang thuê" || status === "occupied") return `<span class="badge badge-occupied">Đang thuê</span>`;
@@ -193,7 +192,6 @@ function applyFilter() {
     let statusFilter = document.getElementById("filterStatus").value;
     const typeFilter = document.getElementById("filterType").value;
 
-    // Chuyển option tiếng anh sang trạng thái DB
     if (statusFilter === "available") statusFilter = "Trống";
     if (statusFilter === "occupied") statusFilter = "Đang thuê";
     if (statusFilter === "maintenance") statusFilter = "Dọn dẹp";

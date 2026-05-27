@@ -7,19 +7,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
-    
-    // Vì SoPhong (id) trong DB là SERIAL (tự sinh), ta ẩn input nhập ID khi thêm mới.
-    const roomCodeGroup = document.getElementById("roomCode").closest(".form-group");
+    const codeInput = document.getElementById("roomCode");
 
     if (id) {
         isEditMode = true;
         currentRoomId = id;
         setupEditMode(id);
     } else {
-        // Mode: Thêm mới => Không cho nhập ID vì DB tự tạo
-        if(roomCodeGroup) {
-            document.getElementById("roomCode").disabled = true;
-            document.getElementById("roomCode").placeholder = "Hệ thống tự động sinh Số Phòng";
+        // Cho phép nhập số phòng khi tạo mới
+        if(codeInput) {
+            codeInput.disabled = false;
+            codeInput.placeholder = "Nhập Số phòng (Ví dụ: 101, 102)";
+            codeInput.value = "";
         }
     }
 });
@@ -66,18 +65,17 @@ async function setupEditMode(id) {
 
     const codeInput = document.getElementById("roomCode");
     codeInput.value = id;
-    codeInput.disabled = true; 
+    codeInput.disabled = true; // Khóa trường Số phòng khi edit
 
     try {
         const response = await fetch(API_BASE);
         const rooms = await response.json();
-        const room = rooms.find(r => r.id.toString() === id);
+        const room = rooms.find(r => r.id.toString() === id.toString());
         
         if (room) {
             document.getElementById("roomType").value = room.type;
             document.getElementById("price").value = room.price;
             
-            // Map status của DB sang value của select HTML
             const selectStatus = document.getElementById("status");
             if(room.status === "Trống") selectStatus.value = "available";
             else if(room.status === "Đang thuê") selectStatus.value = "occupied";
@@ -94,11 +92,21 @@ async function handleSubmit(event) {
     event.preventDefault();
 
     const select = document.getElementById("roomType");
+    const roomCodeValue = document.getElementById("roomCode").value.trim();
+
     const data = {
         type: select.value,
         status: document.getElementById("status").value,
         notes: document.getElementById("notes").value.trim()
     };
+
+    if (!isEditMode) {
+        if (!roomCodeValue) {
+            alert("Vui lòng nhập Số phòng!");
+            return;
+        }
+        data.id = roomCodeValue;
+    }
 
     if (!data.type) {
         alert("Vui lòng chọn loại phòng!");
