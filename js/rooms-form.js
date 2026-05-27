@@ -1,50 +1,144 @@
-const API_URL = "https://hotel-management-system-se104.onrender.com/api/phong";
+const API_BASE = "https://hotel-management-system-se104.onrender.com/api/phong";
+let isEditMode = false;
+let currentRoomId = null;
 
-// ================= SUBMIT =================
-async function handleSubmit(event) {
+document.addEventListener("DOMContentLoaded", async () => {
+    await fetchRoomTypesToSelect();
 
-    event.preventDefault();
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    
+    // Vì SoPhong (id) trong DB là SERIAL (tự sinh), ta ẩn input nhập ID khi thêm mới.
+    const roomCodeGroup = document.getElementById("roomCode").closest(".form-group");
 
-    const data = {
+    if (id) {
+        isEditMode = true;
+        currentRoomId = id;
+        setupEditMode(id);
+    } else {
+        // Mode: Thêm mới => Không cho nhập ID vì DB tự tạo
+        if(roomCodeGroup) {
+            document.getElementById("roomCode").disabled = true;
+            document.getElementById("roomCode").placeholder = "Hệ thống tự động sinh Số Phòng";
+        }
+    }
+});
 
-        loaiPhong:
-            document.getElementById("typeName").value,
+async function fetchRoomTypesToSelect() {
+    try {
+        const response = await fetch(`${API_BASE}/loai-phong`);
+        if (!response.ok) return;
+        const types = await response.json();
+        
+        const select = document.getElementById("roomType");
+        select.innerHTML = '<option value="">-- Chọn loại phòng --</option>';
+        types.forEach(t => {
+            const opt = document.createElement("option");
+            opt.value = t.id;
+            opt.setAttribute("data-price", t.price);
+            opt.textContent = t.name;
+            select.appendChild(opt);
+        });
+    } catch (error) {
+        console.error("Lỗi đồng bộ danh mục loại phòng:", error);
+    }
+}
 
-        donGia:
-            document.getElementById("price").value
-    };
+function updatePrice() {
+    const select = document.getElementById("roomType");
+    const selectedOption = select.options[select.selectedIndex];
+    const priceInput = document.getElementById("price");
+    
+    if (selectedOption && selectedOption.value) {
+        priceInput.value = selectedOption.getAttribute("data-price");
+    } else {
+        priceInput.value = "";
+    }
+}
+
+async function setupEditMode(id) {
+    document.querySelector(".page-header h2").textContent = "Cập nhật thông tin phòng";
+    document.querySelector(".page-header p").textContent = "Chỉnh sửa thông tin chi tiết của phòng";
+    document.querySelector(".btn-submit").innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg> Lưu thay đổi`;
+
+    const codeInput = document.getElementById("roomCode");
+    codeInput.value = id;
+    codeInput.disabled = true; 
 
     try {
+        const response = await fetch(API_BASE);
+        const rooms = await response.json();
+        const room = rooms.find(r => r.id.toString() === id);
+        
+        if (room) {
+            document.getElementById("roomType").value = room.type;
+            document.getElementById("price").value = room.price;
+            
+            // Map status của DB sang value của select HTML
+            const selectStatus = document.getElementById("status");
+            if(room.status === "Trống") selectStatus.value = "available";
+            else if(room.status === "Đang thuê") selectStatus.value = "occupied";
+            else selectStatus.value = "maintenance";
 
-        const res = await fetch(`${API_URL}/loai-phong`, {
+            document.getElementById("notes").value = room.notes || "";
+        }
+    } catch (e) {
+        console.error("Lỗi lấy thông tin phòng cũ:", e);
+    }
+}
 
-            method: "POST",
+async function handleSubmit(event) {
+    event.preventDefault();
 
-            headers: {
-                "Content-Type": "application/json"
-            },
+    const select = document.getElementById("roomType");
+    const data = {
+        type: select.value,
+        status: document.getElementById("status").value,
+        notes: document.getElementById("notes").value.trim()
+    };
 
-            body: JSON.stringify(data)
-        });
+    if (!data.type) {
+        alert("Vui lòng chọn loại phòng!");
+        return;
+    }
 
-        if (!res.ok) {
-
-            throw new Error("Lỗi thêm loại phòng");
+    try {
+        let response;
+        if (isEditMode) {
+            response = await fetch(`${API_BASE}/${currentRoomId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            });
+        } else {
+            response = await fetch(API_BASE, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            });
         }
 
-        alert("Thêm loại phòng thành công!");
-
-        window.location.href = "rooms.html";
-
-    } catch (err) {
-
-        console.error(err);
-
-        alert("Không thể thêm loại phòng");
+        const result = await response.json();
+        if (response.ok) {
+            alert(result.message);
+            window.location.href = "rooms.html";
+        } else {
+            alert(result.error || "Thao tác thất bại!");
+        }
+    } catch (error) {
+        alert("Lỗi kết nối máy chủ Render!");
     }
 }
 
 function cancelForm() {
-
-    window.location.href = "rooms.html";
+    if (confirm("Xác nhận hủy bỏ thao tác?")) {
+        window.location.href = "rooms.html";
+    }
 }
+
+window.updatePrice = updatePrice;
+window.handleSubmit = handleSubmit;
+window.cancelForm = cancelForm;

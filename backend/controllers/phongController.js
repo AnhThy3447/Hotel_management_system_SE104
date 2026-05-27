@@ -1,221 +1,137 @@
-const db = require("../db");
+const pool = require('../db');
 
-// ================= GET ALL ROOMS =================
 exports.getRooms = async (req, res) => {
     try {
-        const result = await db.query(`
-            SELECT
-                p.SoPhong,
-                p.TinhTrang,
-                p.GhiChu,
-                lp.MaLoaiPhong,
-                lp.LoaiPhong,
-                lp.DonGia
+        const query = `
+            SELECT p.SoPhong as id, p.TinhTrang as status, p.GhiChu as notes,
+                   lp.MaLoaiPhong as type, lp.LoaiPhong as "typeName", lp.DonGia as price
             FROM PHONG p
-            JOIN LOAIPHONG lp
-                ON p.MaLoaiPhong = lp.MaLoaiPhong
+            JOIN LOAIPHONG lp ON p.MaLoaiPhong = lp.MaLoaiPhong
             ORDER BY p.SoPhong ASC
-        `);
-
-        res.json(result.rows);
-
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({
-            message: "Lỗi lấy danh sách phòng"
-        });
+        `;
+        const result = await pool.query(query);
+        res.status(200).json(result.rows);
+    } catch (error) {
+        console.error("Lỗi lấy danh sách phòng:", error);
+        res.status(500).json({ error: "Lỗi hệ thống khi lấy danh sách phòng" });
     }
 };
 
-// ================= ADD ROOM =================
-exports.addRoom = async (req, res) => {
+exports.createRoom = async (req, res) => {
+    const { type, status, notes } = req.body;
     try {
-        const {
-            maLoaiPhong,
-            tinhTrang,
-            ghiChu
-        } = req.body;
+        // Ánh xạ trạng thái từ tiếng Anh sang giá trị thực tế trong DB
+        const dbStatus = status === 'available' ? 'Trống' : 
+                         status === 'occupied' ? 'Đang thuê' : 'Dọn dẹp';
 
-        const result = await db.query(`
-            INSERT INTO PHONG
-            (MaLoaiPhong, TinhTrang, GhiChu)
-            VALUES ($1, $2, $3)
-            RETURNING *
-        `, [maLoaiPhong, tinhTrang, ghiChu]);
-
-        res.status(201).json(result.rows[0]);
-
-    } catch (err) {
-        console.error(err);
-
-        res.status(500).json({
-            message: "Lỗi thêm phòng"
-        });
+        // Do SoPhong là SERIAL nên không cần Insert
+        const query = `
+            INSERT INTO PHONG (MaLoaiPhong, TinhTrang, GhiChu)
+            VALUES ($1, $2, $3) RETURNING SoPhong as id
+        `;
+        const result = await pool.query(query, [type, dbStatus, notes || '']);
+        res.status(201).json({ success: true, message: "Thêm phòng thành công!", id: result.rows[0].id });
+    } catch (error) {
+        console.error("Lỗi thêm phòng:", error);
+        res.status(500).json({ error: "Lỗi hệ thống khi thêm phòng" });
     }
 };
 
-// ================= UPDATE ROOM =================
 exports.updateRoom = async (req, res) => {
+    const { id } = req.params;
+    const { type, status, notes } = req.body;
     try {
-        const { id } = req.params;
+        const dbStatus = status === 'available' ? 'Trống' : 
+                         status === 'occupied' ? 'Đang thuê' : 
+                         (status === 'Trống' || status === 'Đang thuê') ? status : 'Dọn dẹp';
 
-        const {
-            maLoaiPhong,
-            tinhTrang,
-            ghiChu
-        } = req.body;
-
-        const result = await db.query(`
+        const query = `
             UPDATE PHONG
-            SET
-                MaLoaiPhong = $1,
-                TinhTrang = $2,
-                GhiChu = $3
+            SET MaLoaiPhong = $1, TinhTrang = $2, GhiChu = $3
             WHERE SoPhong = $4
-            RETURNING *
-        `, [
-            maLoaiPhong,
-            tinhTrang,
-            ghiChu,
-            id
-        ]);
-
-        res.json(result.rows[0]);
-
-    } catch (err) {
-        console.error(err);
-
-        res.status(500).json({
-            message: "Lỗi cập nhật phòng"
-        });
+        `;
+        const result = await pool.query(query, [type, dbStatus, notes || '', id]);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: "Không tìm thấy phòng cần cập nhật" });
+        }
+        res.status(200).json({ success: true, message: "Cập nhật phòng thành công!" });
+    } catch (error) {
+        console.error("Lỗi cập nhật phòng:", error);
+        res.status(500).json({ error: "Lỗi hệ thống khi cập nhật phòng" });
     }
 };
 
-// ================= DELETE ROOM =================
 exports.deleteRoom = async (req, res) => {
+    const { id } = req.params;
     try {
-        const { id } = req.params;
-
-        await db.query(`
-            DELETE FROM PHONG
-            WHERE SoPhong = $1
-        `, [id]);
-
-        res.json({
-            message: "Xóa phòng thành công"
-        });
-
-    } catch (err) {
-        console.error(err);
-
-        res.status(500).json({
-            message: "Lỗi xóa phòng"
-        });
+        const result = await pool.query('DELETE FROM PHONG WHERE SoPhong = $1', [id]);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: "Không tìm thấy phòng để xóa" });
+        }
+        res.status(200).json({ success: true, message: "Xóa phòng thành công!" });
+    } catch (error) {
+        console.error("Lỗi xóa phòng:", error);
+        res.status(500).json({ error: "Không thể xóa phòng (Phòng đã có lịch sử thuê/hóa đơn)" });
     }
 };
 
-// ================= GET ROOM TYPES =================
 exports.getRoomTypes = async (req, res) => {
     try {
-        const result = await db.query(`
-            SELECT *
+        const query = `
+            SELECT MaLoaiPhong as id, LoaiPhong as name, DonGia as price
             FROM LOAIPHONG
             ORDER BY MaLoaiPhong ASC
-        `);
-
-        res.json(result.rows);
-
-    } catch (err) {
-        console.error(err);
-
-        res.status(500).json({
-            message: "Lỗi lấy loại phòng"
-        });
+        `;
+        const result = await pool.query(query);
+        res.status(200).json(result.rows);
+    } catch (error) {
+        console.error("Lỗi lấy danh sách loại phòng:", error);
+        res.status(500).json({ error: "Lỗi hệ thống khi lấy danh sách loại phòng" });
     }
 };
 
-// ================= ADD ROOM TYPE =================
-exports.addRoomType = async (req, res) => {
+exports.createRoomType = async (req, res) => {
+    const { name, price } = req.body;
     try {
-
-        const {
-            loaiPhong,
-            donGia
-        } = req.body;
-
-        const result = await db.query(`
-            INSERT INTO LOAIPHONG
-            (LoaiPhong, DonGia)
-            VALUES ($1, $2)
-            RETURNING *
-        `, [loaiPhong, donGia]);
-
-        res.status(201).json(result.rows[0]);
-
-    } catch (err) {
-        console.error(err);
-
-        res.status(500).json({
-            message: "Lỗi thêm loại phòng"
-        });
+        // Do MaLoaiPhong là SERIAL nên không cần Insert ID
+        const query = `
+            INSERT INTO LOAIPHONG (LoaiPhong, DonGia)
+            VALUES ($1, $2) RETURNING MaLoaiPhong as id
+        `;
+        const result = await pool.query(query, [name, price]);
+        res.status(201).json({ success: true, message: "Thêm loại phòng thành công!", id: result.rows[0].id });
+    } catch (error) {
+        console.error("Lỗi thêm loại phòng:", error);
+        res.status(500).json({ error: "Lỗi hệ thống khi thêm loại phòng" });
     }
 };
 
-// ================= UPDATE ROOM TYPE =================
-exports.updateRoomType = async (req, res) => {
+exports.updateRoomTypePrice = async (req, res) => {
+    const { id } = req.params;
+    const { price } = req.body;
     try {
-
-        const { id } = req.params;
-
-        const {
-            loaiPhong,
-            donGia
-        } = req.body;
-
-        const result = await db.query(`
-            UPDATE LOAIPHONG
-            SET
-                LoaiPhong = $1,
-                DonGia = $2
-            WHERE MaLoaiPhong = $3
-            RETURNING *
-        `, [
-            loaiPhong,
-            donGia,
-            id
-        ]);
-
-        res.json(result.rows[0]);
-
-    } catch (err) {
-        console.error(err);
-
-        res.status(500).json({
-            message: "Lỗi cập nhật loại phòng"
-        });
+        const query = `UPDATE LOAIPHONG SET DonGia = $1 WHERE MaLoaiPhong = $2`;
+        const result = await pool.query(query, [price, id]);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: "Không tìm thấy loại phòng cần cập nhật" });
+        }
+        res.status(200).json({ success: true, message: "Cập nhật giá thành công!" });
+    } catch (error) {
+        console.error("Lỗi cập nhật giá loại phòng:", error);
+        res.status(500).json({ error: "Lỗi hệ thống khi chỉnh sửa đơn giá" });
     }
 };
 
-// ================= DELETE ROOM TYPE =================
 exports.deleteRoomType = async (req, res) => {
+    const { id } = req.params;
     try {
-
-        const { id } = req.params;
-
-        await db.query(`
-            DELETE FROM LOAIPHONG
-            WHERE MaLoaiPhong = $1
-        `, [id]);
-
-        res.json({
-            message: "Xóa loại phòng thành công"
-        });
-
-    } catch (err) {
-        console.error(err);
-
-        res.status(500).json({
-            message: "Lỗi xóa loại phòng"
-        });
+        const result = await pool.query('DELETE FROM LOAIPHONG WHERE MaLoaiPhong = $1', [id]);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: "Không tìm thấy loại phòng để xóa" });
+        }
+        res.status(200).json({ success: true, message: "Xóa loại phòng thành công!" });
+    } catch (error) {
+        console.error("Lỗi xóa loại phòng:", error);
+        res.status(500).json({ error: "Không thể xóa loại phòng này vì có phòng thuộc loại này đang tồn tại." });
     }
 };
