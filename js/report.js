@@ -190,3 +190,8 @@ function formatCurrency(amount) {
 window.changeReportType = changeReportType;
 window.changeFilterType = changeFilterType;
 window.applyFilter = applyFilter;
+
+// ===== EXPORT =====
+function exportReport() {
+  window.print();
+}
