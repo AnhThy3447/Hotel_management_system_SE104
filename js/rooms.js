@@ -155,8 +155,31 @@ function editRoom(id) {
     window.location.href = `rooms-form.html?id=${id}`; 
 }
 
-function editRoomType(id, currentPrice) {
-    window.location.href = `change-price.html?id=${id}&price=${currentPrice}`;
+function editRoomType(id) {
+
+    let frame = document.getElementById("changePriceFrame");
+
+    if (!frame) {
+
+        frame = document.createElement("iframe");
+
+        frame.id = "changePriceFrame";
+
+        frame.style.position = "fixed";
+        frame.style.top = "0";
+        frame.style.left = "0";
+        frame.style.width = "100%";
+        frame.style.height = "100%";
+        frame.style.border = "none";
+        frame.style.zIndex = "9999";
+        frame.style.background = "rgba(0,0,0,0.4)";
+
+        document.body.appendChild(frame);
+    }
+
+    frame.src = "change-price.html";
+
+    frame.style.display = "block";
 }
 
 function setupEvents() {
