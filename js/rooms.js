@@ -156,24 +156,7 @@ function editRoom(id) {
 }
 
 function editRoomType(id, currentPrice) {
-    const newPrice = prompt(`Nhập đơn giá mới cho loại phòng mã ${id}:`, currentPrice);
-    if (newPrice === null) return;
-    if (isNaN(newPrice) || Number(newPrice) < 0) {
-        alert("Đơn giá nhập vào không hợp lệ!");
-        return;
-    }
-    
-    fetch(`${API_BASE}/loai-phong/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ price: Number(newPrice) })
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert(data.message || data.error);
-        loadAllData();
-    })
-    .catch(() => alert("Không thể cập nhật đơn giá"));
+    window.location.href = `change-price.html?id=${id}&price=${currentPrice}`;
 }
 
 function setupEvents() {
