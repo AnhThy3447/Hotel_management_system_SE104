@@ -3,12 +3,12 @@ const db = require('../db');
 exports.testAPI = async (req, res) => {
     res.json({
         success: true,
-        message: '✅ Report API working'
+        message: '✅ Report API working dynamically'
     });
 };
 
 // ======================================================
-// BÁO CÁO DOANH THU (Tính động từ Hóa đơn & Phòng)
+// BÁO CÁO DOANH THU (Tính trực tiếp từ HÓA ĐƠN)
 // ======================================================
 exports.xemBaoCaoDoanhThu = async (req, res) => {
     try {
@@ -24,7 +24,7 @@ exports.xemBaoCaoDoanhThu = async (req, res) => {
             year = parseInt(value);
         }
 
-        // Truy vấn trực tiếp từ hóa đơn chi tiết và loại phòng nghiệp vụ
+        // Truy vấn tính tổng doanh thu và lượt thuê từ hóa đơn đã thanh toán
         let sql = `
             SELECT
                 lp.LoaiPhong AS loaiphong,
@@ -55,11 +55,13 @@ exports.xemBaoCaoDoanhThu = async (req, res) => {
         let tongDoanhThu = 0;
         let tongLuotThue = 0;
 
+        // Tính tổng toàn bộ trước để làm mẫu số chia tỷ lệ (%)
         result.rows.forEach(item => {
             tongDoanhThu += Number(item.doanhthu || 0);
             tongLuotThue += Number(item.soluotthue || 0);
         });
 
+        // Map dữ liệu chuẩn format cho report.js (Frontend)
         const data = result.rows.map(item => {
             const doanhThu = Number(item.doanhthu || 0);
             const soLuotThue = Number(item.soluotthue || 0);
@@ -81,7 +83,7 @@ exports.xemBaoCaoDoanhThu = async (req, res) => {
         });
 
     } catch (err) {
-        console.error(err);
+        console.error("Lỗi API Báo cáo doanh thu:", err);
         res.status(500).json({
             success: false,
             message: err.message
@@ -90,7 +92,7 @@ exports.xemBaoCaoDoanhThu = async (req, res) => {
 };
 
 // ======================================================
-// BÁO CÁO KHÁCH (Tính động từ Chi tiết thuê phòng)
+// BÁO CÁO KHÁCH (Tính trực tiếp từ CHI TIẾT THUÊ PHÒNG)
 // ======================================================
 exports.xemBaoCaoKhach = async (req, res) => {
     try {
@@ -106,7 +108,7 @@ exports.xemBaoCaoKhach = async (req, res) => {
             year = parseInt(value);
         }
 
-        // Truy vấn lượng khách thực tế lưu trú từ chi tiết phiếu thuê phòng
+        // Truy vấn đếm số lượng khách thực tế từ phiếu thuê phòng
         let sql = `
             SELECT
                 EXTRACT(MONTH FROM tp.NgayBatDauThue)::INTEGER AS thang,
@@ -135,10 +137,12 @@ exports.xemBaoCaoKhach = async (req, res) => {
         const result = await db.query(sql, params);
         let tongKhach = 0;
 
+        // Tính tổng số khách
         result.rows.forEach(item => {
             tongKhach += Number(item.soluong || 0);
         });
 
+        // Map dữ liệu chuẩn format cho report.js (Frontend)
         const data = result.rows.map(item => {
             const soLuong = Number(item.soluong || 0);
             return {
@@ -156,7 +160,7 @@ exports.xemBaoCaoKhach = async (req, res) => {
         });
 
     } catch (err) {
-        console.error(err);
+        console.error("Lỗi API Báo cáo khách:", err);
         res.status(500).json({
             success: false,
             message: err.message
