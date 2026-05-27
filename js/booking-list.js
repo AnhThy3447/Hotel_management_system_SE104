@@ -30,7 +30,7 @@ function renderBookings(data = bookings) {
             <td>${index + 1}</td>
             <td><span class="badge badge-room">${booking.sophong || ''}</span></td>
             <td>${new Date(booking.ngaylap).toLocaleDateString('vi-VN')}</td>
-            <td>${new Date(booking.ngaylap).toLocaleDateString('vi-VN')}</td>
+            <td>${new Date(booking.ngaybatdauthue).toLocaleDateString('vi-VN')}</td>
             <td><span class="badge badge-guests">${booking.guests.length} khách</span></td>
             <td>${booking.guests.map(g => g.name).join(', ')}</td>
             <td>
