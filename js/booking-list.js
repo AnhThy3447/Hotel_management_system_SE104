@@ -100,29 +100,8 @@ async function deleteBooking(id) {
     }
 }
 
-async function checkoutBooking(id) {
-    if (!confirm('Xác nhận trả phòng?')) return;
-    try {
-        const today = new Date().toISOString().split('T')[0];
-        const res = await fetch(`${API_URL}/thue-phong/${id}/tra-phong`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                NgayTraPhong: today,
-                SoNgayThue: null,
-                ThanhTien: null
-            })
-        });
-        const json = await res.json();
-        if (json.success) {
-            alert('Trả phòng thành công!');
-            initializeData();
-        } else {
-            alert('Lỗi: ' + json.message);
-        }
-    } catch (err) {
-        alert('Lỗi: ' + err.message);
-    }
+function checkoutBooking(id) {
+    window.location.href = `checkout-list.html`;
 }
 
 function setupSearch() {
