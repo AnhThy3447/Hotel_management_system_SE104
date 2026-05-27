@@ -157,29 +157,43 @@ function editRoom(id) {
 
 function editRoomType(id) {
 
-    let frame = document.getElementById("changePriceFrame");
+    let overlay = document.getElementById("changePriceOverlay");
 
-    if (!frame) {
+    if (!overlay) {
 
-        frame = document.createElement("iframe");
+        overlay = document.createElement("div");
+
+        overlay.id = "changePriceOverlay";
+
+        overlay.style.position = "fixed";
+        overlay.style.top = "0";
+        overlay.style.left = "0";
+        overlay.style.width = "100%";
+        overlay.style.height = "100%";
+        overlay.style.background = "rgba(0,0,0,0.5)";
+        overlay.style.zIndex = "9999";
+        overlay.style.display = "flex";
+        overlay.style.justifyContent = "center";
+        overlay.style.alignItems = "center";
+
+        const frame = document.createElement("iframe");
 
         frame.id = "changePriceFrame";
 
-        frame.style.position = "fixed";
-        frame.style.top = "0";
-        frame.style.left = "0";
-        frame.style.width = "100%";
-        frame.style.height = "100%";
-        frame.style.border = "none";
-        frame.style.zIndex = "9999";
-        frame.style.background = "rgba(0,0,0,0.4)";
+        frame.src = "change-price.html";
 
-        document.body.appendChild(frame);
+        frame.style.width = "80%";
+        frame.style.height = "80%";
+        frame.style.border = "none";
+        frame.style.borderRadius = "12px";
+        frame.style.background = "white";
+
+        overlay.appendChild(frame);
+
+        document.body.appendChild(overlay);
     }
 
-    frame.src = "change-price.html";
-
-    frame.style.display = "block";
+    overlay.style.display = "flex";
 }
 
 function setupEvents() {
