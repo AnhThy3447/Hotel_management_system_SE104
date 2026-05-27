@@ -199,6 +199,7 @@ function viewRoomDetail(id) {
 }
 
 window.editRoom = editRoom;
+window.editRoomType = editRoomType;
 window.deleteRoom = deleteRoom;
 window.deleteRoomType = deleteRoomType;
 window.switchTab = switchTab;
