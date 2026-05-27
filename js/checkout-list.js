@@ -83,7 +83,7 @@ async function openCheckoutModal(maThuePhong) {
 
         const checkoutInput = document.getElementById('checkout-date');
         const today = new Date().toISOString().split('T')[0];
-        checkoutInput.value = today;
+        setDateValue(checkoutInput, today);
 
         renderGuestDetails(chitiet);
         calculateTotal(currentCheckoutBooking, chitiet);
