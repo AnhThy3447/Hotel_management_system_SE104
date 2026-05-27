@@ -78,11 +78,8 @@ async function saveChanges() {
 
         alert("Cập nhật giá thành công!");
 
-        // reload rooms
-        window.opener.location.reload();
-
-        // đóng popup
-        window.close();
+        // reload rooms.html
+        window.parent.location.reload();
 
     } catch (error) {
         console.error(error);
