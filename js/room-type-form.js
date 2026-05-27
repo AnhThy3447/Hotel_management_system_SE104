@@ -1,4 +1,4 @@
-const API_BASE = "https://hotel-management-system-se104.onrender.com/api/phong/loai-phong";
+const API_BASE = "https://hotel-management-system-se104-hgkg.onrender.com/api/phong/loai-phong";
 
 document.addEventListener("DOMContentLoaded", () => {
     // Mở khóa cho phép tự gõ Mã loại phòng

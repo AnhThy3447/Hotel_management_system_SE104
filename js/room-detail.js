@@ -1,4 +1,4 @@
-const API_BASE = "https://hotel-management-system-se104.onrender.com/api/phong";
+const API_BASE = "https://hotel-management-system-se104-hgkg.onrender.com/api/phong";
 
 document.addEventListener("DOMContentLoaded", async () => {
     const params = new URLSearchParams(window.location.search);
