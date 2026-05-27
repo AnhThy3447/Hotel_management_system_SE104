@@ -155,7 +155,7 @@ function editRoom(id) {
     window.location.href = `rooms-form.html?id=${id}`; 
 }
 
-function editRoomType(id) {
+function editRoomType() {
 
     let overlay = document.getElementById("changePriceOverlay");
 
@@ -171,10 +171,10 @@ function editRoomType(id) {
         overlay.style.width = "100%";
         overlay.style.height = "100%";
         overlay.style.background = "rgba(0,0,0,0.5)";
-        overlay.style.zIndex = "9999";
         overlay.style.display = "flex";
         overlay.style.justifyContent = "center";
         overlay.style.alignItems = "center";
+        overlay.style.zIndex = "9999";
 
         const frame = document.createElement("iframe");
 
@@ -182,11 +182,11 @@ function editRoomType(id) {
 
         frame.src = "change-price.html";
 
-        frame.style.width = "80%";
-        frame.style.height = "80%";
+        frame.style.width = "900px";
+        frame.style.height = "650px";
+
         frame.style.border = "none";
-        frame.style.borderRadius = "12px";
-        frame.style.background = "white";
+        frame.style.background = "transparent";
 
         overlay.appendChild(frame);
 
