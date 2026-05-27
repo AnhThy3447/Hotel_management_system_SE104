@@ -21,7 +21,7 @@ async function loadAllData() {
         const resBooking = await fetch(`${API_URL}/thue-phong`);
         const jsonBooking = await resBooking.json();
         // Chỉ lấy phiếu đã trả phòng (ngaytrphong != null) và chưa có hóa đơn
-        allBookings = (jsonBooking.data || []).filter(b => b.ngaytrphong);
+        allBookings = (jsonBooking.data || []).filter(b => b.ngaytraphong && !b.dahoadon);
 
         // Lấy danh sách khách hàng
         const resKhach = await fetch(`${API_URL}/khach-hang`);
