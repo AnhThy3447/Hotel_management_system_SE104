@@ -121,7 +121,8 @@ function calculateTotal(booking, chitiet) {
 async function confirmCheckout() {
     if (!currentCheckoutBooking) return;
 
-    const checkoutDate = document.getElementById('checkout-date').value;
+    const checkoutDateRaw = document.getElementById('checkout-date').value;
+    const checkoutDate = getISODate(document.getElementById('checkout-date')) || convertToISO(checkoutDateRaw);
     if (!checkoutDate) { alert('Vui lòng chọn ngày trả phòng!'); return; }
 
     const startDate = new Date(currentCheckoutBooking.ngaybatdauthue);
@@ -184,4 +185,11 @@ function formatDateVN(dateString) {
 
 function formatCurrency(amount) {
     return new Intl.NumberFormat('vi-VN').format(amount || 0);
+}
+
+function convertToISO(ddmmyyyy) {
+    if (!ddmmyyyy) return '';
+    const parts = ddmmyyyy.split('/');
+    if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    return ddmmyyyy;
 }
