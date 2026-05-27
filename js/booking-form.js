@@ -1,4 +1,4 @@
-const API_URL = 'https://hotel-management-system-se104-hgkg.onrender.com/api';
+const API_URL = 'https://hotel-management-system-se104.onrender.com/api';
 let currentBooking = null;
 let guests = [];
 let isViewMode = false;
