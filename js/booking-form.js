@@ -18,10 +18,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (bookingId) {
         loadBooking(parseInt(bookingId));
     } else {
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('form-date').value = today;
-        addGuest();
-    }
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const yyyy = today.getFullYear();
+    const todayStr = `${dd}/${mm}/${yyyy}`;
+    const maxDate = new Date();
+    maxDate.setMonth(maxDate.getMonth() + 1);
+    const maxDd = String(maxDate.getDate()).padStart(2, '0');
+    const maxMm = String(maxDate.getMonth() + 1).padStart(2, '0');
+    const maxYyyy = maxDate.getFullYear();
+    const maxDateStr = `${maxDd}/${maxMm}/${maxYyyy}`;
+
+    document.getElementById('form-date').value = todayStr;
+    document.getElementById('start-date').min = todayStr;
+    document.getElementById('start-date').max = maxDateStr;
+    addGuest();
+}
 });
 
 async function loadRooms() {
@@ -35,14 +48,16 @@ async function loadRooms() {
         const select = document.getElementById('room-select');
         if (!select) return;
 
-        const availableRooms = data.filter(room => {
-            return room.status && room.status.trim().toLowerCase() === 'trống';
-        });
+        allRooms = Array.isArray(data) ? data : (data.data || []);
+
+        const availableRooms = allRooms.filter(room =>
+            (room.status || '').trim().toLowerCase() === 'trống'
+        );
 
         select.innerHTML = '<option value="">-- Chọn phòng trống --</option>' +
-            availableRooms.map(room => {
-                return `<option value="${room.id}">${room.id} - Loại ${room.typeName} (${formatCurrency(room.price)} VNĐ/ngày)</option>`;
-            }).join('');
+            availableRooms.map(room =>
+                `<option value="${room.id}">${room.id} - Loại ${room.typeName || ''} (${formatCurrency(room.price)} VNĐ/ngày)</option>`
+            ).join('');
             
     } catch (err) {
         console.error('Lỗi load phòng:', err);
@@ -69,24 +84,25 @@ async function loadThamSo() {
 function onRoomChange() {
     const select = document.getElementById('room-select');
     const sophong = select.value;
-    const room = allRooms.find(p => String(p.sophong) === String(sophong));
+    const room = allRooms.find(p => String(p.id) === String(sophong));
 
     if (room) {
         document.getElementById('room-info').style.display = 'flex';
-        document.getElementById('selected-room-type').textContent = room.loaiphong || 'N/A';
-        document.getElementById('selected-room-price').textContent = formatCurrency(room.dongia) + ' VNĐ';
+        document.getElementById('selected-room-type').textContent = room.typeName || 'N/A';
+        document.getElementById('selected-room-price').textContent = formatCurrency(room.price) + ' VNĐ';
         document.getElementById('max-guests-display').textContent = thamSo.soKhachToiDa;
         document.getElementById('max-guests').textContent = thamSo.soKhachToiDa;
         document.getElementById('max-count').textContent = thamSo.soKhachToiDa;
     } else {
         document.getElementById('room-info').style.display = 'none';
     }
+    renderGuests();
     updatePricePreview();
 }
 
 function updatePricePreview() {
     const sophong = document.getElementById('room-select').value;
-    const room = allRooms.find(p => String(p.sophong) === String(sophong));
+    const room = allRooms.find(p => String(p.id) === String(sophong));
     if (!room || guests.length === 0) {
         document.getElementById('price-preview').style.display = 'none';
         return;
@@ -98,7 +114,7 @@ function updatePricePreview() {
         const pt = tiLePhuThu.find(t => t.thutukhach === (i + 1));
         const heSoThuTu = pt ? pt.hesophuthu : 1.0;
         const heSoLoai = g.type === 'nước ngoài' ? 1.5 : 1.0;
-        total += room.dongia * heSoThuTu * heSoLoai;
+        total += room.price * heSoThuTu * heSoLoai;
     });
     document.getElementById('total-per-day').textContent = formatCurrency(total) + ' VNĐ';
 }
@@ -166,7 +182,7 @@ function renderGuests() {
                 <input type="text" value="${guest.address}" placeholder="Địa chỉ"
                     onchange="updateGuest(${index}, 'address', this.value)">
             </td>
-            <td style="text-align:right">—</td>
+            <td style="text-align:right">${calcGuestPrice(index)}</td>
             <td>
                 <button type="button" class="btn-remove" onclick="removeGuest(${index})"
                     ${guests.length === 1 ? 'disabled' : ''}>
@@ -227,14 +243,33 @@ function validateForm() {
     return true;
 }
 
+function calcGuestPrice(index) {
+    const sophong = document.getElementById('room-select').value;
+    const room = allRooms.find(p => String(p.id) === String(sophong));
+    if (!room) return '—';
+    const guest = guests[index];
+    const pt = tiLePhuThu.find(t => t.thutukhach === (index + 1));
+    const heSoThuTu = pt ? pt.hesophuthu : 1.0;
+    const heSoLoai = guest.type === 'nước ngoài' ? 1.5 : 1.0;
+    const tien = room.price * heSoThuTu * heSoLoai;
+    return formatCurrency(tien) + ' VNĐ';
+}
+
+function convertToISO(ddmmyyyy) {
+    if (!ddmmyyyy) return '';
+    const parts = ddmmyyyy.split('/');
+    if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    return ddmmyyyy;
+}
+
 // Hàm này được gọi từ HTML (onclick="saveBooking()")
 async function saveBooking() {
     if (!validateForm()) return;
 
     const bookingData = {
         SoPhong: document.getElementById('room-select').value,
-        NgayLap: document.getElementById('form-date').value,
-        NgayBatDauThue: document.getElementById('start-date').value,
+        NgayLap: convertToISO(document.getElementById('form-date').value),
+        NgayBatDauThue: convertToISO(document.getElementById('start-date').value),
         DanhSachKhach: guests.map(g => ({
             name: g.name,
             type: g.type,
