@@ -149,7 +149,7 @@ async function loadBooking(id) {
         renderGuests();
 
         if (isViewMode) {
-            document.querySelectorAll('input, select, button:not(.btn-back)').forEach(el => {
+            document.querySelectorAll('input, select, button:not(.btn-back):not(#print-btn):not(.btn-secondary)').forEach(el => {
                 el.disabled = true;
             });
             document.getElementById('save-btn').style.display = 'none';
