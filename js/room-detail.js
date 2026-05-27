@@ -1,55 +1,45 @@
+// Sử dụng API lấy danh sách toàn bộ phòng
 const API_BASE = "https://hotel-management-system-se104-hgkg.onrender.com/api/phong";
 
 document.addEventListener("DOMContentLoaded", async () => {
+    // 1. Lấy ID phòng từ URL
     const params = new URLSearchParams(window.location.search);
-    const id = params.get("id");
+    const roomId = params.get("id");
 
     const titleEl = document.getElementById("roomTitle");
+    const statusEl = document.getElementById("roomStatus");
 
-    if (!id) {
-        if (titleEl) titleEl.textContent = "Không tìm thấy thông tin phòng";
+    // Nếu không có ID trong URL, dừng lại
+    if (!roomId) {
+        if (titleEl) titleEl.textContent = "Không tìm thấy mã phòng trong URL";
         return;
     }
 
     try {
+        // 2. Gọi API để lấy danh sách phòng
         const response = await fetch(API_BASE);
-        if (!response.ok) throw new Error(`Lỗi Server: ${response.status}`);
+        
+        if (!response.ok) {
+            throw new Error(`Lỗi mạng: ${response.status}`);
+        }
 
         const rooms = await response.json();
+        
+        // 3. Tìm phòng theo ID (ép kiểu String để so sánh an toàn)
+        const room = rooms.find(r => String(r.id) === String(roomId));
 
-        // Ép kiểu string để tránh lệch number/string
-        const room = rooms.find(r => String(r.id) === String(id));
-
+        // Nếu phòng không tồn tại trong DB
         if (!room) {
-            if (titleEl) titleEl.textContent = "Không tìm thấy phòng";
+            if (titleEl) titleEl.textContent = "Số phòng không tồn tại";
+            if (statusEl) statusEl.style.display = "none";
             return;
         }
 
-        // Hiển thị tiêu đề an toàn
-        if (titleEl) titleEl.textContent = `Phòng ${room.id}`;
+        // 4. Đổ dữ liệu vào HTML
+        // Tiêu đề
+        if (titleEl) titleEl.textContent = `Chi tiết phòng ${room.id}`;
 
-        // ------------------------------------------------------------------
-        // HÀM GÁN DỮ LIỆU AN TOÀN (Không bao giờ lỗi nếu thiếu ID trong HTML)
-        // ------------------------------------------------------------------
-        const setTextSafe = (elementId, text) => {
-            const el = document.getElementById(elementId);
-            if (el) {
-                // Nếu thẻ là thẻ input thì dùng .value, nếu là thẻ p/span/div thì dùng .textContent
-                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.value = text;
-                else el.textContent = text;
-            } else {
-                console.warn(`Lưu ý: Không tìm thấy thẻ HTML có id="${elementId}" để gắn dữ liệu.`);
-            }
-        };
-
-        // Gán dữ liệu
-        setTextSafe("id", room.id ?? "-");
-        setTextSafe("type", room.typeName ?? "Không rõ");
-        setTextSafe("notes", room.notes?.trim() || "Không có ghi chú");
-        setTextSafe("price", (Number(room.price) || 0).toLocaleString("vi-VN") + " VNĐ");
-
-        // Xử lý trạng thái (Badge) an toàn
-        const statusEl = document.getElementById("roomStatus");
+        // Trạng thái (Badge)
         if (statusEl) {
             const status = room.status;
             if (status === "Trống" || status === "available") {
@@ -64,7 +54,19 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         }
 
-        // Nút sửa an toàn
+        // Các thông tin chi tiết
+        document.getElementById("id").textContent = room.id || "-";
+        document.getElementById("type").textContent = room.typeName || "Không rõ";
+        
+        // Định dạng giá tiền
+        const priceText = (Number(room.price) || 0).toLocaleString("vi-VN") + " VNĐ";
+        document.getElementById("price").textContent = priceText;
+        
+        // Ghi chú
+        const notesText = (room.notes && room.notes.trim() !== "") ? room.notes : "Không có ghi chú";
+        document.getElementById("notes").textContent = notesText;
+
+        // 5. Cấu hình nút Cập nhật
         const editBtn = document.getElementById("editBtn");
         if (editBtn) {
             editBtn.onclick = () => {
@@ -73,7 +75,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
     } catch (error) {
-        console.error("Lỗi lấy chi tiết phòng:", error);
-        if (titleEl) titleEl.textContent = "Lỗi kết nối Server (Nhấn F12 xem Console)";
+        console.error("Chi tiết lỗi API:", error);
+        if (titleEl) titleEl.textContent = "Lỗi kết nối Backend. Vui lòng kiểm tra Server.";
+        if (statusEl) statusEl.style.display = "none";
     }
 });
