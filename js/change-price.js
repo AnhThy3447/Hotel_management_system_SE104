@@ -78,7 +78,16 @@ async function saveChanges() {
 
         alert("Cập nhật giá thành công!");
 
-        window.location.href = "rooms.html";
+        // xóa popup
+        const overlay =
+            window.parent.document.getElementById("changePriceOverlay");
+
+        if (overlay) {
+            overlay.remove();
+        }
+
+        // reload rooms.html bên ngoài
+        window.parent.location.reload();
 
     } catch (error) {
         console.error(error);
@@ -87,8 +96,13 @@ async function saveChanges() {
 }
 
 function closeModal() {
-    window.parent.document.getElementById("changePriceOverlay").style.display = "none";
-}
 
+    const overlay =
+        window.parent.document.getElementById("changePriceOverlay");
+
+    if (overlay) {
+        overlay.remove();
+    }
+}
 window.saveChanges = saveChanges;
 window.closeModal = closeModal;
