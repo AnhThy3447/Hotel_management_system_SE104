@@ -158,3 +158,14 @@ exports.traPhong = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+exports.xoaPhieuThue = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await db.query(`DELETE FROM CTTHUEPHONG WHERE MaThuePhong = $1`, [id]);
+    await db.query(`DELETE FROM THUEPHONG WHERE MaThuePhong = $1`, [id]);
+    res.json({ success: true, message: 'Đã xóa phiếu thuê!' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
