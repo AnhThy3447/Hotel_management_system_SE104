@@ -184,7 +184,8 @@ function editRoomType() {
 
         frame.style.width = "900px";
         frame.style.height = "650px";
-
+        frame.style.display = "block";
+        
         frame.style.border = "none";
         frame.style.background = "transparent";
 
