@@ -42,8 +42,8 @@ function renderActiveBookings(data) {
             <td>${index + 1}</td>
             <td><span class="badge badge-room">${booking.sophong || ''}</span></td>
             <td>${booking.loaiphong || 'N/A'}</td>
-            <td>${formatDateVN(booking.ngaylap)}</td>
-            <td>${formatDateVN(booking.ngaybatdauthue)}</td>
+            <td>${formatDateVN(booking.ngaylap?.split('T')[0])}</td>
+            <td>${formatDateVN(booking.ngaybatdauthue?.split('T')[0])}</td>
             <td><span class="badge badge-guests">${booking.guests.length} khách</span></td>
             <td>${booking.guests.map(g => g.name).join(', ')}</td>
             <td>
@@ -56,10 +56,11 @@ function renderActiveBookings(data) {
                 </div>
             </td>
             <td>
-                <button class="btn-icon btn-edit" onclick="openCheckoutModal(${booking.mathuephong})" title="Trả phòng">
+                <button class="btn-icon" onclick="openCheckoutModal(${booking.mathuephong})" title="Trả phòng" style="color: #000000;">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M9 11l3 3L22 4"></path>
-                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
                     </svg>
                 </button>
             </td>
@@ -82,8 +83,10 @@ async function openCheckoutModal(maThuePhong) {
         document.getElementById('modal-start-date').textContent = formatDateVN(currentCheckoutBooking.ngaybatdauthue?.split('T')[0]);
 
         const checkoutInput = document.getElementById('checkout-date');
+        const startISO = currentCheckoutBooking.ngaybatdauthue?.split('T')[0];
         const today = new Date().toISOString().split('T')[0];
-        setDateValue(checkoutInput, today);
+        const defaultDate = startISO > today ? startISO : today;
+        setDateValue(checkoutInput, defaultDate);
 
         renderGuestDetails(chitiet);
         calculateTotal(currentCheckoutBooking, chitiet);
@@ -103,7 +106,7 @@ function renderGuestDetails(chitiet) {
             <td><span class="badge-type ${ct.loaikhach === 'Nội địa' ? 'badge-local' : 'badge-foreign'}">
                 ${ct.loaikhach || 'N/A'}
             </span></td>
-            <td style="text-align: right; font-weight: 600;">—</td>
+            <td style="text-align: right; font-weight: 600;">${calcGuestPriceCheckout(ct, currentCheckoutBooking)}</td>
         </tr>
     `).join('');
 }
@@ -216,4 +219,12 @@ function convertToISO(ddmmyyyy) {
     const parts = ddmmyyyy.split('/');
     if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
     return ddmmyyyy;
+}
+
+function calcGuestPriceCheckout(ct, booking) {
+    if (!booking) return '—';
+    let gia = booking.dongia || 0;
+    const coNuocNgoai = ct.loaikhach === 'Nước ngoài';
+    if (coNuocNgoai) gia *= 1.5;
+    return formatCurrency(gia) + ' VNĐ';
 }
