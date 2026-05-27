@@ -87,7 +87,7 @@ async function saveChanges() {
 }
 
 function closeModal() {
-    window.location.href = "rooms.html";
+    window.parent.document.getElementById("changePriceOverlay").style.display = "none";
 }
 
 window.saveChanges = saveChanges;
