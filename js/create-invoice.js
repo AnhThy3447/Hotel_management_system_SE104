@@ -62,10 +62,10 @@ function renderAvailableBookings() {
             </td>
             <td>${booking.mathuephong}</td>
             <td>${booking.sophong || 'N/A'}</td>
-            <td>—</td>
+            <td>${booking.loaiphong || '—'}</td>
             <td>${formatDateVN(booking.ngaybatdauthue?.split('T')[0])}</td>
             <td>${booking.songaythue || 0}</td>
-            <td>—</td>
+            <td>${booking.dongia ? formatCurrency(booking.dongia) + ' VNĐ' : '—'}</td>
             <td><strong>${formatCurrency(booking.thanhtien || 0)} VNĐ</strong></td>
         </tr>`
     ).join('');
