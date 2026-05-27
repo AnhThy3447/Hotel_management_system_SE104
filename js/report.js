@@ -186,12 +186,14 @@ function formatCurrency(amount) {
     return new Intl.NumberFormat('vi-VN').format(amount || 0);
 }
 
-// Đưa các hàm ra phạm vi global để thẻ HTML gọi trực tiếp được qua onclick/onchange
-window.changeReportType = changeReportType;
-window.changeFilterType = changeFilterType;
-window.applyFilter = applyFilter;
-
 // ===== EXPORT =====
 function exportReport() {
   window.print();
 }
+// Đưa các hàm ra phạm vi global để thẻ HTML gọi trực tiếp được qua onclick/onchange
+window.changeReportType = changeReportType;
+window.changeFilterType = changeFilterType;
+window.applyFilter = applyFilter;
+window.exportReport = exportReport;
+
+
