@@ -8,7 +8,7 @@ async function initializeData() {
     try {
         const res = await fetch(`${API_URL}/thue-phong`);
         const json = await res.json();
-        bookings = json.data || [];
+        bookings = (json.data || []).filter(b => !b.ngaytrphong);
         renderBookings();
         updateTotalCount();
     } catch (err) {
