@@ -59,7 +59,7 @@ exports.taoPhieuThue = async (req, res) => {
 exports.xemTatCa = async (req, res) => {
   try {
     const result = await db.query(`
-      SELECT tp.MaThuePhong, tp.NgayLap, tp.NgayBatDauThue, tp.SoPhong,
+      SELECT tp.MaThuePhong, tp.NgayLap, tp.NgayBatDauThue, tp.NgayTraPhong, tp.SoNgayThue, tp.ThanhTien, tp.SoPhong,
              kh.TenKhachHang, kh.CMND, kh.DiaChi, lk.LoaiKhach
       FROM THUEPHONG tp
       LEFT JOIN CTTHUEPHONG ct ON tp.MaThuePhong = ct.MaThuePhong
@@ -72,10 +72,14 @@ exports.xemTatCa = async (req, res) => {
       const id = row.mathuephong;
       if (!grouped[id]) {
         grouped[id] = {
-          mathuephong: id,
-          ngaylap: row.ngaylap,
-          sophong: row.sophong,
-          guests: []
+        mathuephong: id,
+        ngaylap: row.ngaylap,
+        ngaybatdauthue: row.ngaybatdauthue,
+        ngaytrphong: row.ngaytrphong,
+        songaythue: row.songaythue,
+        thanhtien: row.thanhtien,
+        sophong: row.sophong,
+        guests: []
         };
       }
       if (row.tenkhachhang) {
