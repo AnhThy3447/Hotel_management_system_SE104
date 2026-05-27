@@ -78,7 +78,7 @@ exports.xemTatCa = async (req, res) => {
         mathuephong: id,
         ngaylap: row.ngaylap,
         ngaybatdauthue: row.ngaybatdauthue,
-        ngaytrphong: row.ngaytrphong,
+        ngaytrphong: row.ngaytraphong,
         songaythue: row.songaythue,
         thanhtien: row.thanhtien,
         sophong: row.sophong,
