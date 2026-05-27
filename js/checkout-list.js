@@ -5,6 +5,7 @@
 const API_URL = 'https://hotel-management-system-se104.onrender.com/api';
 let currentCheckoutBooking = null;
 let allBookings = [];
+let tiLePhuThu = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     loadActiveBookings();
@@ -17,6 +18,9 @@ async function loadActiveBookings() {
         const json = await res.json();
         // Chỉ lấy phòng chưa trả (NgayTraPhong = null)
         allBookings = (json.data || []).filter(b => !b.ngaytrphong);
+        const resPT = await fetch(`${API_URL}/quy-dinh/phu-thu`);
+        const jsonPT = await resPT.json();
+        tiLePhuThu = jsonPT.data || [];
         renderActiveBookings(allBookings);
         updateTotalCount();
     } catch (err) {
@@ -106,16 +110,33 @@ function renderGuestDetails(chitiet) {
 
 function calculateTotal(booking, chitiet) {
     const checkoutInput = document.getElementById('checkout-date');
-    const checkoutDate = checkoutInput.value;
+    const checkoutDate = getISODate(checkoutInput) || convertToISO(checkoutInput.value);
     if (!checkoutDate || !booking) return;
 
     const startDate = new Date(booking.ngaybatdauthue);
     const endDate = new Date(checkoutDate);
     const days = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+    const soNgay = days >= 1 ? days : 0;
 
-    document.getElementById('modal-days').textContent = days >= 1 ? days : 0;
-    document.getElementById('modal-price-per-day').textContent = '—';
-    document.getElementById('modal-total').textContent = '—';
+    document.getElementById('modal-days').textContent = soNgay;
+
+    // Tính tiền mỗi ngày theo QĐ2
+    let tongMotNgay = 0;
+    chitiet.forEach((ct, i) => {
+        const pt = tiLePhuThu.find(t => t.thutukhach === (i + 1));
+        const heSoThuTu = pt ? pt.hesophuthu : 1.0;
+        const heSoLoai = ct.loaikhach === 'Nước ngoài' ? 1.5 : 1.0;
+        tongMotNgay += (booking.dongia || 0) * heSoThuTu * heSoLoai;
+    });
+
+    const tongTien = tongMotNgay * soNgay;
+
+    document.getElementById('modal-price-per-day').textContent = formatCurrency(tongMotNgay) + ' VNĐ';
+    document.getElementById('modal-total').textContent = formatCurrency(tongTien) + ' VNĐ';
+
+    // Lưu lại để dùng khi confirmCheckout
+    document.getElementById('checkout-date').dataset.tongTien = tongTien;
+    document.getElementById('checkout-date').dataset.soNgay = soNgay;
 }
 
 async function confirmCheckout() {
@@ -132,13 +153,15 @@ async function confirmCheckout() {
     if (days < 1) { alert('Ngày trả phải sau ngày bắt đầu thuê!'); return; }
 
     try {
+        const tongTien = parseInt(document.getElementById('checkout-date').dataset.tongTien) || null;
+        const soNgay = parseInt(document.getElementById('checkout-date').dataset.soNgay) || days;
         const res = await fetch(`${API_URL}/thue-phong/${currentCheckoutBooking.mathuephong}/tra-phong`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 NgayTraPhong: checkoutDate,
-                SoNgayThue: days,
-                ThanhTien: null
+                SoNgayThue: soNgay,
+                ThanhTien: tongTien
             })
         });
         const json = await res.json();
