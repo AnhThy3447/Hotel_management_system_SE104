@@ -1,4 +1,4 @@
-const API_BASE = "'https://hotel-management-system-se104.onrender.com/api'";
+const API_BASE = 'https://hotel-management-system-se104-g0le.onrender.com/api';
 
 // Danh sách cố định 7 chức năng gốc dưới Database để gán vào dropdown
 const DANH_SACH_CHU_NANG_GOC = [
