@@ -91,8 +91,35 @@ async function viewCustomer(maKhachHang) {
         document.getElementById('modal-customer-cmnd').value = kh.cmnd || '';
         document.getElementById('modal-customer-type').value = kh.loaikhach || 'N/A';
         document.getElementById('modal-customer-address').value = kh.diachi || '';
-        document.getElementById('modal-customer-history').innerHTML =
-            '<span style="color:#94a3b8">Chưa có lịch sử thuê phòng</span>';
+
+        const historyEl = document.getElementById('modal-customer-history');
+        historyEl.innerHTML = '<span style="color:#94a3b8">Đang tải...</span>';
+
+        const resTP = await fetch(`${API_URL}/thue-phong`);
+        const jsonTP = await resTP.json();
+        const allTP = jsonTP.data || [];
+
+        const myRentals = allTP.filter(tp =>
+            tp.guests && tp.guests.some(g => g.makhachhang === maKhachHang)
+        );
+
+        if (myRentals.length === 0) {
+            historyEl.innerHTML = '<span style="color:#94a3b8">Chưa có lịch sử thuê phòng</span>';
+        } else {
+            historyEl.innerHTML = myRentals.map(tp => {
+                const ngayBD = tp.ngaybatdauthue ? new Date(tp.ngaybatdauthue).toLocaleDateString('vi-VN') : '—';
+                const ngayTra = tp.ngaytrphong ? new Date(tp.ngaytrphong).toLocaleDateString('vi-VN') : 'Đang thuê';
+                const trangThai = tp.ngaytrphong
+                    ? '<span style="color:#22c55e">Đã trả</span>'
+                    : '<span style="color:#f59e0b">Đang thuê</span>';
+                return `<div style="padding:8px 0; border-bottom:1px solid #f0ebe3; font-size:13px">
+                    <strong>Phòng ${tp.sophong}</strong> &nbsp;|&nbsp;
+                    ${ngayBD} → ${ngayTra} &nbsp;|&nbsp;
+                    ${tp.songaythue ?? '?'} ngày &nbsp;|&nbsp;
+                    ${trangThai}
+                </div>`;
+            }).join('');
+        }
 
         document.getElementById('customer-modal').classList.add('open');
     } catch (err) {
