@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cấu hình hệ thống - Khách sạn Paradise</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/booking-list.css">
+    <style>
+        /* CSS Kế thừa phong cách Tab từ trang khách hàng */
+        .tab-bar { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 2px solid #e5e7eb; }
+        .tab-btn { padding: 10px 20px; background: none; border: none; border-bottom: 2px solid transparent; font-size: 14px; font-weight: 600; color: #6b7280; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .tab-btn.active { color: #1d4ed8; border-bottom-color: #1d4ed8; }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+        
+        /* CSS cho các thẻ chức năng (Tag quyền vàng) */
+        .tag-container { display: flex; flex-wrap: wrap; gap: 6px; }
+        .permission-tag { background: #fef9c3; color: #854d0e; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-delete-tag { background: none; border: none; color: #b45309; cursor: pointer; font-size: 14px; padding: 0; }
+        
+        /* Layout chia đôi của tab phân quyền */
+        .role-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .card-panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; }
+        .add-form-card { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px 20px; margin-bottom: 18px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+        .form-input { padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; outline: none; }
+        .form-input:focus { border-color: #3b82f6; }
+        
+        /* Modal css */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.open { display: flex; }
+        .modal-content { background: #fff; border-radius: 12px; width: 450px; padding: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+    </style>
+</head>
+<body data-page="system-settings">
+    <div class="container">
+        <div id="sidebar-container"></div>
+
+        <main class="main-content">
+            <div class="content-wrapper">
+                <div class="header">
+                    <h1>Cấu hình hệ thống</h1>
+                    <p class="subtitle">Quản lý nhân sự, phân quyền chức năng và điều chỉnh quy định vận hành</p>
+                </div>
+
+                <div class="tab-bar">
+                    <button class="tab-btn active" onclick="switchSettingsTab('users')">Quản lý tài khoản</button>
+                    <button class="tab-btn" onclick="switchSettingsTab('roles')">Nhóm quyền & Chức năng</button>
+                    <button class="tab-btn" onclick="switchSettingsTab('rules')">Quy định khách sạn</button>
+                </div>
+
+                <div class="tab-panel active" id="panel-users">
+                    <div class="role-layout">
+                        <div class="table-container" style="margin: 0;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>STT</th>
+                                        <th>Tên đăng nhập</th>
+                                        <th>Nhóm quyền</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="user-table-body">
+                                    </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="card-panel">
+                            <h3>Thêm tài khoản nhân viên</h3>
+                            <hr style="margin: 12px 0; border: 0; border-top: 1px solid #e5e7eb;">
+                            <form id="form-them-nhan-vien">
+                                <div class="form-group">
+                                    <label>Tên đăng nhập</label>
+                                    <input type="text" class="form-input" id="input-username" required placeholder="Ví dụ: letan04">
+                                </div>
+                                <div class="form-group">
+                                    <label>Mật khẩu mặc định</label>
+                                    <input type="password" class="form-input" id="input-password" required placeholder="Nhập mật khẩu...">
+                                </div>
+                                <div class="form-group">
+                                    <label>Nhóm chức vụ quyền hạn</label>
+                                    <select class="form-input" id="select-group" required>
+                                        </select>
+                                </div>
+                                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 10px;">Thêm nhân viên mới</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-panel" id="panel-roles">
+                    <div class="add-form-card">
+                        <div style="font-size:14px; font-weight:700; color:#475569; margin-bottom:12px">Tạo nhóm quyền mới</div>
+                        <div style="display: flex; gap: 12px;">
+                            <input type="text" class="form-input" id="new-role-name" placeholder="Ví dụ: Kế toán, Bảo vệ..." style="flex: 1;">
+                            <button class="btn-primary" onclick="xuLyThemNhomQuyen()">Thêm nhóm</button>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 20%;">Tên nhóm</th>
+                                    <th style="width: 60%;">Chức năng hiển thị trên Sidebar</th>
+                                    <th style="width: 20%;">Hành động gán chức năng</th>
+                                </tr>
+                            </thead>
+                            <tbody id="role-table-body">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="tab-panel" id="panel-rules">
+                    <div class="table-container" style="max-width: 700px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tên quy định</th>
+                                    <th>Giá trị hiện tại</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rule-table-body">
+                                <tr>
+                                    <td>Số khách tối đa trong phòng</td>
+                                    <td><strong id="val-max-guests">3 người</strong></td>
+                                    <td><button class="btn-secondary" onclick="openRuleModal('max-guests', 3)">Chỉnh sửa</button></td>
+                                </tr>
+                                <tr>
+                                    <td>Tỷ lệ phụ thu từ khách thứ 3</td>
+                                    <td><strong id="val-surcharge">25%</strong></td>
+                                    <td><button class="btn-secondary" onclick="openRuleModal('surcharge', 25)">Chỉnh sửa</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <div id="edit-user-modal" class="modal">
+        <div class="modal-content">
+            <h3>Thay đổi nhóm quyền nhân viên</h3>
+            <hr style="margin: 12px 0; border: none; border-top:1px solid #e5e7eb;">
+            <input type="hidden" id="edit-user-id">
+            <div class="form-group">
+                <label>Tên nhân viên:</label>
+                <input type="text" class="form-input" id="edit-user-name" readonly style="background: #f1f5f9;">
+            </div>
+            <div class="form-group">
+                <label>Chọn nhóm quyền mới:</label>
+                <select class="form-input" id="edit-user-role-select"></select>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('edit-user-modal')">Hủy</button>
+                <button class="btn-primary" onclick="xuLyLuuQuyenNhanVien()">Lưu thay đổi</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="edit-rule-modal" class="modal">
+        <div class="modal-content">
+            <h3>Cập nhật tham số quy định</h3>
+            <hr style="margin: 12px 0; border: 0; border-top:1px solid #e5e7eb;">
+            <input type="hidden" id="edit-rule-id">
+            <div class="form-group">
+                <label id="label-rule-name">Giá trị mới:</label>
+                <input type="number" class="form-input" id="input-rule-value">
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('edit-rule-modal')">Hủy</button>
+                <button class="btn-primary" onclick="xuLyLuuQuyDinh()">Cập nhật</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/common.js"></script>
+    <script src="js/system-settings.js"></script>
+</body>
+</html>
