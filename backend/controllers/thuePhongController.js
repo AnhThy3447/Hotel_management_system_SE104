@@ -69,7 +69,7 @@ exports.xemTatCa = async (req, res) => {
     const result = await db.query(`
       SELECT tp.MaThuePhong, tp.NgayLap, tp.NgayBatDauThue, tp.NgayTraPhong, tp.SoNgayThue, tp.ThanhTien, tp.SoPhong,
        (SELECT COUNT(*) FROM CTHOADON ct WHERE ct.MaThuePhong = tp.MaThuePhong) > 0 AS DaHoaDon,
-       kh.TenKhachHang, kh.CMND, kh.DiaChi, lk.LoaiKhach,
+       kh.MaKhachHang, kh.TenKhachHang, kh.CMND, kh.DiaChi, lk.LoaiKhach,
        lp.LoaiPhong, lp.DonGia
       FROM THUEPHONG tp
       LEFT JOIN CTTHUEPHONG ct ON tp.MaThuePhong = ct.MaThuePhong
@@ -99,6 +99,7 @@ exports.xemTatCa = async (req, res) => {
       }
       if (row.tenkhachhang) {
         grouped[id].guests.push({
+          makhachhang: row.makhachhang,
           name: row.tenkhachhang,
           type: row.loaikhach || 'Nội địa',
           idNumber: row.cmnd,
