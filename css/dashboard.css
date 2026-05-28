@@ -124,6 +124,10 @@
         font-size: 32px;
     }
 
+    .welcome-text h1 br {
+        display: block; /* Đảm bảo thẻ br hoạt động chính xác */
+    }
+
     .subtitle {
         font-size: 18px;
     }
