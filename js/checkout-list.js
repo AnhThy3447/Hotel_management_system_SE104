@@ -116,9 +116,9 @@ function calculateTotal(booking, chitiet) {
     const checkoutDate = getISODate(checkoutInput) || convertToISO(checkoutInput.value);
     if (!checkoutDate || !booking) return;
 
-    const startDate = new Date(booking.ngaybatdauthue);
-    const endDate = new Date(checkoutDate);
-    const days = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+    const startDate = new Date(currentCheckoutBooking.ngaybatdauthue.split('T')[0] + 'T00:00:00');
+    const endDate = new Date(checkoutDate.split('T')[0] + 'T00:00:00');
+    const days = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24));
     const soNgay = days >= 1 ? days : 0;
 
     document.getElementById('modal-days').textContent = soNgay;
@@ -150,9 +150,9 @@ async function confirmCheckout() {
     const checkoutDate = getISODate(document.getElementById('checkout-date')) || convertToISO(checkoutDateRaw);
     if (!checkoutDate) { alert('Vui lòng chọn ngày trả phòng!'); return; }
 
-    const startDate = new Date(currentCheckoutBooking.ngaybatdauthue);
-    const endDate = new Date(checkoutDate);
-    const days = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+    const startDate = new Date(currentCheckoutBooking.ngaybatdauthue.split('T')[0] + 'T00:00:00');
+    const endDate = new Date(checkoutDate.split('T')[0] + 'T00:00:00');
+    const days = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24));
 
     if (days < 1) { alert('Ngày trả phải sau ngày bắt đầu thuê!'); return; }
 
