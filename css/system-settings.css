@@ -1,3 +1,8 @@
+/* ==========================================================================
+   🌐 FILE CSS ĐỘC LẬP TOÀN DIỆN CHO TRANG CẤU HÌNH HỆ THỐNG
+   (Quy hoạch cấu trúc 4 cột đồng nhất - Thẳng hàng dọc tuyệt đối)
+   ========================================================================== */
+
 /* ── LAYOUT KHUNG CHÍNH ── */
 .main-content {
     padding: 32px;
@@ -130,7 +135,7 @@ select.form-input {
     background-color: white;
 }
 
-/* ── BẢNG DỮ LIỆU (TABLE) ĐÃ KÉO GIÃN 100% ── */
+/* ── BẢNG DỮ LIỆU ĐÃ ÉP CO GIÃN 100% ── */
 .table-container {
     width: 100%;
     background: white;
@@ -141,39 +146,6 @@ select.form-input {
     margin-bottom: 24px;
 }
 
-.table-container table {
-    table-layout: fixed;
-    width: 100%;
-}
-
-/* Định nghĩa chiều rộng mặc định cho cấu trúc 4 cột của cả 3 bảng */
-#panel-rules table th:nth-child(1),
-#panel-rules table td:nth-child(1) {
-    width: 12%; /* Cột 1 */
-}
-
-#panel-rules table th:nth-child(2),
-#panel-rules table td:nth-child(2) {
-    width: 38%; /* Cột 2 */
-}
-
-#panel-rules table th:nth-child(3),
-#panel-rules table td:nth-child(3) {
-    width: 30%; /* Cột 3 */
-}
-
-#panel-rules table th:nth-child(4),
-#panel-rules table td:nth-child(4) {
-    width: 20%; /* Cột 4 */
-}
-
-/* Đặc trị riêng cho các dòng đã gộp cột (colspan="2") ở bảng 1 và bảng 3 */
-#param-table-body td[colspan="2"],
-#surcharge-table-body td[colspan="2"] {
-    width: 50%; /* Tự động gộp 12% + 38% thành ô chữ dài chiếm đúng 50% bên trái */
-}
-
-/* Loại bỏ tất cả giới hạn max-width viết trong thẻ HTML cũ */
 #panel-rules .table-container {
     max-width: 100% !important;
 }
@@ -181,7 +153,7 @@ select.form-input {
 table {
     width: 100%;
     border-collapse: collapse;
-    table-layout: fixed; /* Giúp phân bổ tỷ lệ cột chuẩn xác */
+    table-layout: fixed; /* Ép buộc tuân thủ tỷ lệ phần trăm của cột */
 }
 
 thead tr {
@@ -189,57 +161,52 @@ thead tr {
     border-bottom: 2px solid #D7CCC8;
 }
 
-th {
+th, td {
     padding: 16px 24px;
     text-align: left;
     font-size: 14px;
-    font-weight: 500;
     color: #5D4037;
-}
-
-th:last-child {
-    text-align: center;
-}
-
-tbody tr {
-    border-bottom: 1px solid #D7CCC8;
-}
-
-tbody tr:last-child {
-    border-bottom: none;
-}
-
-tbody tr:hover {
-    background-color: #FAF8F3;
+    vertical-align: middle;
+    word-wrap: break-word;
 }
 
 td {
-    padding: 16px 24px;
     color: #6D4C41;
     font-size: 15px;
-    vertical-align: middle;
-    word-wrap: break-word; /* Chống tràn chữ khi bảng kéo rộng */
 }
 
-td:last-child {
+/* ── 📐 PHÂN CHIA TỶ LỆ 4 CỘT DỌC ĐỒNG BỘ ── */
+#panel-rules table th:nth-child(1),
+#panel-rules table td:nth-child(1) {
+    width: 12%; /* Khớp cột STT của bảng 2 */
+}
+
+#panel-rules table th:nth-child(2),
+#panel-rules table td:nth-child(2) {
+    width: 38%; /* Khớp cột Tên loại khách của bảng 2 */
+}
+
+#panel-rules table th:nth-child(3),
+#panel-rules table td:nth-child(3) {
+    width: 30%; /* Cột GIÁ TRỊ SỐ trung tâm của cả 3 bảng -> Thẳng tắp hàng dọc! */
+}
+
+#panel-rules table th:nth-child(4),
+#panel-rules table td:nth-child(4) {
+    width: 20%; /* Cột THAO TÁC / HÀNH ĐỘNG -> Khít sát vách phải, không bị trống */
+}
+
+/* Đặc trị xử lý gộp ô (colspan="2") cho bảng 1 và bảng 3 */
+#param-table-body td[colspan="2"],
+#surcharge-table-body td[colspan="2"] {
+    width: 50% !important; /* Gộp 12% + 38% thành một ô tiêu đề thênh thang */
+}
+
+th:last-child, td:last-child {
     text-align: center;
 }
 
-/* ── TỶ LỆ PHÂN CHIA CỘT CHO ĐẸP VÀ CÂN ĐỐI ── */
-#param-table-body td:first-child, 
-#surcharge-table-body td:first-child {
-    width: 50%;
-}
-#param-table-body td:nth-child(2),
-#surcharge-table-body td:nth-child(2) {
-    width: 30%;
-}
-#param-table-body td:last-child,
-#surcharge-table-body td:last-child {
-    width: 20%;
-}
-
-/* ── CÁC NÚT BẤM (BUTTONS) NỀN TẢNG ── */
+/* ── CÁC NÚT BẤM VÀ ICON THAO TÁC PARADISE ── */
 .btn-primary {
     background-color: #5D4037;
     color: white;
@@ -280,11 +247,10 @@ td:last-child {
     color: #1976D2;
 }
 
-/* ── ĐỊNH DẠNG KHU VỰC ICON THAO TÁC (GIỐNG TRANG BOOKING CŨ) ── */
 .actions {
     display: flex;
     justify-content: center;
-    gap: 16px; /* Khoảng cách thưa rộng giữa 2 icon như ảnh mẫu */
+    gap: 16px;
     align-items: center;
 }
 
@@ -305,104 +271,22 @@ td:last-child {
     transform: scale(1.05);
 }
 
-/* Icon cây bút màu nâu */
-.btn-edit {
-    color: #8D6E63;
-}
-.btn-edit:hover {
-    color: #5D4037;
-}
+.btn-edit { color: #8D6E63; }
+.btn-edit:hover { color: #5D4037; }
 
-/* Icon thùng rác màu đỏ */
-.btn-delete {
-    color: #E53935;
-}
-.btn-delete:hover {
-    color: #B71C1C;
-}
+.btn-delete { color: #E53935; }
+.btn-delete:hover { color: #B71C1C; }
 
-/* ── PHÂN QUYỀN: TAG CHỨC NĂNG VÀ BADGE ── */
-.tag-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 4px 0;
-}
+/* ── PHÂN QUYỀN & BADGE ── */
+.tag-container { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 0; }
+.permission-tag { background-color: #FFF3E0; color: #E65100; padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; border: 1px solid #FFE0B2; }
+.btn-delete-tag { background: none; border: none; color: #E65100; cursor: pointer; font-size: 16px; font-weight: bold; padding: 0; line-height: 1; }
+.btn-delete-tag:hover { color: #BF360C; }
+.badge-local { background-color: #E8F5E9; color: #2E7D32; padding: 4px 12px; border-radius: 8px; font-size: 13px; font-weight: 500; display: inline-block; }
 
-.permission-tag {
-    background-color: #FFF3E0;
-    color: #E65100;
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    border: 1px solid #FFE0B2;
-}
-
-.btn-delete-tag {
-    background: none;
-    border: none;
-    color: #E65100;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: bold;
-    padding: 0;
-    line-height: 1;
-}
-
-.btn-delete-tag:hover {
-    color: #BF360C;
-}
-
-.badge-local {
-    background-color: #E8F5E9;
-    color: #2E7D32;
-    padding: 4px 12px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 500;
-    display: inline-block;
-}
-
-/* ── HỘP THOẠI (MODAL) ĐỒNG BỘ ANIMATION ── */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    align-items: center;
-    justify-content: center;
-}
-
-.modal.open {
-    display: flex;
-}
-
-.modal-content {
-    background-color: white;
-    border-radius: 16px;
-    width: 90%;
-    max-width: 450px;
-    padding: 24px;
-    box-shadow: 0 8px 32px rgba(93, 64, 55, 0.2);
-}
-
-.modal-content h3 {
-    margin: 0 0 12px 0;
-    color: #5D4037;
-    font-size: 20px;
-}
-
-.modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    margin-top: 24px;
-}
+/* ── MODAL ANIMATION ── */
+.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); align-items: center; justify-content: center; }
+.modal.open { display: flex; }
+.modal-content { background-color: white; border-radius: 16px; width: 90%; max-width: 450px; padding: 24px; box-shadow: 0 8px 32px rgba(93, 64, 55, 0.2); }
+.modal-content h3 { margin: 0 0 12px 0; color: #5D4037; font-size: 20px; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
