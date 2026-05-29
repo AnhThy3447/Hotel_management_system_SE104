@@ -19,6 +19,12 @@
     margin: 0 0 8px 0;
 }
 
+.subtitle {
+    color: #8D6E63;
+    font-size: 16px;
+    margin: 0;
+}
+
 /* ── THANH TABS ĐIỀU HƯỚNG ── */
 .tab-bar { 
     display: flex; 
@@ -124,8 +130,9 @@ select.form-input {
     background-color: white;
 }
 
-/* ── BẢNG DỮ LIỆU (TABLE) CHUẨN PARADISE ── */
+/* ── BẢNG DỮ LIỆU (TABLE) ĐÃ KÉO GIÃN 100% ── */
 .table-container {
+    width: 100%;
     background: white;
     border-radius: 16px;
     border: 2px solid #D7CCC8;
@@ -134,9 +141,15 @@ select.form-input {
     margin-bottom: 24px;
 }
 
+/* Loại bỏ tất cả giới hạn max-width viết trong thẻ HTML cũ */
+#panel-rules .table-container {
+    max-width: 100% !important;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed; /* Giúp phân bổ tỷ lệ cột chuẩn xác */
 }
 
 thead tr {
@@ -173,13 +186,28 @@ td {
     color: #6D4C41;
     font-size: 15px;
     vertical-align: middle;
+    word-wrap: break-word; /* Chống tràn chữ khi bảng kéo rộng */
 }
 
 td:last-child {
     text-align: center;
 }
 
-/* ── CÁC NÚT BẤM (BUTTONS) ĐỒNG BỘ ĐỘ CAO ── */
+/* ── TỶ LỆ PHÂN CHIA CỘT CHO ĐẸP VÀ CÂN ĐỐI ── */
+#param-table-body td:first-child, 
+#surcharge-table-body td:first-child {
+    width: 50%;
+}
+#param-table-body td:nth-child(2),
+#surcharge-table-body td:nth-child(2) {
+    width: 30%;
+}
+#param-table-body td:last-child,
+#surcharge-table-body td:last-child {
+    width: 20%;
+}
+
+/* ── CÁC NÚT BẤM (BUTTONS) NỀN TẢNG ── */
 .btn-primary {
     background-color: #5D4037;
     color: white;
@@ -220,7 +248,48 @@ td:last-child {
     color: #1976D2;
 }
 
-/* ── PHÂN QUYỀN: TAG CHỨC NĂNG CÓ DẤU X ── */
+/* ── ĐỊNH DẠNG KHU VỰC ICON THAO TÁC (GIỐNG TRANG BOOKING CŨ) ── */
+.actions {
+    display: flex;
+    justify-content: center;
+    gap: 16px; /* Khoảng cách thưa rộng giữa 2 icon như ảnh mẫu */
+    align-items: center;
+}
+
+.btn-icon {
+    padding: 8px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-icon:hover {
+    background-color: #FAF8F3;
+    transform: scale(1.05);
+}
+
+/* Icon cây bút màu nâu */
+.btn-edit {
+    color: #8D6E63;
+}
+.btn-edit:hover {
+    color: #5D4037;
+}
+
+/* Icon thùng rác màu đỏ */
+.btn-delete {
+    color: #E53935;
+}
+.btn-delete:hover {
+    color: #B71C1C;
+}
+
+/* ── PHÂN QUYỀN: TAG CHỨC NĂNG VÀ BADGE ── */
 .tag-container {
     display: flex;
     flex-wrap: wrap;

@@ -56,8 +56,14 @@ async function taiDuLieuTabTaiKhoan() {
                     <td><strong>${user.username}</strong></td>
                     <td><span class="badge-local">${user.role || 'Chưa phân quyền'}</span></td>
                     <td>
-                        <button class="btn-secondary" onclick="openEditUserModal(${user.id}, '${user.username}', '${user.role}')">Sửa vai trò</button>
-                        <button class="btn-secondary" style="color: red; border-color: #fca5a5;" onclick="xuLyXoaNhanVien(${user.id})">Xóa</button>
+                        <div class="actions">
+                            <button class="btn-icon btn-edit" onclick="openEditUserModal(${user.id}, '${user.username}', '${user.role}')" title="Sửa vai trò">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            </button>
+                            <button class="btn-icon btn-delete" onclick="xuLyXoaNhanVien(${user.id})" title="Xóa tài khoản">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `;
@@ -241,12 +247,12 @@ async function taiDuLieuTabQuyDinhHethong() {
 
         if (jsonTS.success && jsonTS.data) {
             jsonTS.data.forEach(ts => {
-                if (ts.TenThamSo === 'SoKhachKhongTinhPhi') {
+                if (ts.TenThamSo === 'Số khách không tính phí phụ thu') {
                     luuTruSoKhachKhongTinhPhi = parseInt(ts.GiaTri);
                 }
                 tbodyTS.innerHTML += `
                     <tr>
-                        <td><strong>${ts.TenThamSo === 'SoKhachToiDa' ? 'Số khách tối đa trong phòng' : 'Số khách không tính phí phụ thu'}</strong></td>
+                        <td><strong>${ts.TenThamSo === 'Số khách tối đa trong phòng' ? 'Số khách tối đa trong phòng' : 'Số khách không tính phí phụ thu'}</strong></td>
                         <td><strong>${ts.GiaTri} người</strong></td>
                         <td><button class="btn-secondary" onclick="openParamModal('${ts.TenThamSo}', ${ts.GiaTri})">Chỉnh sửa</button></td>
                     </tr>
@@ -268,8 +274,14 @@ async function taiDuLieuTabQuyDinhHethong() {
                         <td><strong>${lk.name}</strong></td>
                         <td><strong>${lk.surcharge}</strong></td>
                         <td>
-                            <button class="btn-secondary" onclick="openEditGuestTypeModal(${lk.id}, '${lk.name}', ${lk.surcharge})">Sửa</button>
-                            <button class="btn-secondary" style="color: red; border-color: #fca5a5;" onclick="xuLyXoaLoaiKhach(${lk.id})">Xóa</button>
+                            <div class="actions">
+                                <button class="btn-icon btn-edit" onclick="openEditGuestTypeModal(${lk.id}, '${lk.name}', ${lk.surcharge})" title="Sửa loại khách">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                </button>
+                                <button class="btn-icon btn-delete" onclick="xuLyXoaLoaiKhach(${lk.id})" title="Xóa loại khách">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `;
@@ -311,7 +323,7 @@ async function taiDuLieuTabQuyDinhHethong() {
 function openParamModal(id, val) {
     document.getElementById("edit-param-id").value = id;
     document.getElementById("input-param-value").value = val;
-    document.getElementById("label-param-title").innerText = id === 'SoKhachToiDa' ? "Số khách tối đa trong phòng:" : "Số khách không tính phí phụ thu:";
+    document.getElementById("label-param-title").innerText = id === 'Số khách tối đa trong phòng' ? "Số khách tối đa trong phòng:" : "Số khách không tính phí phụ thu:";
     document.getElementById("modal-edit-param").classList.add("open");
 }
 
@@ -327,8 +339,12 @@ async function xuLyLuuThamSo() {
         body: JSON.stringify({ TenThamSo, GiaTri })
     });
     if (res.ok) {
+        if (TenThamSo === 'Số khách không tính phí phụ thu') {
+            luuTruSoKhachKhongTinhPhi = GiaTri;
+        }
+
         closeModal('modal-edit-param');
-        taiDuLieuTabQuyDinhHethong(); // Tải lại để kích hoạt vòng lặp tự co giãn dòng của Backend
+        taiDuLieuTabQuyDinhHethong();
     }
 }
 
