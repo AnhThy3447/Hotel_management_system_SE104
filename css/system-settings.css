@@ -1,8 +1,3 @@
-/* ==========================================================================
-   🌐 FILE CSS ĐỘC LẬP HOÀN TOÀN CHO TRANG CẤU HÌNH HỆ THỐNG
-   (Không phụ thuộc vào booking-list.css)
-   ========================================================================== */
-
 /* ── LAYOUT KHUNG CHÍNH ── */
 .main-content {
     padding: 32px;
@@ -20,14 +15,49 @@
 .header h1 {
     font-size: 32px;
     font-weight: 500;
-    color: #5D4037; /* Màu nâu đặc trưng của Paradise */
+    color: #5D4037;
     margin: 0 0 8px 0;
 }
 
-.subtitle {
-    color: #8D6E63;
-    font-size: 16px;
-    margin: 0;
+/* ── THANH TABS ĐIỀU HƯỚNG ── */
+.tab-bar { 
+    display: flex; 
+    gap: 4px; 
+    margin-bottom: 20px; 
+    border-bottom: 2px solid #D7CCC8; 
+}
+
+.tab-btn { 
+    padding: 10px 20px; 
+    background: none; 
+    border: none; 
+    border-bottom: 2px solid transparent; 
+    margin-bottom: -2px;
+    font-size: 14px; 
+    font-weight: 600; 
+    color: #8D6E63; 
+    cursor: pointer; 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.tab-btn:hover { 
+    color: #5D4037; 
+}
+
+.tab-btn.active { 
+    color: #5D4037; 
+    border-bottom-color: #5D4037; 
+}
+
+.tab-panel { 
+    display: none; 
+}
+
+.tab-panel.active { 
+    display: block; 
 }
 
 /* ── LAYOUT CHIA ĐÔI (Tab tài khoản) ── */

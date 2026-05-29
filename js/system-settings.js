@@ -1,19 +1,33 @@
-const API_BASE = 'https://hotel-management-system-se104-g0le.onrender.com/api';
+const API_BASE = 'https://hotel-management-system-se104-g0le.onrender.com/api/phan-quyen';
+const API_QUYDINH = 'https://hotel-management-system-se104-g0le.onrender.com/api/quy-dinh';
 
-const DANH_SACH_CHU_NANG_GOC = [
-    { id: 1, name: 'Trang chủ' },
-    { id: 2, name: 'Quản lý phòng' },
-    { id: 3, name: 'Thuê phòng' },
-    { id: 4, name: 'Khách hàng' },
-    { id: 5, name: 'Hóa đơn' },
-    { id: 6, name: 'Báo cáo' },
-    { id: 7, name: 'Quản lý' }
-];
+// Biến toàn cục hứng danh mục chức năng load từ DB
+let danhSachChucNangGocTuDB = [];
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+    // Gọi nạp danh mục chức năng hệ thống trước
+    await taiDanhMucChucNangGoc();
+    
+    // Đổ dữ liệu các phân hệ bảng
     taiDuLieuTabTaiKhoan();
     taiDuLieuTabNhomQuyen();
+    taiDuLieuTabQuyDinhHethong(); // Kích hoạt luồng nạp 3 khung quy định mới
 });
+
+// Gọi API lấy dữ liệu thực tế từ bảng gốc dưới Database
+async function taiDanhMucChucNangGoc() {
+    try {
+        const res = await fetch(`${API_BASE}/danh-muc-chuc-nang`);
+        danhSachChucNangGocTuDB = await res.json();
+    } catch (err) {
+        console.error("Không thể tải danh mục chức năng từ DB, đang dùng dữ liệu dự phòng:", err);
+        danhSachChucNangGocTuDB = [
+            { id: 1, name: 'Trang chủ' }, { id: 2, name: 'Quản lý phòng' }, 
+            { id: 3, name: 'Thuê phòng' }, { id: 4, name: 'Khách hàng' }, 
+            { id: 5, name: 'Hóa đơn' }, { id: 6, name: 'Báo cáo' }, { id: 7, name: 'Quản lý' }
+        ];
+    }
+}
 
 // Hàm đổi tab cơ bản
 function switchSettingsTab(tabName) {
@@ -24,12 +38,11 @@ function switchSettingsTab(tabName) {
     document.getElementById(`panel-${tabName}`).classList.add('active');
 }
 
-// ==========================================
+// ==========================================================================
 // LOGIC TAB 1: QUẢN LÝ TÀI KHOẢN
-// ==========================================
+// ==========================================================================
 async function taiDuLieuTabTaiKhoan() {
     try {
-        // 1. Lấy danh sách nhân viên về đổ vào bảng
         const resUser = await fetch(`${API_BASE}/taikhoan/nhanvien`);
         const users = await resUser.json();
         
@@ -40,11 +53,11 @@ async function taiDuLieuTabTaiKhoan() {
             tbody.innerHTML += `
                 <tr>
                     <td>${index + 1}</td>
-                    <td><strong>${user.tendangnhap}</strong></td>
-                    <td><span class="badge-local">${user.nhomnguoidung || 'Chưa phân quyền'}</span></td>
+                    <td><strong>${user.username}</strong></td>
+                    <td><span class="badge-local">${user.role || 'Chưa phân quyền'}</span></td>
                     <td>
-                        <button class="btn-secondary" onclick="openEditUserModal(${user.manhanvien}, '${user.tendangnhap}', '${user.nhomnguoidung}')">Sửa vai trò</button>
-                        <button class="btn-secondary" style="color: red; border-color: #fca5a5;" onclick="xuLyXoaNhanVien(${user.manhanvien})">Xóa</button>
+                        <button class="btn-secondary" onclick="openEditUserModal(${user.id}, '${user.username}', '${user.role}')">Sửa vai trò</button>
+                        <button class="btn-secondary" style="color: red; border-color: #fca5a5;" onclick="xuLyXoaNhanVien(${user.id})">Xóa</button>
                     </td>
                 </tr>
             `;
@@ -54,17 +67,15 @@ async function taiDuLieuTabTaiKhoan() {
     }
 }
 
-// Đổ danh sách nhóm quyền vào thẻ select của form thêm tài khoản
 function dongBoDropdownNhomQuyen(danhSachNhom) {
     const select = document.getElementById("select-group");
     const modalSelect = document.getElementById("edit-user-role-select");
     
-    const htmlOptions = danhSachNhom.map(n => `<option value="${n.tennhom}">${n.tennhom}</option>`).join("");
-    select.innerHTML = htmlOptions;
-    modalSelect.innerHTML = htmlOptions;
+    const htmlOptions = danhSachNhom.map(n => `<option value="${n.groupname}">${n.groupname}</option>`).join("");
+    if (select) select.innerHTML = htmlOptions;
+    if (modalSelect) modalSelect.innerHTML = htmlOptions;
 }
 
-// Bắt sự kiện submit form Thêm nhân viên mới
 document.getElementById("form-them-nhan-vien").addEventListener("submit", async (e) => {
     e.preventDefault();
     const TenDangNhap = document.getElementById("input-username").value;
@@ -78,7 +89,7 @@ document.getElementById("form-them-nhan-vien").addEventListener("submit", async 
             body: JSON.stringify({ TenDangNhap, MatKhau, NhomNguoiDung })
         });
         const data = await res.json();
-        alert(data.message);
+        alert(data.message || data.error);
         if (res.ok) {
             document.getElementById("form-them-nhan-vien").reset();
             taiDuLieuTabTaiKhoan();
@@ -117,10 +128,9 @@ async function xuLyXoaNhanVien(id) {
     }
 }
 
-
-// ==========================================
+// ==========================================================================
 // LOGIC TAB 2: NHÓM QUYỀN VÀ CÁC TAG CHỨC NĂNG
-// ==========================================
+// ==========================================================================
 async function taiDuLieuTabNhomQuyen() {
     try {
         const res = await fetch(`${API_BASE}/nhomquyen`);
@@ -132,25 +142,23 @@ async function taiDuLieuTabNhomQuyen() {
         tbody.innerHTML = "";
         
         rolesData.forEach(role => {
-            // Render mảng tag quyền màu vàng có dấu X
-            let tagsHtml = role.danhsachchucnang.map(c => `
+            let tagsHtml = role.functions.map(c => `
                 <span class="permission-tag">
                     ${c.TenChucNang}
-                    <button class="btn-delete-tag" onclick="xuLyXoaChucNangLe('${role.tennhom}', ${c.MaChucNang})">&times;</button>
+                    <button class="btn-delete-tag" onclick="xuLyXoaChucNangLe('${role.groupname}', ${c.MaChucNang})">&times;</button>
                 </span>
             `).join("");
             
-            if (role.danhsachchucnang.length === 0) {
+            if (role.functions.length === 0) {
                 tagsHtml = `<em style="color:#9ca3af; font-size:13px;">Chưa gán chức năng nào</em>`;
             }
 
-            // Dựng thẻ select dropdown chứa các quyền chưa được gán để quản lý chọn nhanh
-            let optionsSelect = DANH_SACH_CHU_NANG_GOC
-                .filter(goc => !role.danhsachchucnang.some(daCo => daCo.MaChucNang === goc.id))
+            let optionsSelect = danhSachChucNangGocTuDB
+                .filter(goc => !role.functions.some(daCo => daCo.MaChucNang === goc.id))
                 .map(goc => `<option value="${goc.id}">${goc.name}</option>`).join("");
 
             let actionCellHtml = optionsSelect 
-                ? `<select class="form-input" onchange="xuLyThemChucNangLe('${role.tennhom}', this)" style="padding:4px 8px; font-size:12px;">
+                ? `<select class="form-input" onchange="xuLyThemChucNangLe('${role.groupname}', this)" style="padding:4px 8px; font-size:12px;">
                         <option value="">+ Thêm chức năng</option>
                         ${optionsSelect}
                    </select>`
@@ -158,11 +166,11 @@ async function taiDuLieuTabNhomQuyen() {
 
             tbody.innerHTML += `
                 <tr>
-                    <td><strong>${role.tennhom}</strong></td>
+                    <td><strong>${role.groupname}</strong></td>
                     <td><div class="tag-container">${tagsHtml}</div></td>
                     <td>
                         ${actionCellHtml}
-                        <button class="btn-secondary" style="color:red; border:none; padding:4px; margin-left:8px;" onclick="xuLyXoaNhomQuyen('${role.tennhom}')">Xóa nhóm</button>
+                        <button class="btn-secondary" style="color:red; border:none; padding:4px; margin-left:8px;" onclick="xuLyXoaNhomQuyen('${role.groupname}')">Xóa nhóm</button>
                     </td>
                 </tr>
             `;
@@ -179,7 +187,7 @@ async function xuLyThemNhomQuyen() {
     const res = await fetch(`${API_BASE}/nhomquyen/them`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ TenNhom, DanhSachMaChucNang: [1] }) // Mặc định cấp quyền Trang chủ khi tạo mới
+        body: JSON.stringify({ TenNhom, DanhSachMaChucNang: [1] })
     });
     if (res.ok) {
         document.getElementById("new-role-name").value = "";
@@ -218,29 +226,184 @@ async function xuLyXoaNhomQuyen(tenNhom) {
     }
 }
 
-// ==========================================
-// LOGIC TAB 3: QUY ĐỊNH KHÁCH SẠN
-// ==========================================
-function openRuleModal(ruleId, currentValue) {
-    document.getElementById("edit-rule-id").value = ruleId;
-    document.getElementById("input-rule-value").value = currentValue;
-    document.getElementById("label-rule-name").innerText = ruleId === 'max-guests' ? "Số khách tối đa trong phòng:" : "Tỷ lệ phụ thu (%):";
-    document.getElementById("edit-rule-modal").classList.add("open");
+// ==========================================================================
+// LOGIC TAB 3: QUY ĐỊNH KHÁCH SẠN (XỬ LÝ ĐỒNG BỘ 3 KHUNG ĐỘNG)
+// ==========================================================================
+let luuTruSoKhachKhongTinhPhi = 2; // Biến tạm lưu mốc phụ thu để lọc bảng TILEPHUTHU
+
+async function taiDuLieuTabQuyDinhHethong() {
+    try {
+        // --- KHUNG 1: TẢI BẢNG THAM SỐ GỐC ---
+        const resTS = await fetch(`${API_QUYDINH}/tham-so`);
+        const jsonTS = await resTS.json();
+        const tbodyTS = document.getElementById("param-table-body");
+        tbodyTS.innerHTML = "";
+
+        if (jsonTS.success && jsonTS.data) {
+            jsonTS.data.forEach(ts => {
+                if (ts.TenThamSo === 'SoKhachKhongTinhPhi') {
+                    luuTruSoKhachKhongTinhPhi = parseInt(ts.GiaTri);
+                }
+                tbodyTS.innerHTML += `
+                    <tr>
+                        <td><strong>${ts.TenThamSo === 'SoKhachToiDa' ? 'Số khách tối đa trong phòng' : 'Số khách không tính phí phụ thu'}</strong></td>
+                        <td><strong>${ts.GiaTri} người</strong></td>
+                        <td><button class="btn-secondary" onclick="openParamModal('${ts.TenThamSo}', ${ts.GiaTri})">Chỉnh sửa</button></td>
+                    </tr>
+                `;
+            });
+        }
+
+        // --- KHUNG 2: TẢI DANH MỤC LOẠI KHÁCH (CRUD) ---
+        const resLK = await fetch(`${API_QUYDINH}/loai-khach`);
+        const jsonLK = await resLK.json();
+        const tbodyLK = document.getElementById("guest-type-table-body");
+        tbodyLK.innerHTML = "";
+
+        if (jsonLK.success && jsonLK.data) {
+            jsonLK.data.forEach((lk, idx) => {
+                tbodyLK.innerHTML += `
+                    <tr>
+                        <td>${idx + 1}</td>
+                        <td><strong>${lk.name}</strong></td>
+                        <td><strong>${lk.surcharge}</strong></td>
+                        <td>
+                            <button class="btn-secondary" onclick="openEditGuestTypeModal(${lk.id}, '${lk.name}', ${lk.surcharge})">Sửa</button>
+                            <button class="btn-secondary" style="color: red; border-color: #fca5a5;" onclick="xuLyXoaLoaiKhach(${lk.id})">Xóa</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // --- KHUNG 3: TẢI BẢNG PHỤ THU THEO THỨ TỰ KHÁCH ---
+        const resPT = await fetch(`${API_QUYDINH}/phu-thu`);
+        const jsonPT = await resPT.json();
+        const tbodyPT = document.getElementById("surcharge-table-body");
+        tbodyPT.innerHTML = "";
+
+        if (jsonPT.success && jsonPT.data) {
+            // Tự động lọc: Chỉ hiện các vị khách có ThuTuKhach vượt quá mốc miễn phí
+            const danhSachLoc = jsonPT.data.filter(pt => pt.ThuTuKhach > luuTruSoKhachKhongTinhPhi);
+            
+            if (danhSachLoc.length === 0) {
+                tbodyPT.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#9ca3af;">Không có dòng phụ thu nào (Số khách tối đa nhỏ hơn hoặc bằng mốc tính phí)</td></tr>`;
+            } else {
+                danhSachLoc.forEach(pt => {
+                    tbodyPT.innerHTML += `
+                        <tr>
+                            <td>Khách thứ ${pt.ThuTuKhach} trong phòng</td>
+                            <td><strong>${pt.HeSoPhuThu}%</strong></td>
+                            <td><button class="btn-secondary" onclick="openSurchargeModal(${pt.ThuTuKhach}, ${pt.HeSoPhuThu})">Chỉnh sửa</button></td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+    } catch (err) {
+        console.error("Lỗi đồng bộ dữ liệu quy định hệ thống:", err);
+    }
 }
 
-function xuLyLuuQuyDinh() {
-    const ruleId = document.getElementById("edit-rule-id").value;
-    const value = document.getElementById("input-rule-value").value;
+// ── CÁC HÀM XỬ LÝ ĐIỀU KHIỂN MODAL ──
+
+function openParamModal(id, val) {
+    document.getElementById("edit-param-id").value = id;
+    document.getElementById("input-param-value").value = val;
+    document.getElementById("label-param-title").innerText = id === 'SoKhachToiDa' ? "Số khách tối đa trong phòng:" : "Số khách không tính phí phụ thu:";
+    document.getElementById("modal-edit-param").classList.add("open");
+}
+
+async function xuLyLuuThamSo() {
+    const TenThamSo = document.getElementById("edit-param-id").value;
+    const GiaTri = parseInt(document.getElementById("input-param-value").value);
     
-    // Đổ ngược giá trị ra UI sau khi lưu thành công
-    if (ruleId === 'max-guests') {
-        document.getElementById("val-max-guests").innerText = `${value} người`;
-    } else {
-        document.getElementById("val-surcharge").innerText = `${value}%`;
+    if (isNaN(GiaTri)) return alert("Vui lòng nhập số nguyên!");
+
+    const res = await fetch(`${API_QUYDINH}/tham-so/cap-nhat`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ TenThamSo, GiaTri })
+    });
+    if (res.ok) {
+        closeModal('modal-edit-param');
+        taiDuLieuTabQuyDinhHethong(); // Tải lại để kích hoạt vòng lặp tự co giãn dòng của Backend
     }
-    // Ở đây bạn có thể gọi thêm fetch() đến đường dẫn /api/quy-dinh của bạn để đồng bộ DB
-    closeModal('edit-rule-modal');
-    alert("Cập nhật tham số quy định thành công!");
+}
+
+function openSurchargeModal(thuTu, heSo) {
+    document.getElementById("edit-surcharge-thutu").value = thuTu;
+    document.getElementById("input-surcharge-value").value = heSo;
+    document.getElementById("modal-edit-surcharge").classList.add("open");
+}
+
+async function xuLyLuuPhuThu() {
+    const thuTu = document.getElementById("edit-surcharge-thutu").value;
+    const HeSoPhuThu = parseFloat(document.getElementById("input-surcharge-value").value);
+
+    const res = await fetch(`${API_QUYDINH}/phu-thu/cap-nhat/${thuTu}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ HeSoPhuThu })
+    });
+    if (res.ok) {
+        closeModal('modal-edit-surcharge');
+        taiDuLieuTabQuyDinhHethong();
+    }
+}
+
+// ── THAO TÁC CRUD LOẠI KHÁCH ──
+
+function openAddGuestTypeModal() {
+    document.getElementById("form-loai-khach").reset();
+    document.getElementById("edit-guest-id").value = "";
+    document.getElementById("modal-guest-title").innerText = "Thêm loại khách mới";
+    document.getElementById("modal-guest-type").classList.add("open");
+}
+
+function openEditGuestTypeModal(id, name, surcharge) {
+    document.getElementById("edit-guest-id").value = id;
+    document.getElementById("input-guest-name").value = name;
+    document.getElementById("input-guest-surcharge").value = surcharge;
+    document.getElementById("modal-guest-title").innerText = "Chỉnh sửa loại khách";
+    document.getElementById("modal-guest-type").classList.add("open");
+}
+
+async function xuLyLuuLoaiKhach() {
+    const id = document.getElementById("edit-guest-id").value;
+    const LoaiKhach = document.getElementById("input-guest-name").value;
+    const HeSoPhuThu = parseFloat(document.getElementById("input-guest-surcharge").value);
+
+    if (!LoaiKhach) return alert("Vui lòng không để trống tên loại khách!");
+
+    let url = `${API_QUYDINH}/loai-khach/them`;
+    let method = "POST";
+
+    if (id) { // Nếu có ID là đang ở trạng thái sửa
+        url = `${API_QUYDINH}/loai-khach/sua/${id}`;
+        method = "PUT";
+    }
+
+    const res = await fetch(url, {
+        method: method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ LoaiKhach, HeSoPhuThu })
+    });
+    
+    if (res.ok) {
+        closeModal('modal-guest-type');
+        taiDuLieuTabQuyDinhHethong();
+    }
+}
+
+async function xuLyXoaLoaiKhach(id) {
+    if (confirm("Xác nhận xóa loại khách này ra khỏi hệ thống vận hành?")) {
+        const res = await fetch(`${API_QUYDINH}/loai-khach/xoa/${id}`, { method: "DELETE" });
+        const data = await res.json();
+        if (!res.ok) alert(data.message);
+        taiDuLieuTabQuyDinhHethong();
+    }
 }
 
 function closeModal(modalId) {

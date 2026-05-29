@@ -6,33 +6,6 @@
     <title>Quản lý hệ thống - Khách sạn Paradise</title>
     <link rel="stylesheet" href="css/common.css">
     <link rel="stylesheet" href="css/system-settings.css">
-    <style>
-        /* CSS Kế thừa phong cách Tab từ trang khách hàng */
-        .tab-bar { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 2px solid #e5e7eb; }
-        .tab-btn { padding: 10px 20px; background: none; border: none; border-bottom: 2px solid transparent; font-size: 14px; font-weight: 600; color: #6b7280; cursor: pointer; display: flex; align-items: center; gap: 8px; }
-        .tab-btn.active { color: #1d4ed8; border-bottom-color: #1d4ed8; }
-        .tab-panel { display: none; }
-        .tab-panel.active { display: block; }
-        
-        /* CSS cho các thẻ chức năng (Tag quyền vàng) */
-        .tag-container { display: flex; flex-wrap: wrap; gap: 6px; }
-        .permission-tag { background: #fef9c3; color: #854d0e; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
-        .btn-delete-tag { background: none; border: none; color: #b45309; cursor: pointer; font-size: 14px; padding: 0; }
-        
-        /* Layout chia đôi của tab phân quyền */
-        .role-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-        .card-panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; }
-        .add-form-card { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px 20px; margin-bottom: 18px; }
-        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
-        .form-input { padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; outline: none; }
-        .form-input:focus { border-color: #3b82f6; }
-        
-        /* Modal css */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; align-items: center; justify-content: center; }
-        .modal.open { display: flex; }
-        .modal-content { background: #fff; border-radius: 12px; width: 450px; padding: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
-        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
-    </style>
 </head>
 <body data-page="system-settings">
     <div class="container">
@@ -62,8 +35,7 @@
                                         <th>Thao tác</th>
                                     </tr>
                                 </thead>
-                                <tbody id="user-table-body">
-                                    </tbody>
+                                <tbody id="user-table-body"></tbody>
                             </table>
                         </div>
                         
@@ -81,8 +53,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label>Nhóm chức vụ quyền hạn</label>
-                                    <select class="form-input" id="select-group" required>
-                                        </select>
+                                    <select class="form-input" id="select-group" required></select>
                                 </div>
                                 <button type="submit" class="btn-primary" style="width: 100%; margin-top: 10px;">Thêm nhân viên mới</button>
                             </form>
@@ -108,36 +79,68 @@
                                     <th style="width: 20%;">Hành động gán chức năng</th>
                                 </tr>
                             </thead>
-                            <tbody id="role-table-body">
-                                </tbody>
+                            <tbody id="role-table-body"></tbody>
                         </table>
                     </div>
                 </div>
 
                 <div class="tab-panel" id="panel-rules">
-                    <div class="table-container" style="max-width: 700px;">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Tên quy định</th>
-                                    <th>Giá trị hiện tại</th>
-                                    <th>Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody id="rule-table-body">
-                                <tr>
-                                    <td>Số khách tối đa trong phòng</td>
-                                    <td><strong id="val-max-guests">3 người</strong></td>
-                                    <td><button class="btn-secondary" onclick="openRuleModal('max-guests', 3)">Chỉnh sửa</button></td>
-                                </tr>
-                                <tr>
-                                    <td>Tỷ lệ phụ thu từ khách thứ 3</td>
-                                    <td><strong id="val-surcharge">25%</strong></td>
-                                    <td><button class="btn-secondary" onclick="openRuleModal('surcharge', 25)">Chỉnh sửa</button></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    
+                    <div class="card-panel" style="margin-bottom: 28px;">
+                        <h3 style="margin-bottom: 16px;">⚙️ 1. Tham số vận hành cơ bản</h3>
+                        <div class="table-container" style="max-width: 800px; margin-bottom: 0;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Tên tham số quy định</th>
+                                        <th>Giá trị hiện tại</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="param-table-body">
+                                    </tbody>
+                            </table>
+                        </div>
                     </div>
+
+                    <div class="card-panel" style="margin-bottom: 28px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <h3>👥 2. Danh mục loại khách & Hệ số phụ thu riêng</h3>
+                            <button class="btn-primary" onclick="openAddGuestTypeModal()">+ Thêm loại khách mới</button>
+                        </div>
+                        <div class="table-container" style="max-width: 900px; margin-bottom: 0;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width: 10%;">STT</th>
+                                        <th style="width: 45%;">Tên loại khách hàng</th>
+                                        <th style="width: 25%;">Hệ số phụ thu</th>
+                                        <th style="width: 20%;">Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="guest-type-table-body">
+                                    </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card-panel">
+                        <h3 style="margin-bottom: 16px;">📈 3. Tỷ lệ phụ thu lũy tiến theo số lượng khách</h3>
+                        <div class="table-container" style="max-width: 800px; margin-bottom: 0;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Thứ tự khách trong phòng</th>
+                                        <th>Mức phạt phụ thu (%)</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="surcharge-table-body">
+                                    </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                 </div>
 
             </div>
@@ -164,18 +167,56 @@
         </div>
     </div>
 
-    <div id="edit-rule-modal" class="modal">
+    <div id="modal-edit-param" class="modal">
         <div class="modal-content">
-            <h3>Cập nhật tham số quy định</h3>
+            <h3>Cập nhật tham số hệ thống</h3>
             <hr style="margin: 12px 0; border: 0; border-top:1px solid #e5e7eb;">
-            <input type="hidden" id="edit-rule-id">
+            <input type="hidden" id="edit-param-id">
             <div class="form-group">
-                <label id="label-rule-name">Giá trị mới:</label>
-                <input type="number" class="form-input" id="input-rule-value">
+                <label id="label-param-title">Giá trị mới:</label>
+                <input type="number" class="form-input" id="input-param-value" min="1">
             </div>
             <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeModal('edit-rule-modal')">Hủy</button>
-                <button class="btn-primary" onclick="xuLyLuuQuyDinh()">Cập nhật</button>
+                <button class="btn-secondary" onclick="closeModal('modal-edit-param')">Hủy</button>
+                <button class="btn-primary" onclick="xuLyLuuThamSo()">Cập nhật</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-guest-type" class="modal">
+        <div class="modal-content">
+            <h3 id="modal-guest-title">Quản lý loại khách</h3>
+            <hr style="margin: 12px 0; border: 0; border-top:1px solid #e5e7eb;">
+            <input type="hidden" id="edit-guest-id">
+            <form id="form-loai-khach" onsubmit="event.preventDefault();">
+                <div class="form-group">
+                    <label>Tên loại khách:</label>
+                    <input type="text" class="form-input" id="input-guest-name" placeholder="Ví dụ: Khách vãng lai, VIP..." required>
+                </div>
+                <div class="form-group">
+                    <label>Hệ số phụ thu phụ trội:</label>
+                    <input type="number" step="0.01" class="form-input" id="input-guest-surcharge" placeholder="Mặc định: 1.0" required>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('modal-guest-type')">Hủy</button>
+                <button class="btn-primary" onclick="xuLyLuuLoaiKhach()">Lưu dữ liệu</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-edit-surcharge" class="modal">
+        <div class="modal-content">
+            <h3>Cập nhật tỷ lệ phụ thu</h3>
+            <hr style="margin: 12px 0; border: 0; border-top:1px solid #e5e7eb;">
+            <input type="hidden" id="edit-surcharge-thutu">
+            <div class="form-group">
+                <label id="label-surcharge-name">Mức phạt tỷ lệ mới (%):</label>
+                <input type="number" step="0.1" class="form-input" id="input-surcharge-value" placeholder="Ví dụ: 25">
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('modal-edit-surcharge')">Hủy</button>
+                <button class="btn-primary" onclick="xuLyLuuPhuThu()">Cập nhật</button>
             </div>
         </div>
     </div>

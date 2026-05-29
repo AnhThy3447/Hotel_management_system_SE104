@@ -12,6 +12,7 @@ router.put('/taikhoan/doimatkhau', phanQuyenController.doiMatKhau);
 
 // NHÓM NGƯỜI DÙNG & PHÂN QUYỀN
 router.get('/nhomquyen', phanQuyenController.layDanhSachNhomQuyen);
+router.get('/danh-muc-chuc-nang', phanQuyenController.layTatCaChucNangHeThong);
 router.post('/nhomquyen/them', phanQuyenController.themNhomQuyen);
 router.put('/nhomquyen/doiten', phanQuyenController.capNhatNhomQuyen);
 router.post('/nhomquyen/chucnang/them', phanQuyenController.themChucNangVaoNhom);

@@ -170,6 +170,18 @@ exports.doiMatKhau = async (req, res) => {
 // NHÓM NGƯỜI DÙNG & PHÂN QUYỀN
 // ====================
 
+// Danh sách chức năng
+exports.layTatCaChucNangHeThong = async (req, res) => {
+    try {
+        const ketQua = await pool.query('SELECT MaChucNang as id, TenChucNang as name FROM CHUCNANG ORDER BY MaChucNang ASC');
+        return res.status(200).json(ketQua.rows);
+    } catch (loi) {
+        console.error("Lỗi lấy danh mục chức năng:", loi);
+        return res.status(500).json({ error: 'Lỗi hệ thống khi lấy danh mục chức năng!' });
+    }
+};
+
+
 // Danh sách nhóm + chức năng đi kèm
 exports.layDanhSachNhomQuyen = async (req, res) => {
     try {
