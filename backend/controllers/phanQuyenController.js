@@ -178,7 +178,7 @@ exports.layDanhSachNhomQuyen = async (req, res) => {
                 n.TenNhom as groupName,
                 COALESCE(
                     json_agg(
-                        json_build_object(MaChucNang, c.MaChucNang, TenChucNang, c.TenChucNang)
+                        json_build_object('MaChucNang', c.MaChucNang, 'TenChucNang', c.TenChucNang)
                     ) FILTER (WHERE c.MaChucNang IS NOT NULL), '[]'
                 ) AS functions
             FROM NhomNguoiDung n
