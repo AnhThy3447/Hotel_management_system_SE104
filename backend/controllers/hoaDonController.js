@@ -31,7 +31,7 @@ exports.xemTatCa = async (req, res) => {
       FROM HOADON hd
       LEFT JOIN KHACHHANG kh ON hd.MaKhachHangThanhToan = kh.MaKhachHang
       LEFT JOIN COQUAN cq ON hd.MaCoQuan = cq.MaCoQuan
-      ORDER BY hd.NgayThanhToan DESC
+      ORDER BY hd.MaHoaDon ASC
     `);
     res.json({ success: true, data: result.rows });
   } catch (err) {
