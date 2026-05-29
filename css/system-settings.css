@@ -228,6 +228,51 @@ th:last-child, td:last-child {
 .btn-delete-tag:hover { color: #BF360C; }
 .badge-local { background-color: #E8F5E9; color: #2E7D32; padding: 4px 12px; border-radius: 8px; font-size: 13px; font-weight: 500; display: inline-block; }
 
+/* Khung bao ngoài của cột hành động */
+.action-box {
+    display: flex;
+    flex-direction: column;  /* Ép các thành phần con xếp chồng hàng dọc */
+    align-items: center;     /* Căn giữa các thành phần theo chiều ngang */
+    justify-content: center;
+    border: 1px solid #e5e7eb; /* Tạo khung viền mờ màu xám giống form trên */
+    border-radius: 6px;      /* Bo tròn góc khung */
+    padding: 8px;            /* Tạo khoảng cách đệm bên trong khung */
+    background-color: #fff;  /* Nền trắng sạch sẽ */
+    max-width: 140px;        /* Giới hạn độ rộng khung cho vừa vặn */
+    margin: 0 auto;          /* Căn giữa khung trong ô <td> */
+}
+
+/* Khối chứa select hoặc chữ Full chức năng nằm phía trên */
+.status-or-select {
+    margin-bottom: 6px;      /* Tạo khoảng cách với nút xóa nhóm ở dưới */
+    width: 100%;
+    text-align: center;
+}
+
+/* Chỉnh lại select cho khít khung */
+.status-or-select select {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Nút xóa nhóm nằm phía dưới */
+.btn-delete-group {
+    color: #dc2626;          /* Màu đỏ rực rỡ */
+    border: none;
+    background: none;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 4px;
+    transition: color 0.2s;
+}
+
+.btn-delete-group:hover {
+    color: #991b1b;          /* Đỏ đậm hơn khi di chuột vào */
+    text-decoration: underline; /* Gạch chân để biết là nút bấm được */
+}
+
+
 /* ── MODAL POPUP ── */
 .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); align-items: center; justify-content: center; }
 .modal.open { display: flex; }

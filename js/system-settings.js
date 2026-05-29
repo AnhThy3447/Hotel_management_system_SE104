@@ -175,8 +175,14 @@ async function taiDuLieuTabNhomQuyen() {
                     <td><strong>${role.groupname}</strong></td>
                     <td><div class="tag-container">${tagsHtml}</div></td>
                     <td>
-                        ${actionCellHtml}
-                        <button class="btn-secondary" style="color:red; border:none; padding:4px; margin-left:8px;" onclick="xuLyXoaNhomQuyen('${role.groupname}')">Xóa nhóm</button>
+                        <div class="action-box">
+                            <div class="status-or-select">
+                                ${actionCellHtml}
+                            </div>
+                            <button class="btn-delete-group" onclick="xuLyXoaNhomQuyen('${role.groupname}')">
+                                Xóa nhóm
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `;
@@ -253,8 +259,7 @@ async function taiDuLieuTabQuyDinhHethong() {
                 
                 tbodyTS.innerHTML += `
                     <tr>
-                        <td colspan="2"><strong>${ts.tenthamso}</strong></td>
-                        <td style="display: none;"></td> 
+                        <td><strong>${ts.tenthamso}</strong></td>
                         <td><strong>${ts.giatri} ${ts.tenthamso === 'Số khách tối đa trong phòng' ? 'người' : 'khách'}</strong></td>
                         <td>
                             <div class="actions">
@@ -311,8 +316,7 @@ async function taiDuLieuTabQuyDinhHethong() {
                 danhSachLoc.forEach(pt => {
                     tbodyPT.innerHTML += `
                         <tr>
-                            <td colspan="2">Khách thứ ${pt.ThuTuKhach} trong phòng</td>
-                            <td style="display: none;"></td>
+                            <td>Khách thứ ${pt.ThuTuKhach} trong phòng</td>
                             <td><strong>${pt.HeSoPhuThu}%</strong></td>
                             <td>
                                 <div class="actions">
