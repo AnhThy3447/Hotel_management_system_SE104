@@ -143,6 +143,24 @@ th, td {
 
 td { color: #6D4C41; font-size: 15px; }
 
+/* TỶ LỆ CHO BẢNG QUẢN LÝ TÀI KHOẢN── */
+.col-stt {
+    width: 10% !important;
+    text-align: center;
+}
+
+.col-username {
+    width: 40% !important;
+}
+
+.col-role {
+    width: 30% !important;
+}
+
+.col-action-4 {
+    width: 20% !important;
+}
+
 /* ── ĐỊNH NGHĨA CÁC THỂ LOẠI TỶ LỆ CỘT LINH HOẠT ── */
 .col-name-half { width: 45%; }
 .col-value-mid  { width: 35%; }

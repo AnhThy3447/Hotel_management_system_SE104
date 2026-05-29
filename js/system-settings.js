@@ -175,8 +175,12 @@ async function taiDuLieuTabNhomQuyen() {
                     <td><strong>${role.groupname}</strong></td>
                     <td><div class="tag-container">${tagsHtml}</div></td>
                     <td>
-                        ${actionCellHtml}
-                        <button class="btn-delete-group" onclick="xuLyXoaNhomQuyen('${role.groupname}')">Xóa nhóm</button>
+                        <div style="margin-bottom: 8px;">
+                            ${actionCellHtml}
+                        </div>
+                        <div>
+                            <button class="btn-delete-group" onclick="xuLyXoaNhomQuyen('${role.groupname}')">Xóa nhóm</button>
+                        </div>
                     </td>
                 </tr>
             `;
