@@ -139,12 +139,65 @@ exports.xemChiTiet = async (req, res) => {
 exports.capNhat = async (req, res) => {
   try {
     const { id } = req.params;
-    const { SoPhong, NgayLap, NgayBatDauThue } = req.body;
+    const { SoPhong, NgayLap, NgayBatDauThue, DanhSachKhach } = req.body;
+    
+    // Cập nhật thông tin phiếu thuê
     const result = await db.query(
       `UPDATE THUEPHONG SET SoPhong=$1, NgayLap=$2, NgayBatDauThue=$3
        WHERE MaThuePhong=$4 RETURNING *`,
       [SoPhong, NgayLap, NgayBatDauThue, id]
     );
+
+    // Cập nhật danh sách khách nếu có
+    if (Array.isArray(DanhSachKhach) && DanhSachKhach.length > 0) {
+      // Xóa khách cũ
+      await db.query(`DELETE FROM CTTHUEPHONG WHERE MaThuePhong = $1`, [id]);
+
+      // Thêm khách mới
+      for (let i = 0; i < DanhSachKhach.length; i++) {
+        const k = DanhSachKhach[i];
+
+        // Tìm khách theo CMND
+        let khach = await db.query(
+          `SELECT MaKhachHang FROM KHACHHANG WHERE CMND = $1`, [k.idNumber]
+        );
+
+        let MaKhachHang;
+        if (khach.rows.length > 0) {
+          // Cập nhật thông tin khách nếu đã tồn tại
+          MaKhachHang = khach.rows[0].makhachhang;
+          const loai = await db.query(
+            `SELECT MaLoaiKhach FROM LOAIKHACH WHERE LoaiKhach ILIKE $1`,
+            [k.type === 'nước ngoài' ? 'Nước ngoài' : 'Nội địa']
+          );
+          const MaLoaiKhach = loai.rows[0]?.maloaikhach || 1;
+          await db.query(
+            `UPDATE KHACHHANG SET TenKhachHang=$1, MaLoaiKhach=$2, DiaChi=$3 WHERE MaKhachHang=$4`,
+            [k.name, MaLoaiKhach, k.address || '', MaKhachHang]
+          );
+        } else {
+          // Tạo khách mới
+          const loai = await db.query(
+            `SELECT MaLoaiKhach FROM LOAIKHACH WHERE LoaiKhach ILIKE $1`,
+            [k.type === 'nước ngoài' ? 'Nước ngoài' : 'Nội địa']
+          );
+          const MaLoaiKhach = loai.rows[0]?.maloaikhach || 1;
+          const newKhach = await db.query(
+            `INSERT INTO KHACHHANG (TenKhachHang, MaLoaiKhach, CMND, DiaChi)
+             VALUES ($1, $2, $3, $4) RETURNING MaKhachHang`,
+            [k.name, MaLoaiKhach, k.idNumber, k.address || '']
+          );
+          MaKhachHang = newKhach.rows[0].makhachhang;
+        }
+
+        await db.query(
+          `INSERT INTO CTTHUEPHONG (MaKhachHang, MaThuePhong, ThuTuKhach)
+           VALUES ($1, $2, $3)`,
+          [MaKhachHang, id, i + 1]
+        );
+      }
+    }
+
     res.json({ success: true, data: result.rows[0] });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
