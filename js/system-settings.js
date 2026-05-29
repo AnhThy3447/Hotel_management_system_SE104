@@ -165,7 +165,7 @@ async function taiDuLieuTabNhomQuyen() {
 
             let actionCellHtml = optionsSelect 
                 ? `<select class="form-input" onchange="xuLyThemChucNangLe('${role.groupname}', this)" style="padding:4px 8px; font-size:12px;">
-                        <option value="">+ Thêm chức năng</option>
+                        <option value=""> Thêm chức năng</option>
                         ${optionsSelect}
                    </select>`
                 : `<span style="font-size:12px; color:green;">Full chức năng</span>`;
