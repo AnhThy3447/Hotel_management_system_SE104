@@ -145,12 +145,12 @@ td { color: #6D4C41; font-size: 15px; }
 
 /* TỶ LỆ CHO BẢNG QUẢN LÝ TÀI KHOẢN── */
 .col-stt {
-    width: 25% !important;
+    width: 35% !important;
     text-align: center;
 }
 
 .col-username {
-    width: 30% !important;
+    width: 20% !important;
 }
 
 .col-role {
