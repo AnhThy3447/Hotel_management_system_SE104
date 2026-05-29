@@ -33,7 +33,7 @@ exports.capNhatThamSo = async (req, res) => {
     if (TenThamSo === 'SoKhachToiDa' || TenThamSo === 'Số khách tối đa trong phòng') {
       const soKhachToiDaMoi = parseInt(GiaTri);
       
-      // Lấy Số khách không tính phí phụ thu (Ví dụ: 2) để biết từ khách thứ mấy thì bắt đầu tính phụ thu
+      // Lấy Số khách không tính phí phụ thu để biết từ khách thứ mấy thì bắt đầu tính phụ thu
       const resKhachMienPhi = await db.query(
         `SELECT GiaTri FROM THAMSO WHERE TenThamSo = 'SoKhachKhongTinhPhi' OR TenThamSo = 'Số khách không tính phí phụ thu' LIMIT 1`
       );
@@ -43,13 +43,13 @@ exports.capNhatThamSo = async (req, res) => {
       const resDongHienTai = await db.query(`SELECT ThuTuKhach FROM TILEPHUTHU ORDER BY ThuTuKhach DESC`);
       const thutuKhachLonNhatHienTai = resDongHienTai.rows.length > 0 ? parseInt(resDongHienTai.rows[0].thutukhach) : 0;
 
-      // Trường hợp 1: Số khách tối đa tăng lên (Ví dụ từ 3 lên 5) -> Cần chèn thêm dòng phụ thu 4 và 5
+      // Trường hợp 1: Số khách tối đa tăng lên -> Cần chèn thêm dòng phụ thu 
       if (soKhachToiDaMoi > thutuKhachLonNhatHienTai) {
         for (let i = thutuKhachLonNhatHienTai + 1; i <= soKhachToiDaMoi; i++) {
           if (i > mocBatDauPhuThu) { // Chỉ chèn nếu vượt quá mốc miễn phí
             await db.query(
               `INSERT INTO TILEPHUTHU (ThuTuKhach, HeSoPhuThu) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
-              [i, 25] // Mặc định phụ thu 25% cho các dòng tự sinh mới
+              [i, 1.25] // Mặc định phụ thu 25% cho các dòng tự sinh mới
             );
           }
         }

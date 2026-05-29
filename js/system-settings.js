@@ -243,7 +243,7 @@ let luuTruSoKhachKhongTinhPhi = 2; // Biến tạm lưu mốc phụ thu để l�
 
 async function taiDuLieuTabQuyDinhHethong() {
     try {
-        // 🌟 BƯỚC 1: TẢI BẢNG THAM SỐ GỐC TRƯỚC ĐỂ LẤY MỐC
+        // TẢI BẢNG THAM SỐ GỐC TRƯỚC ĐỂ LẤY MỐC
         const resTS = await fetch(`${API_QUYDINH}/tham-so`);
         const jsonTS = await resTS.json();
         const tbodyTS = document.getElementById("param-table-body");
@@ -258,7 +258,7 @@ async function taiDuLieuTabQuyDinhHethong() {
                 tbodyTS.innerHTML += `
                     <tr>
                         <td><strong>${ts.tenthamso}</strong></td>
-                        <td><strong>${ts.giatri} ${ts.tenthamso === 'Số khách tối đa trong phòng' ? 'người' : 'khách'}</strong></td>
+                        <td><strong>${ts.giatri} người</strong></td>
                         <td>
                             <div class="actions">
                                 <button class="btn-icon btn-edit" onclick="openParamModal('${ts.tenthamso}', ${ts.giatri})" title="Chỉnh sửa tham số">
@@ -314,8 +314,8 @@ async function taiDuLieuTabQuyDinhHethong() {
                 danhSachLoc.forEach(pt => {
                     tbodyPT.innerHTML += `
                         <tr>
-                            <td>Khách thứ ${pt.ThuTuKhach} trong phòng</td>
-                            <td><strong>${pt.HeSoPhuThu}%</strong></td>
+                            <td><strong>Khách thứ ${pt.ThuTuKhach}</strong></td>
+                            <td><strong>${pt.HeSoPhuThu}</strong></td>
                             <td>
                                 <div class="actions">
                                     <button class="btn-icon btn-edit" onclick="openSurchargeModal(${pt.ThuTuKhach}, ${pt.HeSoPhuThu})" title="Chỉnh sửa mức phạt">
