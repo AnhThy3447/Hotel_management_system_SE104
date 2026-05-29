@@ -143,22 +143,12 @@ th, td {
 
 td { color: #6D4C41; font-size: 15px; }
 
-/* ── 📐 PHÂN CHIA TỶ LỆ 3 CỘT ĐỒNG BỘ TUYỆT ĐỐI CHO TAB 3 ── */
-#panel-rules table th:nth-child(1),
-#panel-rules table td:nth-child(1) {
-    width: 50% !important; /* Cột chữ bên trái chiếm 50% thênh thang */
-}
+/* ── ĐỊNH NGHĨA CÁC THỂ LOẠI TỶ LỆ CỘT LINH HOẠT ── */
+.col-name-half { width: 45%; }
+.col-value-mid  { width: 35%; }
+.col-action-end { width: 20%; }
 
-#panel-rules table th:nth-child(2),
-#panel-rules table td:nth-child(2) {
-    width: 30% !important; /* Cột chứa con số dữ liệu ở giữa chiếm 30% -> Thẳng hàng dọc! */
-}
-
-#panel-rules table th:nth-child(3),
-#panel-rules table td:nth-child(3) {
-    width: 20% !important; /* Cột chứa nút bấm/icon thao tác chiếm 20% khít sát lề phải */
-}
-
+/* Đảm bảo cột cuối cùng (Thao tác) luôn căn giữa cho đẹp */
 th:last-child, td:last-child {
     text-align: center;
 }
