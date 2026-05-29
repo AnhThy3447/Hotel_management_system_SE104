@@ -268,7 +268,7 @@ async function taiDuLieuTabQuyDinhHethong() {
             });
         }
 
-        // 🌟 BƯỚC 2: TẢI DANH MỤC LOẠI KHÁCH (Đã sửa đổi lk.name -> lk.name chuẩn khít Backend)
+        // TẢI DANH MỤC LOẠI KHÁCH (Đã sửa đổi lk.name -> lk.name chuẩn khít Backend)
         const resLK = await fetch(`${API_QUYDINH}/loai-khach`);
         const jsonLK = await resLK.json();
         const tbodyLK = document.getElementById("guest-type-table-body");
@@ -278,7 +278,6 @@ async function taiDuLieuTabQuyDinhHethong() {
             jsonLK.data.forEach((lk, idx) => {
                 tbodyLK.innerHTML += `
                     <tr>
-                        <td>${idx + 1}</td>
                         <td><strong>${lk.name}</strong></td>
                         <td><strong>${lk.surcharge}</strong></td>
                         <td>
@@ -296,7 +295,7 @@ async function taiDuLieuTabQuyDinhHethong() {
             });
         }
 
-        // 🌟 BƯỚC 3: TẢI BẢNG PHỤ THU THEO THỨ TỰ KHÁCH
+        // TẢI BẢNG PHỤ THU THEO THỨ TỰ KHÁCH
         const resPT = await fetch(`${API_QUYDINH}/phu-thu`);
         const jsonPT = await resPT.json();
         const tbodyPT = document.getElementById("surcharge-table-body");

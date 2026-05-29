@@ -1,8 +1,3 @@
-/* ==========================================================================
-   🌐 FILE CSS ĐỘC LẬP TOÀN DIỆN CHO TRANG CẤU HÌNH HỆ THỐNG
-   (Quy hoạch cấu trúc 4 cột đồng nhất - Thẳng hàng dọc tuyệt đối)
-   ========================================================================== */
-
 /* ── LAYOUT KHUNG CHÍNH ── */
 .main-content {
     padding: 32px;
@@ -22,12 +17,6 @@
     font-weight: 500;
     color: #5D4037;
     margin: 0 0 8px 0;
-}
-
-.subtitle {
-    color: #8D6E63;
-    font-size: 16px;
-    margin: 0;
 }
 
 /* ── THANH TABS ĐIỀU HƯỚNG ── */
@@ -54,22 +43,10 @@
     transition: color 0.15s, border-color 0.15s;
 }
 
-.tab-btn:hover { 
-    color: #5D4037; 
-}
-
-.tab-btn.active { 
-    color: #5D4037; 
-    border-bottom-color: #5D4037; 
-}
-
-.tab-panel { 
-    display: none; 
-}
-
-.tab-panel.active { 
-    display: block; 
-}
+.tab-btn:hover { color: #5D4037; }
+.tab-btn.active { color: #5D4037; border-bottom-color: #5D4037; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
 
 /* ── LAYOUT CHIA ĐÔI (Tab tài khoản) ── */
 .role-layout {
@@ -126,14 +103,8 @@
     transition: border-color 0.15s;
 }
 
-.form-input:focus {
-    border-color: #8D6E63;
-}
-
-select.form-input {
-    cursor: pointer;
-    background-color: white;
-}
+.form-input:focus { border-color: #8D6E63; }
+select.form-input { cursor: pointer; background-color: white; }
 
 /* ── BẢNG DỮ LIỆU ĐÃ ÉP CO GIÃN 100% ── */
 .table-container {
@@ -153,7 +124,7 @@ select.form-input {
 table {
     width: 100%;
     border-collapse: collapse;
-    table-layout: fixed; /* Ép buộc tuân thủ tỷ lệ phần trăm của cột */
+    table-layout: fixed; /* Bắt buộc tuân thủ tỷ lệ % */
 }
 
 thead tr {
@@ -170,36 +141,22 @@ th, td {
     word-wrap: break-word;
 }
 
-td {
-    color: #6D4C41;
-    font-size: 15px;
-}
+td { color: #6D4C41; font-size: 15px; }
 
-/* ── 📐 PHÂN CHIA TỶ LỆ 4 CỘT DỌC ĐỒNG BỘ ── */
+/* ── 📐 PHÂN CHIA TỶ LỆ 3 CỘT ĐỒNG BỘ TUYỆT ĐỐI CHO TAB 3 ── */
 #panel-rules table th:nth-child(1),
 #panel-rules table td:nth-child(1) {
-    width: 12%; /* Khớp cột STT của bảng 2 */
+    width: 50% !important; /* Cột chữ bên trái chiếm 50% thênh thang */
 }
 
 #panel-rules table th:nth-child(2),
 #panel-rules table td:nth-child(2) {
-    width: 38%; /* Khớp cột Tên loại khách của bảng 2 */
+    width: 30% !important; /* Cột chứa con số dữ liệu ở giữa chiếm 30% -> Thẳng hàng dọc! */
 }
 
 #panel-rules table th:nth-child(3),
 #panel-rules table td:nth-child(3) {
-    width: 30%; /* Cột GIÁ TRỊ SỐ trung tâm của cả 3 bảng -> Thẳng tắp hàng dọc! */
-}
-
-#panel-rules table th:nth-child(4),
-#panel-rules table td:nth-child(4) {
-    width: 20%; /* Cột THAO TÁC / HÀNH ĐỘNG -> Khít sát vách phải, không bị trống */
-}
-
-/* Đặc trị xử lý gộp ô (colspan="2") cho bảng 1 và bảng 3 */
-#param-table-body td[colspan="2"],
-#surcharge-table-body td[colspan="2"] {
-    width: 50% !important; /* Gộp 12% + 38% thành một ô tiêu đề thênh thang */
+    width: 20% !important; /* Cột chứa nút bấm/icon thao tác chiếm 20% khít sát lề phải */
 }
 
 th:last-child, td:last-child {
@@ -219,9 +176,7 @@ th:last-child, td:last-child {
     transition: background-color 0.2s;
 }
 
-.btn-primary:hover {
-    background-color: #4E342E;
-}
+.btn-primary:hover { background-color: #4E342E; }
 
 .btn-secondary {
     display: inline-flex;
@@ -237,15 +192,9 @@ th:last-child, td:last-child {
     font-family: inherit;
     cursor: pointer;
     transition: all 0.2s ease;
-    height: auto;
-    line-height: 1.5;
 }
 
-.btn-secondary:hover {
-    background-color: #FAF8F3;
-    border-color: #8D6E63;
-    color: #1976D2;
-}
+.btn-secondary:hover { background-color: #FAF8F3; border-color: #8D6E63; }
 
 .actions {
     display: flex;
@@ -266,25 +215,20 @@ th:last-child, td:last-child {
     transition: background-color 0.2s, transform 0.1s;
 }
 
-.btn-icon:hover {
-    background-color: #FAF8F3;
-    transform: scale(1.05);
-}
-
+.btn-icon:hover { background-color: #FAF8F3; transform: scale(1.05); }
 .btn-edit { color: #8D6E63; }
 .btn-edit:hover { color: #5D4037; }
-
 .btn-delete { color: #E53935; }
 .btn-delete:hover { color: #B71C1C; }
 
-/* ── PHÂN QUYỀN & BADGE ── */
+/* ── PHÂN QUYỀN (TAB 2) ── */
 .tag-container { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 0; }
 .permission-tag { background-color: #FFF3E0; color: #E65100; padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; border: 1px solid #FFE0B2; }
 .btn-delete-tag { background: none; border: none; color: #E65100; cursor: pointer; font-size: 16px; font-weight: bold; padding: 0; line-height: 1; }
 .btn-delete-tag:hover { color: #BF360C; }
 .badge-local { background-color: #E8F5E9; color: #2E7D32; padding: 4px 12px; border-radius: 8px; font-size: 13px; font-weight: 500; display: inline-block; }
 
-/* ── MODAL ANIMATION ── */
+/* ── MODAL POPUP ── */
 .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); align-items: center; justify-content: center; }
 .modal.open { display: flex; }
 .modal-content { background-color: white; border-radius: 16px; width: 90%; max-width: 450px; padding: 24px; box-shadow: 0 8px 32px rgba(93, 64, 55, 0.2); }
