@@ -1,6 +1,5 @@
 const API_BASE = 'https://hotel-management-system-se104-g0le.onrender.com/api';
 
-// Danh sách cố định 7 chức năng gốc dưới Database để gán vào dropdown
 const DANH_SACH_CHU_NANG_GOC = [
     { id: 1, name: 'Trang chủ' },
     { id: 2, name: 'Quản lý phòng' },

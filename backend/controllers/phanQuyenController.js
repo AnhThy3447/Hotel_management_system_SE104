@@ -16,7 +16,7 @@ exports.dangNhap = async (req, res) => {
 
         // Bắt buộc bọc nháy kép tên bảng và tên cột khớp 100% với Schema DB Neon của bạn
         const truyVanNguoiDung = await pool.query(
-            'SELECT * FROM "PHANQUYEN" WHERE "TenDangNhap" = $1 AND "TrangThai" = TRUE', 
+            'SELECT * FROM PHANQUYEN WHERE TenDangNhap = $1 AND TrangThai = TRUE', 
             [TenDangNhap]
         );
 
@@ -52,7 +52,7 @@ exports.dangNhap = async (req, res) => {
 exports.layDanhSachNhanVien = async (req, res) => {
     try {
         const ketQua = await pool.query(
-            'SELECT "MaNhanVien" as id, "TenDangNhap" as username, "NhomNguoiDung" as role FROM "PHANQUYEN" WHERE "TrangThai" = TRUE ORDER BY "MaNhanVien" DESC'
+            'SELECT MaNhanVien as id, TenDangNhap as username, NhomNguoiDung as role FROM PHANQUYEN WHERE TrangThai = TRUE ORDER BY MaNhanVien DESC'
         );
         return res.status(200).json(ketQua.rows);
     } catch (loi) {
@@ -71,7 +71,7 @@ exports.themNhanVien = async (req, res) => {
         }
 
         const kiemTraTrung = await pool.query(
-            'SELECT * FROM "PHANQUYEN" WHERE "TenDangNhap" = $1', 
+            'SELECT * FROM PHANQUYEN WHERE TenDangNhap = $1', 
             [TenDangNhap]
         );
         
@@ -82,7 +82,7 @@ exports.themNhanVien = async (req, res) => {
         const matKhauMaHoa = await bcrypt.hash(MatKhau, 10);
         
         await pool.query(
-            'INSERT INTO "PHANQUYEN" ("TenDangNhap", "MatKhau", "NhomNguoiDung") VALUES ($1, $2, $3)',
+            'INSERT INTO PHANQUYEN (TenDangNhap, MatKhau, NhomNguoiDung) VALUES ($1, $2, $3)',
             [TenDangNhap, matKhauMaHoa, NhomNguoiDung]
         );
         
@@ -100,7 +100,7 @@ exports.capNhatQuyenNhanVien = async (req, res) => {
         const { NhomNguoiDung } = req.body;
 
         const result = await pool.query(
-            'UPDATE "PHANQUYEN" SET "NhomNguoiDung" = $1 WHERE "MaNhanVien" = $2', 
+            'UPDATE PHANQUYEN SET NhomNguoiDung = $1 WHERE MaNhanVien = $2', 
             [NhomNguoiDung, id]
         );
         
@@ -121,7 +121,7 @@ exports.xoaNhanVien = async (req, res) => {
         const { id } = req.params;
 
         const result = await pool.query(
-            'UPDATE "PHANQUYEN" SET "TrangThai" = FALSE WHERE "MaNhanVien" = $1', 
+            'UPDATE PHANQUYEN SET TrangThai = FALSE WHERE MaNhanVien = $1', 
             [id]
         );
         
@@ -141,7 +141,7 @@ exports.doiMatKhau = async (req, res) => {
     try {
         const { MaNhanVien, MatKhauCu, MatKhauMoi } = req.body;
 
-        const truyVan = await pool.query('SELECT * FROM "PHANQUYEN" WHERE "MaNhanVien" = $1', [MaNhanVien]);
+        const truyVan = await pool.query('SELECT * FROM PHANQUYEN WHERE MaNhanVien = $1', [MaNhanVien]);
         if (truyVan.rows.length === 0) {
             return res.status(404).json({ error: 'Không tìm thấy thông tin nhân viên!' });
         }
@@ -155,7 +155,7 @@ exports.doiMatKhau = async (req, res) => {
 
         const matKhauMoiMaHoa = await bcrypt.hash(MatKhauMoi, 10);
         await pool.query(
-            'UPDATE "PHANQUYEN" SET "MatKhau" = $1 WHERE "MaNhanVien" = $2',
+            'UPDATE PHANQUYEN SET MatKhau = $1 WHERE MaNhanVien = $2',
             [matKhauMoiMaHoa, MaNhanVien]
         );
 
@@ -175,17 +175,17 @@ exports.layDanhSachNhomQuyen = async (req, res) => {
     try {
         const SQL = `
             SELECT 
-                n."TenNhom" as "groupName",
+                n.TenNhom as groupName,
                 COALESCE(
                     json_agg(
-                        json_build_object('MaChucNang', c."MaChucNang", 'TenChucNang', c."TenChucNang")
-                    ) FILTER (WHERE c."MaChucNang" IS NOT NULL), '[]'
-                ) AS "functions"
-            FROM "NHOMNGUOIDUNG" n
-            LEFT JOIN "CHI_TIET_QUYEN" ctq ON n."TenNhom" = ctq."TenNhom"
-            LEFT JOIN "CHUCNANG" c ON ctq."MaChucNang" = c."MaChucNang"
-            GROUP BY n."TenNhom"
-            ORDER BY n."TenNhom" ASC;
+                        json_build_object(MaChucNang, c.MaChucNang, TenChucNang, c.TenChucNang)
+                    ) FILTER (WHERE c.MaChucNang IS NOT NULL), '[]'
+                ) AS functions
+            FROM NhomNguoiDung n
+            LEFT JOIN CHI_TIET_QUYEN ctq ON n.TenNhom = ctq.TenNhom
+            LEFT JOIN CHUCNANG c ON ctq.MaChucNang = c.MaChucNang
+            GROUP BY n.TenNhom
+            ORDER BY n.TenNhom ASC;
         `;
         const ketQua = await pool.query(SQL);
         return res.status(200).json(ketQua.rows);
@@ -205,19 +205,19 @@ exports.themNhomQuyen = async (req, res) => {
             return res.status(400).json({ error: 'Tên nhóm không được để trống!' });
         }
 
-        const kiemTra = await client.query('SELECT * FROM "NHOMNGUOIDUNG" WHERE "TenNhom" = $1', [TenNhom]);
+        const kiemTra = await client.query('SELECT * FROM NhomNguoiDung WHERE TenNhom = $1', [TenNhom]);
         if (kiemTra.rows.length > 0) {
             return res.status(400).json({ error: 'Tên nhóm này đã tồn tại rồi!' });
         }
 
         await client.query('BEGIN');
 
-        await client.query('INSERT INTO "NHOMNGUOIDUNG" ("TenNhom") VALUES ($1)', [TenNhom]);
+        await client.query('INSERT INTO NhomNguoiDung (TenNhom) VALUES ($1)', [TenNhom]);
 
         if (DanhSachMaChucNang && DanhSachMaChucNang.length > 0) {
             for (let ma of DanhSachMaChucNang) {
                 await client.query(
-                    'INSERT INTO "CHI_TIET_QUYEN" ("TenNhom", "MaChucNang") VALUES ($1, $2)',
+                    'INSERT INTO CHI_TIET_QUYEN (TenNhom, MaChucNang) VALUES ($1, $2)',
                     [TenNhom, ma]
                 );
             }
@@ -241,7 +241,7 @@ exports.capNhatNhomQuyen = async (req, res) => {
         const { TenNhomCu, TenNhomMoi } = req.body;
         
         if (TenNhomMoi && TenNhomMoi !== TenNhomCu) {
-            const result = await pool.query('UPDATE "NHOMNGUOIDUNG" SET "TenNhom" = $1 WHERE "TenNhom" = $2', [TenNhomMoi, TenNhomCu]);
+            const result = await pool.query('UPDATE NhomNguoiDung SET TenNhom = $1 WHERE TenNhom = $2', [TenNhomMoi, TenNhomCu]);
             if (result.rowCount === 0) {
                 return res.status(404).json({ error: "Không tìm thấy nhóm quyền cần cập nhật" });
             }
@@ -259,7 +259,7 @@ exports.themChucNangVaoNhom = async (req, res) => {
     try {
         const { TenNhom, MaChucNang } = req.body;
         await pool.query(
-            'INSERT INTO "CHI_TIET_QUYEN" ("TenNhom", "MaChucNang") VALUES ($1, $2) ON CONFLICT DO NOTHING',
+            'INSERT INTO CHI_TIET_QUYEN (TenNhom, MaChucNang) VALUES ($1, $2) ON CONFLICT DO NOTHING',
             [TenNhom, MaChucNang]
         );
         return res.status(200).json({ success: true, message: 'Đã bổ sung chức năng vào nhóm!' });
@@ -274,7 +274,7 @@ exports.xoaChucNangKhoiNhom = async (req, res) => {
     try {
         const { TenNhom, MaChucNang } = req.body;
         const result = await pool.query(
-            'DELETE FROM "CHI_TIET_QUYEN" WHERE "TenNhom" = $1 AND "MaChucNang" = $2',
+            'DELETE FROM CHI_TIET_QUYEN WHERE TenNhom = $1 AND MaChucNang = $2',
             [TenNhom, MaChucNang]
         );
         if (result.rowCount === 0) {
@@ -291,7 +291,7 @@ exports.xoaChucNangKhoiNhom = async (req, res) => {
 exports.xoaNhomQuyen = async (req, res) => {
     try {
         const { tenNhom } = req.params;
-        const result = await pool.query('DELETE FROM "NHOMNGUOIDUNG" WHERE "TenNhom" = $1', [tenNhom]);
+        const result = await pool.query('DELETE FROM NhomNguoiDung WHERE TenNhom = $1', [tenNhom]);
         if (result.rowCount === 0) {
             return res.status(404).json({ error: "Không tìm thấy nhóm quyền cần xóa" });
         }
