@@ -145,7 +145,7 @@ td { color: #6D4C41; font-size: 15px; }
 
 /* TỶ LỆ CHO BẢNG QUẢN LÝ TÀI KHOẢN── */
 .col-stt {
-    width: 20% !important;
+    width: 25% !important;
     text-align: center;
 }
 
@@ -158,7 +158,7 @@ td { color: #6D4C41; font-size: 15px; }
 }
 
 .col-action-4 {
-    width: 20% !important;
+    width: 15% !important;
 }
 
 /* ── ĐỊNH NGHĨA CÁC THỂ LOẠI TỶ LỆ CỘT LINH HOẠT ── */
