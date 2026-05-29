@@ -233,13 +233,13 @@ async function xuLyXoaNhomQuyen(tenNhom) {
 }
 
 // ==========================================================================
-// LOGIC TAB 3: QUY ĐỊNH KHÁCH SẠN (XỬ LÝ ĐỒNG BỘ 3 KHUNG ĐỘNG)
+// LOGIC TAB 3: QUY ĐỊNH KHÁCH SẠN (XỬ LÝ ĐỒNG BỘ 3 KHUNG ĐỘNG CHẠY TUẦN TỰ)
 // ==========================================================================
 let luuTruSoKhachKhongTinhPhi = 2; // Biến tạm lưu mốc phụ thu để lọc bảng TILEPHUTHU
 
 async function taiDuLieuTabQuyDinhHethong() {
     try {
-        // --- KHUNG 1: TẢI BẢNG THAM SỐ GỐC ---
+        // 🌟 BƯỚC 1: TẢI BẢNG THAM SỐ GỐC TRƯỚC ĐỂ LẤY MỐC
         const resTS = await fetch(`${API_QUYDINH}/tham-so`);
         const jsonTS = await resTS.json();
         const tbodyTS = document.getElementById("param-table-body");
@@ -247,15 +247,15 @@ async function taiDuLieuTabQuyDinhHethong() {
 
         if (jsonTS.success && jsonTS.data) {
             jsonTS.data.forEach(ts => {
-                // Sửa thành chữ viết thường chuẩn theo dữ liệu Postgres trả về
                 if (ts.tenthamso === 'Số khách không tính phí phụ thu') {
-                    luuTruSoKhachKhongTinhPhi = parseInt(ts.giatri);
+                    luuTruSoKhachKhongTinhPhi = parseInt(ts.giatri); 
                 }
                 
                 tbodyTS.innerHTML += `
                     <tr>
                         <td colspan="2"><strong>${ts.tenthamso}</strong></td>
-                        <td><strong>${ts.giatri} người</strong></td>
+                        <td style="display: none;"></td> 
+                        <td><strong>${ts.giatri} ${ts.tenthamso === 'Số khách tối đa trong phòng' ? 'người' : 'khách'}</strong></td>
                         <td>
                             <div class="actions">
                                 <button class="btn-icon btn-edit" onclick="openParamModal('${ts.tenthamso}', ${ts.giatri})" title="Chỉnh sửa tham số">
@@ -268,7 +268,7 @@ async function taiDuLieuTabQuyDinhHethong() {
             });
         }
 
-        // --- KHUNG 2: TẢI DANH MỤC LOẠI KHÁCH (CRUD) ---
+        // 🌟 BƯỚC 2: TẢI DANH MỤC LOẠI KHÁCH (Đã sửa đổi lk.name -> lk.name chuẩn khít Backend)
         const resLK = await fetch(`${API_QUYDINH}/loai-khach`);
         const jsonLK = await resLK.json();
         const tbodyLK = document.getElementById("guest-type-table-body");
@@ -276,15 +276,14 @@ async function taiDuLieuTabQuyDinhHethong() {
 
         if (jsonLK.success && jsonLK.data) {
             jsonLK.data.forEach((lk, idx) => {
-                // Sửa thành lk.id, lk.loaikhach, lk.hesophuthu chuẩn chữ viết thường của DB
                 tbodyLK.innerHTML += `
                     <tr>
                         <td>${idx + 1}</td>
-                        <td><strong>${lk.loaikhach}</strong></td>
-                        <td><strong>${lk.hesophuthu}</strong></td>
+                        <td><strong>${lk.name}</strong></td>
+                        <td><strong>${lk.surcharge}</strong></td>
                         <td>
                             <div class="actions">
-                                <button class="btn-icon btn-edit" onclick="openEditGuestTypeModal(${lk.id}, '${lk.loaikhach}', ${lk.hesophuthu})" title="Sửa loại khách">
+                                <button class="btn-icon btn-edit" onclick="openEditGuestTypeModal(${lk.id}, '${lk.name}', ${lk.surcharge})" title="Sửa loại khách">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                 </button>
                                 <button class="btn-icon btn-delete" onclick="xuLyXoaLoaiKhach(${lk.id})" title="Xóa loại khách">
@@ -297,15 +296,15 @@ async function taiDuLieuTabQuyDinhHethong() {
             });
         }
 
-        // --- KHUNG 3: TẢI BẢNG PHỤ THU THEO THỨ TỰ KHÁCH ---
+        // 🌟 BƯỚC 3: TẢI BẢNG PHỤ THU THEO THỨ TỰ KHÁCH
         const resPT = await fetch(`${API_QUYDINH}/phu-thu`);
         const jsonPT = await resPT.json();
         const tbodyPT = document.getElementById("surcharge-table-body");
         tbodyPT.innerHTML = "";
 
         if (jsonPT.success && jsonPT.data) {
-            // Tự động lọc: Chỉ hiện các vị khách có thutukhach vượt quá mốc miễn phí
-            const danhSachLoc = jsonPT.data.filter(pt => pt.thutukhach > luuTruSoKhachKhongTinhPhi);
+            // Lọc chính xác: Chỉ hiện các dòng có số thứ tự lớn hơn mốc miễn phí
+            const danhSachLoc = jsonPT.data.filter(pt => pt.ThuTuKhach > luuTruSoKhachKhongTinhPhi);
             
             if (danhSachLoc.length === 0) {
                 tbodyPT.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#9ca3af;">Không có dòng phụ thu nào (Số khách tối đa nhỏ hơn hoặc bằng mốc tính phí)</td></tr>`;
@@ -313,11 +312,12 @@ async function taiDuLieuTabQuyDinhHethong() {
                 danhSachLoc.forEach(pt => {
                     tbodyPT.innerHTML += `
                         <tr>
-                            <td colspan="2">Khách thứ ${pt.thutukhach} trong phòng</td>
-                            <td><strong>${pt.hesophuthu}%</strong></td>
+                            <td colspan="2">Khách thứ ${pt.ThuTuKhach} trong phòng</td>
+                            <td style="display: none;"></td>
+                            <td><strong>${pt.HeSoPhuThu}%</strong></td>
                             <td>
                                 <div class="actions">
-                                    <button class="btn-icon btn-edit" onclick="openSurchargeModal(${pt.thutukhach}, ${pt.hesophuthu})" title="Chỉnh sửa mức phạt">
+                                    <button class="btn-icon btn-edit" onclick="openSurchargeModal(${pt.ThuTuKhach}, ${pt.HeSoPhuThu})" title="Chỉnh sửa mức phạt">
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                     </button>
                                 </div>

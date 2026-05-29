@@ -1,3 +1,8 @@
+/* ==========================================================================
+   🌐 FILE CSS ĐỘC LẬP TOÀN DIỆN CHO TRANG CẤU HÌNH HỆ THỐNG
+   (Cố định cấu trúc 4 cột chuẩn - Ép thẳng hàng dọc 100%)
+   ========================================================================== */
+
 /* ── LAYOUT KHUNG CHÍNH ── */
 .main-content {
     padding: 32px;
@@ -89,7 +94,7 @@
     font-weight: 600;
 }
 
-/* ── KHUNG FORM & THANH BỘ LỌC ── */
+/* ── KHUNG FORM ── */
 .add-form-card {
     background: #FAF8F3;
     border: 2px solid #D7CCC8;
@@ -130,7 +135,7 @@ select.form-input {
     background-color: white;
 }
 
-/* ── BẢNG DỮ LIỆU ĐÃ ÉP CO GIÃN 100% ── */
+/* ── BẢNG DỮ LIỆU ĐỒNG BỘ 4 CỘT DỌC ── */
 .table-container {
     width: 100%;
     background: white;
@@ -148,7 +153,7 @@ select.form-input {
 table {
     width: 100%;
     border-collapse: collapse;
-    table-layout: fixed; /* Ép buộc tuân thủ tỷ lệ phần trăm của cột */
+    table-layout: fixed; /* Bắt buộc để nhận chính xác kích thước % bên dưới */
 }
 
 thead tr {
@@ -170,38 +175,68 @@ td {
     font-size: 15px;
 }
 
-/* ── 📐 PHÂN CHIA TỶ LỆ 4 CỘT DỌC ĐỒNG BỘ ── */
+/* 📐 CHIA TỶ LỆ KHÍT KHÁO: Áp dụng chung cấu trúc 4 cột cho cả 3 phân hệ bảng */
 #panel-rules table th:nth-child(1),
 #panel-rules table td:nth-child(1) {
-    width: 12%; /* Khớp cột STT của bảng 2 */
+    width: 12%; /* Khớp cột STT */
 }
 
 #panel-rules table th:nth-child(2),
 #panel-rules table td:nth-child(2) {
-    width: 38%; /* Khớp cột Tên loại khách của bảng 2 */
+    width: 38%; /* Khớp cột Tên loại khách */
 }
 
 #panel-rules table th:nth-child(3),
 #panel-rules table td:nth-child(3) {
-    width: 30%; /* Cột GIÁ TRỊ SỐ trung tâm của cả 3 bảng -> Thẳng tắp hàng dọc! */
+    width: 30%; /* Cột CHỨA SỐ DỮ LIỆU -> 3 bảng sẽ thẳng tắp theo chiều dọc! */
 }
 
 #panel-rules table th:nth-child(4),
 #panel-rules table td:nth-child(4) {
-    width: 20%; /* Cột THAO TÁC / HÀNH ĐỘNG -> Khít sát vách phải, không bị trống */
+    width: 20%; /* Cột THAO TÁC / HÀNH ĐỘNG bám sát rìa phải */
 }
 
-/* Đặc trị xử lý gộp ô (colspan="2") cho bảng 1 và bảng 3 */
+/* Kích hoạt gộp ô cho bảng 1 và bảng 3 (12% + 38% = 50% bên trái) */
 #param-table-body td[colspan="2"],
 #surcharge-table-body td[colspan="2"] {
-    width: 50% !important; /* Gộp 12% + 38% thành một ô tiêu đề thênh thang */
+    width: 50% !important;
 }
 
 th:last-child, td:last-child {
     text-align: center;
 }
 
-/* ── CÁC NÚT BẤM VÀ ICON THAO TÁC PARADISE ── */
+/* ── ICON THAO TÁC & NÚT BẤM PARADISE ── */
+.actions {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    align-items: center;
+}
+
+.btn-icon {
+    padding: 8px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-icon:hover {
+    background-color: #FAF8F3;
+    transform: scale(1.05);
+}
+
+.btn-edit { color: #8D6E63; }
+.btn-edit:hover { color: #5D4037; }
+
+.btn-delete { color: #E53935; }
+.btn-delete:hover { color: #B71C1C; }
+
 .btn-primary {
     background-color: #5D4037;
     color: white;
@@ -242,44 +277,7 @@ th:last-child, td:last-child {
     color: #1976D2;
 }
 
-.actions {
-    display: flex;
-    justify-content: center;
-    gap: 16px;
-    align-items: center;
-}
-
-.btn-icon {
-    padding: 8px;
-    border: none;
-    background: none;
-    cursor: pointer;
-    border-radius: 8px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s, transform 0.1s;
-}
-
-.btn-icon:hover {
-    background-color: #FAF8F3;
-    transform: scale(1.05);
-}
-
-.btn-edit { color: #8D6E63; }
-.btn-edit:hover { color: #5D4037; }
-
-.btn-delete { color: #E53935; }
-.btn-delete:hover { color: #B71C1C; }
-
-/* ── PHÂN QUYỀN & BADGE ── */
-.tag-container { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 0; }
-.permission-tag { background-color: #FFF3E0; color: #E65100; padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; border: 1px solid #FFE0B2; }
-.btn-delete-tag { background: none; border: none; color: #E65100; cursor: pointer; font-size: 16px; font-weight: bold; padding: 0; line-height: 1; }
-.btn-delete-tag:hover { color: #BF360C; }
 .badge-local { background-color: #E8F5E9; color: #2E7D32; padding: 4px 12px; border-radius: 8px; font-size: 13px; font-weight: 500; display: inline-block; }
-
-/* ── MODAL ANIMATION ── */
 .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); align-items: center; justify-content: center; }
 .modal.open { display: flex; }
 .modal-content { background-color: white; border-radius: 16px; width: 90%; max-width: 450px; padding: 24px; box-shadow: 0 8px 32px rgba(93, 64, 55, 0.2); }
