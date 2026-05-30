@@ -3,32 +3,25 @@
 const API_URL = 'https://hotel-management-system-se104.onrender.com/api';
 
 let allBookings = [];
-let allCustomers = [];
 let allAgencies = [];
+let customerDropdownApi = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
     await loadAllData();
     setDefaultDate();
     renderAvailableBookings();
-    setupCheckboxEvents();
-    initCustomerDropdown();
+    customerDropdownApi = initCustomerDropdown();
     initAgencyDropdown();
+    setupCheckboxEvents();
+    updateCustomerDropdownForSelection();
 });
 
 async function loadAllData() {
     try {
-        // Lấy tất cả phiếu thuê
         const resBooking = await fetch(`${API_URL}/thue-phong`);
         const jsonBooking = await resBooking.json();
-        // Chỉ lấy phiếu đã trả phòng (ngaytrphong != null) và chưa có hóa đơn
         allBookings = (jsonBooking.data || []).filter(b => b.ngaytrphong && !b.dahoadon && b.songaythue > 0);
 
-        // Lấy danh sách khách hàng
-        const resKhach = await fetch(`${API_URL}/khach-hang`);
-        const jsonKhach = await resKhach.json();
-        allCustomers = jsonKhach.data || [];
-
-        // Lấy danh sách cơ quan
         const resCQ = await fetch(`${API_URL}/co-quan`);
         const jsonCQ = await resCQ.json();
         allAgencies = jsonCQ.data || [];
@@ -42,13 +35,19 @@ function setDefaultDate() {
     document.getElementById('payment-date').value = today;
 }
 
+function formatGuestNames(booking) {
+    const guests = booking.guests || [];
+    if (guests.length === 0) return '—';
+    return guests.map(g => g.name || '—').join(', ');
+}
+
 function renderAvailableBookings() {
     const tbody = document.getElementById('booking-list-body');
 
     if (allBookings.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="8" class="empty-state">Không có phiếu thuê chờ thanh toán</td>
+                <td colspan="9" class="empty-state">Không có phiếu thuê chờ thanh toán</td>
             </tr>`;
         return;
     }
@@ -66,15 +65,66 @@ function renderAvailableBookings() {
             <td>${formatDateVN(booking.ngaybatdauthue?.split('T')[0])}</td>
             <td>${booking.songaythue || 0}</td>
             <td>${booking.dongia ? formatCurrency(booking.dongia) + ' VNĐ' : '—'}</td>
+            <td>${formatGuestNames(booking)}</td>
             <td><strong>${formatCurrency(booking.thanhtien || 0)} VNĐ</strong></td>
         </tr>`
     ).join('');
+}
+
+function getSelectedBookingIds() {
+    return [...document.querySelectorAll('.booking-checkbox:checked')]
+        .map(cb => parseInt(cb.dataset.maThuePhong, 10));
+}
+
+function getGuestsFromSelectedBookings() {
+    const selectedIds = getSelectedBookingIds();
+    const guestMap = new Map();
+
+    allBookings
+        .filter(b => selectedIds.includes(b.mathuephong))
+        .forEach(booking => {
+            (booking.guests || []).forEach(g => {
+                const id = g.makhachhang;
+                if (id != null && !guestMap.has(id)) {
+                    guestMap.set(id, g);
+                }
+            });
+        });
+
+    return [...guestMap.values()];
+}
+
+function updateCustomerDropdownForSelection() {
+    const guests = getGuestsFromSelectedBookings();
+    const searchInput = document.getElementById('customer-search');
+
+    const items = guests.map(g => ({
+        value: String(g.makhachhang),
+        label: g.name || '(Không có tên)',
+        subLabel: `CMND: ${g.idNumber || 'N/A'} • ${g.address || ''}`
+    }));
+
+    if (customerDropdownApi) {
+        customerDropdownApi.updateItems(items);
+    }
+
+    if (items.length === 0) {
+        searchInput.disabled = true;
+        searchInput.placeholder = getSelectedBookingIds().length === 0
+            ? 'Chọn phiếu thuê trước'
+            : 'Phiếu đã chọn chưa có khách trong hệ thống';
+        document.getElementById('customer-address').value = '';
+    } else {
+        searchInput.disabled = false;
+        searchInput.placeholder = '-- Tìm theo tên hoặc CMND (khách trong phiếu đã chọn) --';
+    }
 }
 
 function setupCheckboxEvents() {
     document.addEventListener('change', (e) => {
         if (e.target.classList.contains('booking-checkbox')) {
             calculateTotal();
+            updateCustomerDropdownForSelection();
         }
     });
 }
@@ -82,7 +132,7 @@ function setupCheckboxEvents() {
 function calculateTotal() {
     const checkboxes = document.querySelectorAll('.booking-checkbox:checked');
     let total = 0;
-    checkboxes.forEach(cb => { total += parseInt(cb.dataset.thanhTien) || 0; });
+    checkboxes.forEach(cb => { total += parseInt(cb.dataset.thanhTien, 10) || 0; });
     document.getElementById('invoice-total').textContent = formatCurrency(total) + ' VNĐ';
 }
 
@@ -93,6 +143,17 @@ async function createInvoice() {
     const maKhachHang = document.getElementById('customer-select').value;
     if (!maKhachHang) { alert('Vui lòng chọn khách hàng thanh toán!'); return; }
 
+    const allowedGuests = getGuestsFromSelectedBookings();
+    if (allowedGuests.length === 0) {
+        alert('Các phiếu đã chọn không có khách hàng trong danh sách thuê. Vui lòng kiểm tra lại phiếu thuê!');
+        return;
+    }
+    const allowedIds = new Set(allowedGuests.map(g => String(g.makhachhang)));
+    if (!allowedIds.has(String(maKhachHang))) {
+        alert('Khách thanh toán phải là khách nằm trong danh sách thuê của các phiếu đã chọn!');
+        return;
+    }
+
     const paymentDate = document.getElementById('payment-date').value;
     if (!paymentDate) { alert('Vui lòng chọn ngày thanh toán!'); return; }
 
@@ -102,8 +163,8 @@ async function createInvoice() {
     const danhSachPhieu = [];
 
     selected.forEach(cb => {
-        const maThuePhong = parseInt(cb.dataset.maThuePhong);
-        const thanhTien = parseInt(cb.dataset.thanhTien) || 0;
+        const maThuePhong = parseInt(cb.dataset.maThuePhong, 10);
+        const thanhTien = parseInt(cb.dataset.thanhTien, 10) || 0;
         tongTien += thanhTien;
         danhSachPhieu.push({
             MaThuePhong: maThuePhong,
@@ -116,8 +177,8 @@ async function createInvoice() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                MaKhachHangThanhToan: parseInt(maKhachHang),
-                MaCoQuan: maCoQuan ? parseInt(maCoQuan) : null,
+                MaKhachHangThanhToan: parseInt(maKhachHang, 10),
+                MaCoQuan: maCoQuan ? parseInt(maCoQuan, 10) : null,
                 NgayThanhToan: paymentDate,
                 TongTien: tongTien,
                 DanhSachPhieu: danhSachPhieu
@@ -136,31 +197,21 @@ async function createInvoice() {
     }
 }
 
-// ─── Dropdown khách hàng ──────────────────────────────────────────────────────
-
 function initCustomerDropdown() {
-    const items = allCustomers.map(kh => ({
-        value: String(kh.makhachhang),
-        label: kh.tenkhachhang || '(Không có tên)',
-        subLabel: `CMND: ${kh.cmnd || 'N/A'} • ${kh.diachi || ''}`
-    }));
-
-    createSearchableDropdown({
+    return createSearchableDropdown({
         searchInputId: 'customer-search',
         hiddenInputId: 'customer-select',
         listId: 'customer-list',
-        items,
+        items: [],
         placeholder: '-- Chọn khách hàng --',
         onSelect(value) {
             const addressInput = document.getElementById('customer-address');
             if (!value) { addressInput.value = ''; return; }
-            const kh = allCustomers.find(k => String(k.makhachhang) === String(value));
-            addressInput.value = kh ? (kh.diachi || '') : '';
+            const guest = getGuestsFromSelectedBookings().find(g => String(g.makhachhang) === String(value));
+            addressInput.value = guest ? (guest.address || '') : '';
         }
     });
 }
-
-// ─── Dropdown cơ quan ─────────────────────────────────────────────────────────
 
 function initAgencyDropdown() {
     const items = allAgencies.map(cq => ({
@@ -178,8 +229,6 @@ function initAgencyDropdown() {
         onSelect() {}
     });
 }
-
-// ─── Searchable dropdown helper ───────────────────────────────────────────────
 
 function createSearchableDropdown({ searchInputId, hiddenInputId, listId, items, placeholder, onSelect }) {
     const searchInput = document.getElementById(searchInputId);
@@ -238,8 +287,21 @@ function createSearchableDropdown({ searchInputId, hiddenInputId, listId, items,
         }
     }
 
-    function openDropdown() { renderList(searchInput.value); listEl.classList.add('open'); }
+    function openDropdown() {
+        if (searchInput.disabled) return;
+        renderList(searchInput.value);
+        listEl.classList.add('open');
+    }
+
     function closeDropdown() { listEl.classList.remove('open'); }
+
+    function updateItems(newItems) {
+        allItems = newItems;
+        if (selectedValue && !newItems.some(i => String(i.value) === String(selectedValue))) {
+            selectItem('');
+            document.getElementById('customer-address').value = '';
+        }
+    }
 
     searchInput.addEventListener('focus', () => { searchInput.select(); openDropdown(); });
     searchInput.addEventListener('input', () => {
@@ -249,9 +311,9 @@ function createSearchableDropdown({ searchInputId, hiddenInputId, listId, items,
         if (!listEl.classList.contains('open')) listEl.classList.add('open');
     });
     searchInput.addEventListener('blur', () => { setTimeout(closeDropdown, 150); });
-}
 
-// ─── Utilities ────────────────────────────────────────────────────────────────
+    return { updateItems, clearSelection: () => selectItem('') };
+}
 
 function formatDateVN(dateString) {
     if (!dateString) return '-';

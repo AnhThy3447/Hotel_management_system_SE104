@@ -3,18 +3,13 @@ let currentBooking = null;
 let guests = [];
 let isViewMode = false;
 let allRooms = [];
-let thamSo = { soKhachToiDa: 3 };
+let thamSo = { soKhachToiDa: 3, khachIncluded: 2 };
 let tiLePhuThu = [];
+let foreignExtraRate = 0.5;
 
 document.addEventListener('DOMContentLoaded', async () => {
     await loadRooms();
     await loadThamSo();
-
-    // Chặn sửa ngày lập - chạy cho cả tạo mới lẫn cập nhật
-    document.getElementById('form-date').addEventListener('keydown', (e) => e.preventDefault());
-    document.getElementById('form-date').addEventListener('paste', (e) => e.preventDefault());
-    document.getElementById('form-date').style.backgroundColor = '#f0ebe3';
-    document.getElementById('form-date').style.cursor = 'not-allowed';
 
     const urlParams = new URLSearchParams(window.location.search);
     const bookingId = urlParams.get('id');
@@ -24,25 +19,130 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (bookingId) {
         loadBooking(parseInt(bookingId));
     } else {
-        const today = new Date();
-        const dd = String(today.getDate()).padStart(2, '0');
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        const yyyy = today.getFullYear();
-        const todayStr = `${dd}/${mm}/${yyyy}`;
-        const maxDate = new Date();
-        maxDate.setMonth(maxDate.getMonth() + 1);
-        const maxDd = String(maxDate.getDate()).padStart(2, '0');
-        const maxMm = String(maxDate.getMonth() + 1).padStart(2, '0');
-        const maxYyyy = maxDate.getFullYear();
-        const maxDateStr = `${maxDd}/${maxMm}/${maxYyyy}`;
-
-        document.getElementById('form-date').value = todayStr;
-        document.getElementById('form-date').setAttribute('data-iso-date', convertToISO(todayStr));
-        document.getElementById('start-date').min = todayStr;
-        document.getElementById('start-date').max = maxDateStr;
-        addGuest();
+        initNewBookingForm();
     }
 });
+
+const MAX_START_DAYS_FROM_FORM = 30;
+
+function initNewBookingForm() {
+    const formDateInput = document.getElementById('form-date');
+    const startDateInput = document.getElementById('start-date');
+
+    setDateValue(formDateInput, getTodayISO());
+    lockFormDateToToday(formDateInput);
+
+    updateStartDateLimits();
+    setDateValue(startDateInput, getISODate(formDateInput) || getTodayISO());
+
+    startDateInput.dataset.lastValidDate = getISODate(formDateInput) || getTodayISO();
+    startDateInput.addEventListener('blur', validateStartDateOnBlur);
+
+    addGuest();
+}
+
+function formatIsoToVN(iso) {
+    if (!iso) return '';
+    const p = iso.split('-');
+    return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : iso;
+}
+
+function lockFormDateToToday(input) {
+    input.readOnly = true;
+    input.title = 'Ngày lập luôn là ngày hôm nay';
+    input.addEventListener('keydown', (e) => e.preventDefault());
+    input.addEventListener('paste', (e) => e.preventDefault());
+    input.addEventListener('input', () => setDateValue(input, getTodayISO()));
+}
+
+function addDaysToISO(isoDate, days) {
+    const [y, m, d] = isoDate.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
+    date.setDate(date.getDate() + days);
+    const yy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yy}-${mm}-${dd}`;
+}
+
+function updateStartDateLimits() {
+    const formDateInput = document.getElementById('form-date');
+    const startDateInput = document.getElementById('start-date');
+    let formIso = getISODate(formDateInput);
+
+    if (!currentBooking) {
+        setDateValue(formDateInput, getTodayISO());
+        formIso = getTodayISO();
+    } else if (!formIso && formDateInput.value) {
+        validateAndConvertDate(formDateInput);
+        formIso = getISODate(formDateInput);
+    }
+    if (!formIso) {
+        formIso = getTodayISO();
+        setDateValue(formDateInput, formIso);
+    }
+
+    const maxIso = addDaysToISO(formIso, MAX_START_DAYS_FROM_FORM);
+    startDateInput.dataset.minDate = formIso;
+    startDateInput.dataset.maxDate = maxIso;
+
+    const currentIso = getISODate(startDateInput) || convertToISO(startDateInput.value);
+    if (currentIso && currentIso >= formIso && currentIso <= maxIso) {
+        startDateInput.dataset.lastValidDate = currentIso;
+    }
+}
+
+function isStartDateInRange(startIso, minIso, maxIso) {
+    return startIso && minIso && maxIso && startIso >= minIso && startIso <= maxIso;
+}
+
+function getStartDateRangeMessage(minIso, maxIso) {
+    return `Chỉ được chọn từ ${formatIsoToVN(minIso)} đến ${formatIsoToVN(maxIso)} (tối đa ${MAX_START_DAYS_FROM_FORM} ngày kể từ ngày lập).`;
+}
+
+function validateStartDateOnBlur() {
+    const startDateInput = document.getElementById('start-date');
+    const minIso = startDateInput.dataset.minDate;
+    const maxIso = startDateInput.dataset.maxDate;
+    if (!minIso || !maxIso || !startDateInput.value.trim()) return;
+
+    validateAndConvertDate(startDateInput);
+    const startIso = getISODate(startDateInput);
+    if (!startIso) return;
+
+    if (isStartDateInRange(startIso, minIso, maxIso)) {
+        startDateInput.dataset.lastValidDate = startIso;
+        return;
+    }
+
+    alert(`Ngày bắt đầu thuê không hợp lệ. ${getStartDateRangeMessage(minIso, maxIso)}`);
+
+    const lastValid = startDateInput.dataset.lastValidDate;
+    if (lastValid) {
+        setDateValue(startDateInput, lastValid);
+    } else {
+        startDateInput.value = '';
+        startDateInput.removeAttribute('data-iso-date');
+    }
+}
+
+function validateStartDateRange() {
+    const startDateInput = document.getElementById('start-date');
+    const minIso = startDateInput.dataset.minDate;
+    const maxIso = startDateInput.dataset.maxDate;
+    const startIso = getISODate(startDateInput) || convertToISO(startDateInput.value);
+
+    if (!startIso || !minIso || !maxIso) {
+        alert('Vui lòng chọn ngày bắt đầu thuê hợp lệ!');
+        return false;
+    }
+    if (!isStartDateInRange(startIso, minIso, maxIso)) {
+        alert(`Ngày bắt đầu thuê không hợp lệ. ${getStartDateRangeMessage(minIso, maxIso)}`);
+        startDateInput.focus();
+        return false;
+    }
+    return true;
+}
 
 async function loadRooms() {
     try {
@@ -79,13 +179,35 @@ async function loadThamSo() {
         const data = json.data || [];
         const soKhach = data.find(t => t.tenthamso === 'SoKhachToiDa');
         if (soKhach) thamSo.soKhachToiDa = parseInt(soKhach.giatri) || 3;
+        const ruleEl = document.getElementById('max-guests-rule');
+        if (ruleEl) ruleEl.textContent = thamSo.soKhachToiDa;
+
+        const soKhachMienPhi = data.find(t =>
+            t.tenthamso === 'SoKhachKhongTinhPhi' || t.tenthamso === 'Số khách không tính phí phụ thu'
+        );
+        if (soKhachMienPhi) thamSo.khachIncluded = parseInt(soKhachMienPhi.giatri) || 2;
 
         const resPT = await fetch(`${API_URL}/quy-dinh/phu-thu`);
         const jsonPT = await resPT.json();
-        tiLePhuThu = jsonPT.data || [];
+        tiLePhuThu = normalizePhuThu(jsonPT.data || []);
+
+        const resLK = await fetch(`${API_URL}/quy-dinh/loai-khach`);
+        const jsonLK = await resLK.json();
+        const lkRows = jsonLK.data || [];
+        const nn = lkRows.find(l =>
+            (l.name || l.LoaiKhach || '').toLowerCase().includes('nước ngoài')
+        );
+        if (nn) {
+            const heSo = parseFloat(nn.surcharge ?? nn.HeSoPhuThu) || 1.5;
+            foreignExtraRate = Math.max(0, heSo - 1);
+        }
     } catch (err) {
         console.error('Lỗi load tham số:', err);
     }
+}
+
+function pricingOptions() {
+    return { khachIncluded: thamSo.khachIncluded ?? 2, foreignExtraRate };
 }
 
 function onRoomChange() {
@@ -100,6 +222,8 @@ function onRoomChange() {
         document.getElementById('max-guests-display').textContent = thamSo.soKhachToiDa;
         document.getElementById('max-guests').textContent = thamSo.soKhachToiDa;
         document.getElementById('max-count').textContent = thamSo.soKhachToiDa;
+        const ruleEl = document.getElementById('max-guests-rule');
+        if (ruleEl) ruleEl.textContent = thamSo.soKhachToiDa;
     } else {
         document.getElementById('room-info').style.display = 'none';
     }
@@ -116,10 +240,7 @@ function updatePricePreview() {
     }
 
     document.getElementById('price-preview').style.display = 'block';
-    const coNuocNgoai = guests.some(g => g.type === 'nước ngoài');
-    const heSoLoai = coNuocNgoai ? 1.5 : 1.0;
-    const heSoThuTu = guests.length >= 3 ? 1.25 : 1.0;
-    const total = room.price * heSoLoai * heSoThuTu;
+    const total = calcRoomPricePerDay(guests, room.price, tiLePhuThu, pricingOptions());
     document.getElementById('total-per-day').textContent = formatCurrency(total) + ' VNĐ';
 }
 
@@ -134,8 +255,17 @@ async function loadBooking(id) {
             isViewMode ? 'Chi tiết Phiếu Thuê Phòng (BM2)' : 'Cập nhật Phiếu Thuê Phòng (BM2)';
         document.getElementById('form-subtitle').textContent = `Mã phiếu: #${id}`;
         document.getElementById('save-btn-text').textContent = 'Cập nhật';
-        setDateValue(document.getElementById('form-date'), currentBooking?.ngaylap?.split('T')[0] || '');
+        const formDateInput = document.getElementById('form-date');
+        formDateInput.readOnly = false;
+        setDateValue(formDateInput, currentBooking?.ngaylap?.split('T')[0] || '');
         setDateValue(document.getElementById('start-date'), currentBooking?.ngaybatdauthue?.split('T')[0] || '');
+        updateStartDateLimits();
+
+        const startDateInput = document.getElementById('start-date');
+        startDateInput.dataset.lastValidDate =
+            getISODate(startDateInput) || currentBooking?.ngaybatdauthue?.split('T')[0] || '';
+        formDateInput.addEventListener('blur', updateStartDateLimits);
+        startDateInput.addEventListener('blur', validateStartDateOnBlur);
 
         // Set giá trị dropdown phòng
         const select = document.getElementById('room-select');
@@ -238,26 +368,17 @@ function validateForm() {
         alert('Vui lòng điền đầy đủ thông tin cơ bản!');
         return false;
     }
-
-    // Kiểm tra ngày bắt đầu thuê không quá 1 tháng sau ngày lập
-    const ngayLapISO = convertToISO(formDate);
-    const ngayThueISO = convertToISO(startDate);
-    if (ngayLapISO && ngayThueISO) {
-        const ngayLap = new Date(ngayLapISO);
-        const ngayThue = new Date(ngayThueISO);
-        const maxNgayThue = new Date(ngayLap);
-        maxNgayThue.setMonth(maxNgayThue.getMonth() + 1);
-
-        if (ngayThue < ngayLap) {
-            alert('Ngày bắt đầu thuê không được trước ngày lập phiếu!');
-            return false;
-        }
-        if (ngayThue > maxNgayThue) {
-            alert('Ngày bắt đầu thuê không được quá 1 tháng sau ngày lập phiếu!');
+    if (!currentBooking) {
+        const formDateInput = document.getElementById('form-date');
+        const ngayLapIso = getISODate(formDateInput) || convertToISO(formDate);
+        if (ngayLapIso !== getTodayISO()) {
+            alert('Ngày lập phải là ngày hôm nay và không được thay đổi.');
+            setDateValue(formDateInput, getTodayISO());
+            updateStartDateLimits();
             return false;
         }
     }
-
+    if (!validateStartDateRange()) return false;
     for (let i = 0; i < guests.length; i++) {
         if (!guests[i].name || !guests[i].idNumber) {
             alert(`Vui lòng điền đầy đủ thông tin cho khách hàng ${i + 1}!`);
@@ -270,12 +391,11 @@ function validateForm() {
 function calcGuestPrice(index) {
     const sophong = document.getElementById('room-select').value;
     const room = allRooms.find(p => String(p.id) === String(sophong));
-    if (!room) return '—';
-    const coNuocNgoai = guests.some(g => g.type === 'nước ngoài');
-    const heSoLoai = coNuocNgoai ? 1.5 : 1.0;
-    const heSoThuTu = guests.length >= 3 ? 1.25 : 1.0;
-    const tien = room.price * heSoLoai * heSoThuTu;
-    return formatCurrency(tien) + ' VNĐ';
+    if (!room) return formatGuestSurchargeCell(0, formatCurrency);
+    const surcharge = calcGuestSurchargeForDay(
+        index, guests[index], room.price, tiLePhuThu, pricingOptions()
+    );
+    return formatGuestSurchargeCell(surcharge, formatCurrency);
 }
 
 function convertToISO(ddmmyyyy) {

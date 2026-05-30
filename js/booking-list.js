@@ -5,9 +5,42 @@ const API_URL = 'https://hotel-management-system-se104.onrender.com/api';
 let bookings = [];
 let currentCheckoutBooking = null;
 let currentChiTiet = [];
+let checkoutTiLePhuThu = [];
+let checkoutPricingOptions = { khachIncluded: 2, foreignExtraRate: 0.5 };
+
+async function loadCheckoutPricingRules() {
+    try {
+        const resTS = await fetch(`${API_URL}/quy-dinh/thamso`);
+        const jsonTS = await resTS.json();
+        const data = jsonTS.data || [];
+        const soKhachMienPhi = data.find(t =>
+            t.tenthamso === 'SoKhachKhongTinhPhi' || t.tenthamso === 'Số khách không tính phí phụ thu'
+        );
+        if (soKhachMienPhi) {
+            checkoutPricingOptions.khachIncluded = parseInt(soKhachMienPhi.giatri) || 2;
+        }
+
+        const resPT = await fetch(`${API_URL}/quy-dinh/phu-thu`);
+        const jsonPT = await resPT.json();
+        checkoutTiLePhuThu = normalizePhuThu(jsonPT.data || []);
+
+        const resLK = await fetch(`${API_URL}/quy-dinh/loai-khach`);
+        const jsonLK = await resLK.json();
+        const nn = (jsonLK.data || []).find(l =>
+            (l.name || l.LoaiKhach || '').toLowerCase().includes('nước ngoài')
+        );
+        if (nn) {
+            const heSo = parseFloat(nn.surcharge ?? nn.HeSoPhuThu) || 1.5;
+            checkoutPricingOptions.foreignExtraRate = Math.max(0, heSo - 1);
+        }
+    } catch (err) {
+        console.error('Lỗi load quy định tính tiền:', err);
+    }
+}
 
 async function initializeData() {
     try {
+        await loadCheckoutPricingRules();
         const res = await fetch(`${API_URL}/thue-phong`);
         const json = await res.json();
         bookings = (json.data || []).filter(b => !b.ngaytrphong);
@@ -124,10 +157,10 @@ async function checkoutBooking(maThuePhong) {
         setDateValue(checkoutInput, defaultDate);
 
         checkoutInput.addEventListener('input', () => {
-        const isoDate = convertToISO(checkoutInput.value);
-        checkoutInput.setAttribute('data-iso-date', isoDate);
-        calculateTotal(currentCheckoutBooking, chitiet);
-    });
+            const isoDate = convertToISO(checkoutInput.value);
+            checkoutInput.setAttribute('data-iso-date', isoDate);
+            updateDayCount();
+        });
  
         updateDayCount();
  
@@ -162,11 +195,16 @@ async function confirmCheckout() {
  
     if (days < 1) { alert('Ngày trả phải sau ngày bắt đầu thuê!'); return; }
  
-    // Tính tiền đúng theo QĐ2
-    const coNuocNgoai = currentChiTiet.some(ct => ct.loaikhach === 'Nước ngoài');
-    const heSoLoai = coNuocNgoai ? 1.5 : 1.0;
-    const heSoThuTu = currentChiTiet.length >= 3 ? 1.25 : 1.0;
-    const tongMotNgay = (currentCheckoutBooking.dongia || 0) * heSoLoai * heSoThuTu;
+    const guestsForPricing = currentChiTiet.map(ct => ({
+        type: ct.loaikhach,
+        loaikhach: ct.loaikhach
+    }));
+    const tongMotNgay = calcRoomPricePerDay(
+        guestsForPricing,
+        currentCheckoutBooking.dongia || 0,
+        checkoutTiLePhuThu,
+        checkoutPricingOptions
+    );
     const tongTien = Math.round(tongMotNgay * days);
  
     try {
@@ -181,6 +219,7 @@ async function confirmCheckout() {
         });
         const json = await res.json();
         if (json.success) {
+            await setRoomStatusCleaning(currentCheckoutBooking.sophong);
             alert(`Trả phòng thành công!\nVào mục "Hóa đơn" → "Tạo hóa đơn" để lập hóa đơn thanh toán.`);
             closeCheckoutModal();
             initializeData();
@@ -196,6 +235,30 @@ function closeCheckoutModal() {
     document.getElementById('checkout-modal').style.display = 'none';
     currentCheckoutBooking = null;
     currentChiTiet = [];
+}
+
+/** Sau trả phòng: đặt trạng thái phòng = Dọn dẹp (maintenance) */
+async function setRoomStatusCleaning(soPhong) {
+    if (!soPhong) return;
+    try {
+        const resList = await fetch(`${API_URL}/phong`);
+        if (!resList.ok) return;
+        const rooms = await resList.json();
+        const room = rooms.find(r => String(r.id) === String(soPhong));
+        if (!room) return;
+
+        await fetch(`${API_URL}/phong/${soPhong}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: room.type,
+                status: 'maintenance',
+                notes: room.notes || ''
+            })
+        });
+    } catch (err) {
+        console.warn('Không cập nhật được trạng thái Dọn dẹp:', err);
+    }
 }
  
 function convertToISO(ddmmyyyy) {
