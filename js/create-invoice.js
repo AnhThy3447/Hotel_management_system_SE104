@@ -1,19 +1,20 @@
 // create-invoice.js - Lập hóa đơn thanh toán
 
 const API_URL = 'https://hotel-management-system-se104.onrender.com/api';
+const PAYER_GUEST_PREFIX = 'g:';
+const PAYER_AGENCY_PREFIX = 'a:';
 
 let allBookings = [];
 let allAgencies = [];
-let customerDropdownApi = null;
+let payerDropdownApi = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
     await loadAllData();
     setDefaultDate();
     renderAvailableBookings();
-    customerDropdownApi = initCustomerDropdown();
-    initAgencyDropdown();
+    payerDropdownApi = initPayerDropdown();
     setupCheckboxEvents();
-    updateCustomerDropdownForSelection();
+    updatePayerDropdownForSelection();
 });
 
 async function loadAllData() {
@@ -94,29 +95,58 @@ function getGuestsFromSelectedBookings() {
     return [...guestMap.values()];
 }
 
-function updateCustomerDropdownForSelection() {
+function buildPayerDropdownItems() {
     const guests = getGuestsFromSelectedBookings();
-    const searchInput = document.getElementById('customer-search');
-
-    const items = guests.map(g => ({
-        value: String(g.makhachhang),
+    const guestItems = guests.map(g => ({
+        value: `${PAYER_GUEST_PREFIX}${g.makhachhang}`,
         label: g.name || '(Không có tên)',
-        subLabel: `CMND: ${g.idNumber || 'N/A'} • ${g.address || ''}`
+        subLabel: `[Khách thuê] CMND: ${g.idNumber || 'N/A'}`,
+        address: g.address || '',
+        payerType: 'guest'
     }));
 
-    if (customerDropdownApi) {
-        customerDropdownApi.updateItems(items);
+    const agencyItems = allAgencies.map(cq => ({
+        value: `${PAYER_AGENCY_PREFIX}${cq.macoquan}`,
+        label: cq.tencoquan || '(Không có tên)',
+        subLabel: `[Cơ quan] ${cq.diachi || ''}`,
+        address: cq.diachi || '',
+        payerType: 'agency'
+    }));
+
+    return [...guestItems, ...agencyItems];
+}
+
+function parsePayerSelection(value) {
+    if (!value) return null;
+    if (value.startsWith(PAYER_GUEST_PREFIX)) {
+        return { type: 'guest', id: parseInt(value.slice(PAYER_GUEST_PREFIX.length), 10) };
+    }
+    if (value.startsWith(PAYER_AGENCY_PREFIX)) {
+        return { type: 'agency', id: parseInt(value.slice(PAYER_AGENCY_PREFIX.length), 10) };
+    }
+    return null;
+}
+
+function updatePayerDropdownForSelection() {
+    const items = buildPayerDropdownItems();
+    const searchInput = document.getElementById('customer-search');
+    const hasSelection = getSelectedBookingIds().length > 0;
+
+    if (payerDropdownApi) {
+        payerDropdownApi.updateItems(items);
     }
 
-    if (items.length === 0) {
+    if (!hasSelection) {
         searchInput.disabled = true;
-        searchInput.placeholder = getSelectedBookingIds().length === 0
-            ? 'Chọn phiếu thuê trước'
-            : 'Phiếu đã chọn chưa có khách trong hệ thống';
+        searchInput.placeholder = 'Chọn phiếu thuê trước';
+        document.getElementById('customer-address').value = '';
+    } else if (items.length === 0) {
+        searchInput.disabled = true;
+        searchInput.placeholder = 'Phiếu đã chọn chưa có khách — thêm khách hoặc cơ quan trong hệ thống';
         document.getElementById('customer-address').value = '';
     } else {
         searchInput.disabled = false;
-        searchInput.placeholder = '-- Tìm theo tên hoặc CMND (khách trong phiếu đã chọn) --';
+        searchInput.placeholder = 'Tìm khách thuê hoặc cơ quan thanh toán...';
     }
 }
 
@@ -124,7 +154,7 @@ function setupCheckboxEvents() {
     document.addEventListener('change', (e) => {
         if (e.target.classList.contains('booking-checkbox')) {
             calculateTotal();
-            updateCustomerDropdownForSelection();
+            updatePayerDropdownForSelection();
         }
     });
 }
@@ -136,28 +166,58 @@ function calculateTotal() {
     document.getElementById('invoice-total').textContent = formatCurrency(total) + ' VNĐ';
 }
 
+function resolvePayerForInvoice(payerValue) {
+    const parsed = parsePayerSelection(payerValue);
+    if (!parsed) return { ok: false, message: 'Vui lòng chọn người thanh toán!' };
+
+    const guests = getGuestsFromSelectedBookings();
+
+    if (parsed.type === 'guest') {
+        const allowed = new Set(guests.map(g => String(g.makhachhang)));
+        if (!allowed.has(String(parsed.id))) {
+            return { ok: false, message: 'Khách thanh toán phải là khách trong danh sách thuê của các phiếu đã chọn!' };
+        }
+        return {
+            ok: true,
+            MaKhachHangThanhToan: parsed.id,
+            MaCoQuan: null
+        };
+    }
+
+    if (parsed.type === 'agency') {
+        const agency = allAgencies.find(cq => String(cq.macoquan) === String(parsed.id));
+        if (!agency) {
+            return { ok: false, message: 'Cơ quan thanh toán không hợp lệ!' };
+        }
+        if (guests.length === 0) {
+            return {
+                ok: false,
+                message: 'Thanh toán qua cơ quan cần phiếu thuê có ít nhất một khách trong danh sách thuê!'
+            };
+        }
+        return {
+            ok: true,
+            MaKhachHangThanhToan: guests[0].makhachhang,
+            MaCoQuan: parsed.id
+        };
+    }
+
+    return { ok: false, message: 'Lựa chọn thanh toán không hợp lệ!' };
+}
+
 async function createInvoice() {
     const selected = document.querySelectorAll('.booking-checkbox:checked');
     if (selected.length === 0) { alert('Vui lòng chọn ít nhất một phiếu thuê!'); return; }
 
-    const maKhachHang = document.getElementById('customer-select').value;
-    if (!maKhachHang) { alert('Vui lòng chọn khách hàng thanh toán!'); return; }
-
-    const allowedGuests = getGuestsFromSelectedBookings();
-    if (allowedGuests.length === 0) {
-        alert('Các phiếu đã chọn không có khách hàng trong danh sách thuê. Vui lòng kiểm tra lại phiếu thuê!');
-        return;
-    }
-    const allowedIds = new Set(allowedGuests.map(g => String(g.makhachhang)));
-    if (!allowedIds.has(String(maKhachHang))) {
-        alert('Khách thanh toán phải là khách nằm trong danh sách thuê của các phiếu đã chọn!');
+    const payerValue = document.getElementById('customer-select').value;
+    const payer = resolvePayerForInvoice(payerValue);
+    if (!payer.ok) {
+        alert(payer.message);
         return;
     }
 
     const paymentDate = document.getElementById('payment-date').value;
     if (!paymentDate) { alert('Vui lòng chọn ngày thanh toán!'); return; }
-
-    const maCoQuan = document.getElementById('agency-select').value || null;
 
     let tongTien = 0;
     const danhSachPhieu = [];
@@ -177,8 +237,8 @@ async function createInvoice() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                MaKhachHangThanhToan: parseInt(maKhachHang, 10),
-                MaCoQuan: maCoQuan ? parseInt(maCoQuan, 10) : null,
+                MaKhachHangThanhToan: payer.MaKhachHangThanhToan,
+                MaCoQuan: payer.MaCoQuan,
                 NgayThanhToan: paymentDate,
                 TongTien: tongTien,
                 DanhSachPhieu: danhSachPhieu
@@ -197,36 +257,22 @@ async function createInvoice() {
     }
 }
 
-function initCustomerDropdown() {
+function initPayerDropdown() {
     return createSearchableDropdown({
         searchInputId: 'customer-search',
         hiddenInputId: 'customer-select',
         listId: 'customer-list',
         items: [],
-        placeholder: '-- Chọn khách hàng --',
+        placeholder: '-- Chọn người thanh toán --',
         onSelect(value) {
             const addressInput = document.getElementById('customer-address');
-            if (!value) { addressInput.value = ''; return; }
-            const guest = getGuestsFromSelectedBookings().find(g => String(g.makhachhang) === String(value));
-            addressInput.value = guest ? (guest.address || '') : '';
+            if (!value) {
+                addressInput.value = '';
+                return;
+            }
+            const item = buildPayerDropdownItems().find(i => String(i.value) === String(value));
+            addressInput.value = item ? (item.address || '') : '';
         }
-    });
-}
-
-function initAgencyDropdown() {
-    const items = allAgencies.map(cq => ({
-        value: String(cq.macoquan),
-        label: cq.tencoquan || '(Không có tên)',
-        subLabel: cq.diachi || ''
-    }));
-
-    createSearchableDropdown({
-        searchInputId: 'agency-search',
-        hiddenInputId: 'agency-select',
-        listId: 'agency-list',
-        items,
-        placeholder: '-- Không có cơ quan --',
-        onSelect() {}
     });
 }
 
