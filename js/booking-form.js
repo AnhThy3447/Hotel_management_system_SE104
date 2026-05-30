@@ -220,7 +220,7 @@ function removeGuest(index) {
 
 function updateGuest(index, field, value) {
     guests[index][field] = value;
-    updatePricePreview();
+    renderGuests();
 }
 
 function updateGuestCount() {
