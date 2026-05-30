@@ -144,28 +144,45 @@ function validateStartDateRange() {
     return true;
 }
 
+function normalizeRoomFields(room) {
+    return {
+        id: room.id ?? room.sophong ?? room.SoPhong,
+        typeName: room.typeName || room.typename || room.loaiphong || 'N/A',
+        price: Number(room.price ?? room.dongia ?? 0),
+        status: room.status || room.tinhtrang || ''
+    };
+}
+
+function formatRoomOptionText(room) {
+    const r = normalizeRoomFields(room);
+    return `Phòng ${r.id} — ${r.typeName} — ${formatCurrency(r.price)} VNĐ/ngày`;
+}
+
+function buildRoomSelectOptions(rooms, placeholder) {
+    return `<option value="">${placeholder}</option>` +
+        rooms.map(room => {
+            const r = normalizeRoomFields(room);
+            return `<option value="${r.id}">${formatRoomOptionText(room)}</option>`;
+        }).join('');
+}
+
 async function loadRooms() {
     try {
         const res = await fetch(`${API_URL}/phong`);
         if (!res.ok) throw new Error('Không thể tải danh sách phòng');
-        
-        const data = await res.json();
-        console.log("Dữ liệu phòng chuẩn từ API:", data); 
 
+        const data = await res.json();
         const select = document.getElementById('room-select');
         if (!select) return;
 
-        allRooms = Array.isArray(data) ? data : (data.data || []);
+        const rawRooms = Array.isArray(data) ? data : (data.data || []);
+        allRooms = rawRooms.map(r => ({ ...r, ...normalizeRoomFields(r) }));
 
         const availableRooms = allRooms.filter(room =>
             (room.status || '').trim().toLowerCase() === 'trống'
         );
 
-        select.innerHTML = '<option value="">-- Chọn phòng trống --</option>' +
-            availableRooms.map(room =>
-                `<option value="${room.id}">${room.id} - Loại ${room.typeName || ''} (${formatCurrency(room.price)} VNĐ/ngày)</option>`
-            ).join('');
-            
+        select.innerHTML = buildRoomSelectOptions(availableRooms, '-- Chọn phòng trống --');
     } catch (err) {
         console.error('Lỗi load phòng:', err);
         alert('Không thể tải danh sách phòng. Vui lòng kiểm tra console (F12).');
@@ -267,10 +284,27 @@ async function loadBooking(id) {
         formDateInput.addEventListener('blur', updateStartDateLimits);
         startDateInput.addEventListener('blur', validateStartDateOnBlur);
 
-        // Set giá trị dropdown phòng
+        const bookedRoom = {
+            id: currentBooking?.sophong,
+            typeName: currentBooking?.loaiphong,
+            price: currentBooking?.dongia,
+            status: 'Đang thuê'
+        };
+        if (!allRooms.some(r => String(r.id) === String(bookedRoom.id))) {
+            allRooms.push({ ...bookedRoom, ...normalizeRoomFields(bookedRoom) });
+        }
+
         const select = document.getElementById('room-select');
-        select.innerHTML += `<option value="${currentBooking?.sophong}" selected>${currentBooking?.sophong}</option>`;
+        const existingOptions = buildRoomSelectOptions(
+            allRooms.filter(r =>
+                String(r.id) === String(bookedRoom.id) ||
+                (r.status || '').trim().toLowerCase() === 'trống'
+            ),
+            '-- Chọn phòng --'
+        );
+        select.innerHTML = existingOptions;
         select.value = currentBooking?.sophong;
+        onRoomChange();
 
         guests = chitiet.map(ct => ({
             name: ct.tenkhachhang || '',
