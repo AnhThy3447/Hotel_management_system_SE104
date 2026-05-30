@@ -163,13 +163,10 @@ async function confirmCheckout() {
     if (days < 1) { alert('Ngày trả phải sau ngày bắt đầu thuê!'); return; }
  
     // Tính tiền đúng theo QĐ2
-    let tongMotNgay = 0;
-    currentChiTiet.forEach((ct, i) => {
-        let gia = currentCheckoutBooking.dongia || 0;
-        if (ct.loaikhach === 'Nước ngoài') gia *= 1.5;
-        if (i >= 2) gia *= 1.25;
-        tongMotNgay += gia;
-    });
+    const coNuocNgoai = currentChiTiet.some(ct => ct.loaikhach === 'Nước ngoài');
+    const heSoLoai = coNuocNgoai ? 1.5 : 1.0;
+    const heSoThuTu = currentChiTiet.length >= 3 ? 1.25 : 1.0;
+    const tongMotNgay = (currentCheckoutBooking.dongia || 0) * heSoLoai * heSoThuTu;
     const tongTien = Math.round(tongMotNgay * days);
  
     try {
