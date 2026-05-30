@@ -30,7 +30,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const maxYyyy = maxDate.getFullYear();
     const maxDateStr = `${maxDd}/${maxMm}/${maxYyyy}`;
 
-    document.getElementById('form-date').setAttribute('readonly', true);
+    document.getElementById('form-date').addEventListener('keydown', (e) => e.preventDefault());
+    document.getElementById('form-date').addEventListener('paste', (e) => e.preventDefault());
     document.getElementById('start-date').min = todayStr;
     document.getElementById('start-date').max = maxDateStr;
     addGuest();
