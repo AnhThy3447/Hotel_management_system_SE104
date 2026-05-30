@@ -214,7 +214,7 @@ exports.traPhong = async (req, res) => {
       [NgayTraPhong, SoNgayThue, ThanhTien, id]
     );
     await db.query(
-      `UPDATE PHONG SET TinhTrang = 'Trống' WHERE SoPhong = (SELECT SoPhong FROM THUEPHONG WHERE MaThuePhong = $1)`,
+      `UPDATE PHONG SET TinhTrang = 'Dọn dẹp' WHERE SoPhong = (SELECT SoPhong FROM THUEPHONG WHERE MaThuePhong = $1)`,
       [id]
     );
     res.json({ success: true, data: result.rows[0] });
