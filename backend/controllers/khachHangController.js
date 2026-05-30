@@ -21,7 +21,8 @@ exports.xemDanhSach = async (req, res) => {
        FROM KHACHHANG kh
        LEFT JOIN LOAIKHACH lk ON kh.MaLoaiKhach = lk.MaLoaiKhach
        LEFT JOIN HOADON hd ON kh.MaKhachHang = hd.MaKhachHangThanhToan
-       GROUP BY kh.MaKhachHang, lk.LoaiKhach`
+       GROUP BY kh.MaKhachHang, lk.LoaiKhach
+       ORDER BY kh.MaKhachHang ASC`
     );
     res.json({ success: true, data: result.rows });
   } catch (err) {

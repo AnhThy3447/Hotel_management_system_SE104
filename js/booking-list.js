@@ -3,6 +3,8 @@
 
 const API_URL = 'https://hotel-management-system-se104.onrender.com/api';
 let bookings = [];
+let currentCheckoutBooking = null;
+let currentChiTiet = [];
 
 async function initializeData() {
     try {
@@ -100,16 +102,120 @@ async function deleteBooking(id) {
     }
 }
 
-function checkoutBooking(id) {
-    window.location.href = `checkout-list.html`;
+// ─── Trả phòng ───────────────────────────────────────────────────────────────
+ 
+async function checkoutBooking(maThuePhong) {
+    try {
+        const res = await fetch(`${API_URL}/thue-phong/${maThuePhong}`);
+        const json = await res.json();
+        currentCheckoutBooking = json.data.phieu;
+        currentChiTiet = json.data.chitiet || [];
+ 
+        document.getElementById('modal-room').textContent = currentCheckoutBooking.sophong;
+        document.getElementById('modal-room-type').textContent = currentCheckoutBooking.loaiphong || 'N/A';
+        document.getElementById('modal-start-date').textContent =
+            new Date(currentCheckoutBooking.ngaybatdauthue).toLocaleDateString('vi-VN');
+ 
+        // Set ngày trả mặc định = hôm nay
+        const checkoutInput = document.getElementById('checkout-date');
+        const startISO = currentCheckoutBooking.ngaybatdauthue?.split('T')[0];
+        const today = new Date().toISOString().split('T')[0];
+        const defaultDate = startISO > today ? startISO : today;
+        setDateValue(checkoutInput, defaultDate);
+
+        checkoutInput.addEventListener('input', () => {
+        const isoDate = convertToISO(checkoutInput.value);
+        checkoutInput.setAttribute('data-iso-date', isoDate);
+        calculateTotal(currentCheckoutBooking, chitiet);
+    });
+ 
+        updateDayCount();
+ 
+        document.getElementById('checkout-modal').style.display = 'flex';
+    } catch (err) {
+        alert('Lỗi tải dữ liệu: ' + err.message);
+    }
+}
+ 
+function updateDayCount() {
+    if (!currentCheckoutBooking) return;
+    const checkoutInput = document.getElementById('checkout-date');
+    const checkoutDate = getISODate(checkoutInput) || convertToISO(checkoutInput.value);
+    if (!checkoutDate) return;
+ 
+    const startDate = new Date(currentCheckoutBooking.ngaybatdauthue.split('T')[0] + 'T00:00:00');
+    const endDate = new Date(checkoutDate + 'T00:00:00');
+    const days = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24));
+    document.getElementById('modal-days').textContent = days >= 1 ? days : 0;
+}
+ 
+async function confirmCheckout() {
+    if (!currentCheckoutBooking) return;
+ 
+    const checkoutDateRaw = document.getElementById('checkout-date').value;
+    const checkoutDate = getISODate(document.getElementById('checkout-date')) || convertToISO(checkoutDateRaw);
+    if (!checkoutDate) { alert('Vui lòng chọn ngày trả phòng!'); return; }
+ 
+    const startDate = new Date(currentCheckoutBooking.ngaybatdauthue.split('T')[0] + 'T00:00:00');
+    const endDate = new Date(checkoutDate + 'T00:00:00');
+    const days = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24));
+ 
+    if (days < 1) { alert('Ngày trả phải sau ngày bắt đầu thuê!'); return; }
+ 
+    // Tính tiền đúng theo QĐ2
+    let tongMotNgay = 0;
+    currentChiTiet.forEach((ct, i) => {
+        let gia = currentCheckoutBooking.dongia || 0;
+        if (ct.loaikhach === 'Nước ngoài') gia *= 1.5;
+        if (i >= 2) gia *= 1.25;
+        tongMotNgay += gia;
+    });
+    const tongTien = Math.round(tongMotNgay * days);
+ 
+    try {
+        const res = await fetch(`${API_URL}/thue-phong/${currentCheckoutBooking.mathuephong}/tra-phong`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                NgayTraPhong: checkoutDate,
+                SoNgayThue: days,
+                ThanhTien: tongTien
+            })
+        });
+        const json = await res.json();
+        if (json.success) {
+            alert(`Trả phòng thành công!\nVào mục "Hóa đơn" → "Tạo hóa đơn" để lập hóa đơn thanh toán.`);
+            closeCheckoutModal();
+            initializeData();
+        } else {
+            alert('Lỗi: ' + json.message);
+        }
+    } catch (err) {
+        alert('Lỗi kết nối: ' + err.message);
+    }
+}
+ 
+function closeCheckoutModal() {
+    document.getElementById('checkout-modal').style.display = 'none';
+    currentCheckoutBooking = null;
+    currentChiTiet = [];
+}
+ 
+function convertToISO(ddmmyyyy) {
+    if (!ddmmyyyy) return '';
+    const parts = ddmmyyyy.split('/');
+    if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    return ddmmyyyy;
 }
 
+// ─── Search & Utils ───────────────────────────────────────────────────────────
+ 
 function setupSearch() {
     const searchInput = document.getElementById('search-input');
     searchInput.addEventListener('input', (e) => {
         const searchTerm = e.target.value.toLowerCase();
         const filtered = bookings.filter(b =>
-            String(b.maphong).toLowerCase().includes(searchTerm) ||
+            String(b.sophong).toLowerCase().includes(searchTerm) ||
             b.guests.some(g => g.name.toLowerCase().includes(searchTerm))
         );
         renderBookings(filtered);
