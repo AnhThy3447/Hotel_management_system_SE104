@@ -85,10 +85,12 @@ function createSidebar() {
 
             <div class="sidebar-footer">
                 <div class="user-profile">
-                    <div class="user-avatar" id="btn-logout" title="Nhấn để Đăng xuất" style="cursor: pointer;">${shortName}</div>
+                    <div class="user-avatar">${shortName}</div>
+                    
                     <div class="user-info">
-                        <p>${currentUser.TenDangNhap || 'Guest'}</p>
-                        <small>${currentUser.NhomNguoiDung || 'Khách'}</small>
+                        <p class="user-role">${currentUser.NhomNguoiDung || 'Khách'}</p>
+                        
+                        <small id="btn-logout" class="logout-text" title="Nhấn để Đăng xuất">Đăng xuất</small>
                     </div>
                 </div>
             </div>

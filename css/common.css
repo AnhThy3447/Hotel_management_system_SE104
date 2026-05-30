@@ -167,3 +167,23 @@ body {
         justify-content: center;
     }
 }
+
+/* Định dạng cho dòng chữ Đăng xuất */
+.logout-text {
+    cursor: pointer;
+    color: #8c8c8c; 
+    transition: color 0.2s ease;
+    display: inline-block;
+}
+
+/* Hiệu ứng khi rê chuột vào chữ Đăng xuất */
+.logout-text:hover {
+    color: #ff4d4f; 
+    text-decoration: underline; 
+}
+
+/* Định dạng dòng Tên nhóm người dùng cho đẹp (nếu cần) */
+.user-role {
+    font-weight: bold;
+    margin-bottom: 2px;
+}

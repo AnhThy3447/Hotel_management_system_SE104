@@ -193,6 +193,48 @@ body, html {
     transform: translateY(0);
 }
 
+/* Màu cho dấu sao đỏ */
+.required-star {
+    color: #ff4d4f;
+    margin-left: 4px;
+    font-weight: bold;
+}
+
+/* Định dạng cho ô chứa mật khẩu để xếp nút con mắt */
+.password-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+/* Đẩy text của ô input dịch sang trái một chút để không bị đè lên con mắt */
+.password-input {
+    padding-right: 40px !important; 
+}
+
+/* Định dạng nút con mắt */
+.toggle-password-btn {
+    position: absolute;
+    right: 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #8c8c8c;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+}
+
+.toggle-password-btn:hover {
+    color: #333; 
+}
+
+.toggle-password-btn:focus {
+    outline: none;
+}
+
 /* ==========================================================================
    4. GIAO DIỆN RESPONSIVE (MOBILE & TABLET)
    ========================================================================== */
