@@ -238,6 +238,26 @@ function validateForm() {
         alert('Vui lòng điền đầy đủ thông tin cơ bản!');
         return false;
     }
+
+    // Kiểm tra ngày bắt đầu thuê không quá 1 tháng sau ngày lập
+    const ngayLapISO = convertToISO(formDate);
+    const ngayThueISO = convertToISO(startDate);
+    if (ngayLapISO && ngayThueISO) {
+        const ngayLap = new Date(ngayLapISO);
+        const ngayThue = new Date(ngayThueISO);
+        const maxNgayThue = new Date(ngayLap);
+        maxNgayThue.setMonth(maxNgayThue.getMonth() + 1);
+
+        if (ngayThue < ngayLap) {
+            alert('Ngày bắt đầu thuê không được trước ngày lập phiếu!');
+            return false;
+        }
+        if (ngayThue > maxNgayThue) {
+            alert('Ngày bắt đầu thuê không được quá 1 tháng sau ngày lập phiếu!');
+            return false;
+        }
+    }
+
     for (let i = 0; i < guests.length; i++) {
         if (!guests[i].name || !guests[i].idNumber) {
             alert(`Vui lòng điền đầy đủ thông tin cho khách hàng ${i + 1}!`);
