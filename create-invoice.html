@@ -133,7 +133,7 @@
                             <label>Khách hàng thanh toán</label>
                             <div class="searchable-select" id="customer-dropdown">
                                 <input type="text" class="form-input search-input" id="customer-search"
-                                    placeholder="-- Tìm theo tên hoặc CMND --" autocomplete="off">
+                                    placeholder="Chọn phiếu thuê trước" autocomplete="off" disabled>
                                 <input type="hidden" id="customer-select" value="">
                                 <div class="dropdown-list" id="customer-list"></div>
                             </div>
@@ -176,6 +176,7 @@
                                     <th>Ngày thuê</th>
                                     <th>Số ngày</th>
                                     <th>Đơn giá</th>
+                                    <th>Khách thuê</th>
                                     <th>Thành tiền</th>
                                 </tr>
                             </thead>
@@ -190,7 +191,7 @@
                     <ul>
                         <li>Đơn giá phòng áp dụng cho 2 khách</li>
                         <li>Khách thứ 3 phụ thu thêm 25%</li>
-                        <li>Nếu có khách nước ngoài thì nhân hệ số 1.5</li>
+                        <li>Nếu có khách nước ngoài thì phụ thu thêm 50% (hệ số 1.5)</li>
                     </ul>
                 </div>
 
@@ -228,7 +229,6 @@
 </div>
 
 <script src="js/data-structure.js"></script>
-</script>
 <script src="js/common.js"></script>
 <script src="js/create-invoice.js"></script>
 
