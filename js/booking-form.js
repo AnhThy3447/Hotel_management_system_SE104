@@ -30,8 +30,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const maxYyyy = maxDate.getFullYear();
     const maxDateStr = `${maxDd}/${maxMm}/${maxYyyy}`;
 
+    document.getElementById('form-date').value = todayStr;
+    document.getElementById('form-date').setAttribute('data-iso-date', convertToISO(todayStr));
     document.getElementById('form-date').addEventListener('keydown', (e) => e.preventDefault());
     document.getElementById('form-date').addEventListener('paste', (e) => e.preventDefault());
+    document.getElementById('form-date').style.backgroundColor = '#f0ebe3';
+    document.getElementById('form-date').style.cursor = 'not-allowed';
     document.getElementById('start-date').min = todayStr;
     document.getElementById('start-date').max = maxDateStr;
     addGuest();
