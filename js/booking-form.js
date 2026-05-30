@@ -10,6 +10,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadRooms();
     await loadThamSo();
 
+    // Chặn sửa ngày lập - chạy cho cả tạo mới lẫn cập nhật
+    document.getElementById('form-date').addEventListener('keydown', (e) => e.preventDefault());
+    document.getElementById('form-date').addEventListener('paste', (e) => e.preventDefault());
+    document.getElementById('form-date').style.backgroundColor = '#f0ebe3';
+    document.getElementById('form-date').style.cursor = 'not-allowed';
+
     const urlParams = new URLSearchParams(window.location.search);
     const bookingId = urlParams.get('id');
     const mode = urlParams.get('mode');
@@ -18,28 +24,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (bookingId) {
         loadBooking(parseInt(bookingId));
     } else {
-    const today = new Date();
-    const dd = String(today.getDate()).padStart(2, '0');
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const yyyy = today.getFullYear();
-    const todayStr = `${dd}/${mm}/${yyyy}`;
-    const maxDate = new Date();
-    maxDate.setMonth(maxDate.getMonth() + 1);
-    const maxDd = String(maxDate.getDate()).padStart(2, '0');
-    const maxMm = String(maxDate.getMonth() + 1).padStart(2, '0');
-    const maxYyyy = maxDate.getFullYear();
-    const maxDateStr = `${maxDd}/${maxMm}/${maxYyyy}`;
+        const today = new Date();
+        const dd = String(today.getDate()).padStart(2, '0');
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const yyyy = today.getFullYear();
+        const todayStr = `${dd}/${mm}/${yyyy}`;
+        const maxDate = new Date();
+        maxDate.setMonth(maxDate.getMonth() + 1);
+        const maxDd = String(maxDate.getDate()).padStart(2, '0');
+        const maxMm = String(maxDate.getMonth() + 1).padStart(2, '0');
+        const maxYyyy = maxDate.getFullYear();
+        const maxDateStr = `${maxDd}/${maxMm}/${maxYyyy}`;
 
-    document.getElementById('form-date').value = todayStr;
-    document.getElementById('form-date').setAttribute('data-iso-date', convertToISO(todayStr));
-    document.getElementById('form-date').addEventListener('keydown', (e) => e.preventDefault());
-    document.getElementById('form-date').addEventListener('paste', (e) => e.preventDefault());
-    document.getElementById('form-date').style.backgroundColor = '#f0ebe3';
-    document.getElementById('form-date').style.cursor = 'not-allowed';
-    document.getElementById('start-date').min = todayStr;
-    document.getElementById('start-date').max = maxDateStr;
-    addGuest();
-}
+        document.getElementById('form-date').value = todayStr;
+        document.getElementById('form-date').setAttribute('data-iso-date', convertToISO(todayStr));
+        document.getElementById('start-date').min = todayStr;
+        document.getElementById('start-date').max = maxDateStr;
+        addGuest();
+    }
 });
 
 async function loadRooms() {
@@ -114,13 +116,10 @@ function updatePricePreview() {
     }
 
     document.getElementById('price-preview').style.display = 'block';
-    let total = 0;
-    guests.forEach((g, i) => {
-        const pt = tiLePhuThu.find(t => t.thutukhach === (i + 1));
-        const heSoThuTu = pt ? pt.hesophuthu : 1.0;
-        const heSoLoai = g.type === 'nước ngoài' ? 1.5 : 1.0;
-        total += room.price * heSoThuTu * heSoLoai;
-    });
+    const coNuocNgoai = guests.some(g => g.type === 'nước ngoài');
+    const heSoLoai = coNuocNgoai ? 1.5 : 1.0;
+    const heSoThuTu = guests.length >= 3 ? 1.25 : 1.0;
+    const total = room.price * heSoLoai * heSoThuTu;
     document.getElementById('total-per-day').textContent = formatCurrency(total) + ' VNĐ';
 }
 
@@ -252,11 +251,10 @@ function calcGuestPrice(index) {
     const sophong = document.getElementById('room-select').value;
     const room = allRooms.find(p => String(p.id) === String(sophong));
     if (!room) return '—';
-    const guest = guests[index];
-    const pt = tiLePhuThu.find(t => t.thutukhach === (index + 1));
-    const heSoThuTu = pt ? pt.hesophuthu : 1.0;
-    const heSoLoai = guest.type === 'nước ngoài' ? 1.5 : 1.0;
-    const tien = room.price * heSoThuTu * heSoLoai;
+    const coNuocNgoai = guests.some(g => g.type === 'nước ngoài');
+    const heSoLoai = coNuocNgoai ? 1.5 : 1.0;
+    const heSoThuTu = guests.length >= 3 ? 1.25 : 1.0;
+    const tien = room.price * heSoLoai * heSoThuTu;
     return formatCurrency(tien) + ' VNĐ';
 }
 
