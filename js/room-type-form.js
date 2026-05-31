@@ -1,15 +1,32 @@
 const API_BASE = "https://hotel-management-system-se104-hgkg.onrender.com/api/phong/loai-phong";
 
-document.addEventListener("DOMContentLoaded", () => {
-    // Mở khóa cho phép tự gõ Mã loại phòng
+document.addEventListener("DOMContentLoaded", async () => {
     const codeInput = document.getElementById("typeCode");
-    if(codeInput) {
-        codeInput.disabled = false;
-        codeInput.placeholder = "Nhập Mã loại phòng (Ví dụ: 1, 2, 3...)";
-        codeInput.value = "";
+
+    if (codeInput) {
+        const newId = await generateRoomTypeId();
+
+        codeInput.value = newId;
+        codeInput.readOnly = true;
     }
 });
+async function generateRoomTypeId() {
+    try {
+        const response = await fetch(API_BASE);
+        const roomTypes = await response.json();
 
+        if (roomTypes.length === 0) return 1;
+
+        const maxId = Math.max(
+            ...roomTypes.map(item => parseInt(item.id) || 0)
+        );
+
+        return maxId + 1;
+    } catch (error) {
+        console.error("Lỗi tạo mã loại phòng:", error);
+        return 1;
+    }
+}
 async function handleSubmit(event) {
     event.preventDefault();
 
@@ -21,10 +38,7 @@ async function handleSubmit(event) {
         price: Number(document.getElementById("price").value)
     };
 
-    if (!data.id) {
-        alert("Vui lòng nhập Mã loại phòng!");
-        return;
-    }
+    
     if (!data.name || !data.price) {
         alert("Vui lòng nhập đầy đủ Tên loại phòng và Đơn giá!");
         return;
