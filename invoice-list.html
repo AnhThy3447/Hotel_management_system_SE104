@@ -36,7 +36,7 @@
                         <circle cx="11" cy="11" r="8"></circle>
                         <path d="m21 21-4.35-4.35"></path>
                     </svg>
-                    <input type="text" id="search-input" placeholder="Tìm theo mã hóa đơn, khách hàng...">
+                    <input type="text" id="search-input" placeholder="Tìm theo mã hóa đơn, khách/cơ quan thanh toán...">
                 </div>
 
                 <div class="table-container">
@@ -45,7 +45,7 @@
                             <tr>
                                 <th>STT</th>
                                 <th>Mã HĐ</th>
-                                <th>Khách thanh toán</th>
+                                <th>Khách/Cơ quan thanh toán</th>
                                 <th>Ngày thanh toán</th>
                                 <th>Số phiếu thuê</th>
                                 <th>Tổng tiền</th>
@@ -79,12 +79,8 @@
                         <span class="value" id="modal-invoice-id"></span>
                     </div>
                     <div class="info-row">
-                        <span class="label">Khách thanh toán:</span>
-                        <span class="value" id="modal-customer"></span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">Cơ quan:</span>
-                        <span class="value" id="modal-agency"></span>
+                        <span class="label">Khách/Cơ quan thanh toán:</span>
+                        <span class="value" id="modal-payer"></span>
                     </div>
                     <div class="info-row">
                         <span class="label">Ngày thanh toán:</span>
@@ -102,6 +98,7 @@
                             <tr>
                                 <th>STT</th>
                                 <th>Phòng</th>
+                                <th>Khách hàng</th>
                                 <th>Loại phòng</th>
                                 <th>Số ngày thuê</th>
                                 <th>Đơn giá</th>
@@ -128,7 +125,7 @@
     </div>
 
     <script src="js/data-structure.js"></script>
-    <script src="js/common.js"></script>
-    <script src="js/invoice-list.js"></script>
+    <script src="js/common.js?v=6"></script>
+    <script src="js/invoice-list.js?v=6"></script>
 </body>
 </html>
