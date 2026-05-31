@@ -119,7 +119,7 @@ async function handleSubmit(event) {
     };
 
         data.id = roomCodeValue;
-    }
+    
 
     if (!data.type) {
         alert("Vui lòng chọn loại phòng!");
