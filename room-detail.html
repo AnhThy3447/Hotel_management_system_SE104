@@ -1,74 +1,72 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chi tiết phòng - Quản lý khách sạn</title>
-    <link rel="stylesheet" href="css/room-detail.css">
-    <link rel="stylesheet" href="css/common.css">
-</head>
-<body data-page="rooms">
-<div class="container">
-    <!-- SIDEBAR -->
-    <div id="sidebar-container"></div>
+    <link rel="stylesheet" href="css/room-detail.css" />
+    <link rel="stylesheet" href="css/common.css" />
+  </head>
+  <body data-page="rooms">
+    <div class="container">
+      <!-- SIDEBAR -->
+      <div id="sidebar-container"></div>
 
-    <!-- MAIN -->
-    <main class="main-content">
-
+      <!-- MAIN -->
+      <main class="main-content">
+        
         <!-- HEADER -->
         <div class="page-header">
-            <button class="btn-back" onclick="history.back()">
-            <svg width="26" height="26" viewBox="0 0 24 24">
-            <path d="M15 18l-6-6 6-6"
+            <!-- BACK BUTTON RIÊNG -->
+        <button class="btn-back fixed-back" onclick="history.back()">
+          <svg width="26" height="26" viewBox="0 0 24 24">
+            <path
+              d="M15 18l-6-6 6-6"
               fill="none"
               stroke="currentColor"
               stroke-width="2.5"
               stroke-linecap="round"
-              stroke-linejoin="round"/>
-    </svg>
-    Quay lại
-</button>
-            <div>
-                <h2 id="roomTitle">Chi tiết phòng</h2>
-                <span id="roomStatus" class="badge"></span>
-            </div>
+              stroke-linejoin="round"
+            />
+          </svg>
+          Quay lại
+        </button>
+          <div>
+            
+            <h2 id="roomTitle">Chi tiết phòng</h2>
+            <span id="roomStatus" class="badge"></span>
+          </div>
 
-            <div class="header-actions">
-                <!-- FIX: link sang edit-room.html -->
-                <button class="btn-secondary" id="editBtn">
-                    Cập nhật
-                </button>
-            </div>
+          <div class="header-actions">
+            <!-- FIX: link sang edit-room.html -->
+            <button class="btn-secondary" id="editBtn">Cập nhật</button>
+          </div>
         </div>
 
         <!-- DETAIL -->
         <div class="detail-grid">
+          <!-- INFO -->
+          <div class="section-card">
+            <h3>Thông tin phòng</h3>
 
-            <!-- INFO -->
-            <div class="section-card">
-                <h3>Thông tin phòng</h3>
-
-                <div class="info-grid">
-                    <div>Mã phòng: <b id="id"></b></div>
-                    <div>Loại phòng: <b id="type"></b></div>
-                    <div>Giá: <b id="price"></b></div>
-                </div>
+            <div class="info-grid">
+              <div>Mã phòng: <b id="id"></b></div>
+              <div>Loại phòng: <b id="type"></b></div>
+              <div>Giá: <b id="price"></b></div>
             </div>
+          </div>
 
-            <!-- EXTRA -->
-            <div class="section-card">
-                <h3>Ghi chú</h3>
-                <div id="notes" class="notes-content"></div>
-                
-            </div>
-
+          <!-- EXTRA -->
+          <div class="section-card">
+            <h3>Ghi chú</h3>
+            <div id="notes" class="notes-content"></div>
+          </div>
         </div>
-    </main>
-</div>
+      </main>
+    </div>
 
-<!-- DATA + LOGIC -->
-<script src="js/common.js"></script>
-<script src="js/room-detail.js"></script>
-
-</body>
+    <!-- DATA + LOGIC -->
+    <script src="js/common.js"></script>
+    <script src="js/room-detail.js"></script>
+  </body>
 </html>
