@@ -8,6 +8,17 @@ document.addEventListener('DOMContentLoaded', () => {
     setupSearch();
 });
 
+function getPhieuThueDisplay(invoice) {
+    const list = invoice.danhsachmathuephong || invoice.DanhSachMaThuePhong;
+    if (list) return list;
+
+    const count = invoice.sopieuthue ?? invoice.SoPhieuThue;
+    if (invoice.mathuephong) {
+        return count > 1 ? `${invoice.mathuephong} (+${count - 1})` : String(invoice.mathuephong);
+    }
+    return '—';
+}
+
 async function loadInvoices(filtered = null) {
     try {
         if (!filtered) {
@@ -30,13 +41,19 @@ async function loadInvoices(filtered = null) {
 
         tableBody.innerHTML = data.map((invoice, index) => {
             const maHD = 'HD' + String(invoice.mahoadon).padStart(3, '0');
+            const soPhieu = getPhieuThueDisplay(invoice);
+            const phieuCount = invoice.sopieuthue ?? invoice.SoPhieuThue ?? 1;
+            const phieuLabel = phieuCount > 1
+                ? `${soPhieu} <span class="badge badge-count">${phieuCount} phiếu</span>`
+                : soPhieu;
+
             return `
                 <tr>
                     <td>${index + 1}</td>
                     <td><strong>${maHD}</strong></td>
-                    <td>${invoice.tenkhachhang || 'N/A'}</td>
+                    <td>${getPayerDisplay(invoice)}</td>
                     <td>${formatDateVN(invoice.ngaythanhToan?.split('T')[0] || invoice.ngaythanhtoan?.split('T')[0])}</td>
-                    <td><span class="badge badge-room">${invoice.mathuephong || '—'}</span></td>
+                    <td><span class="badge badge-room">${phieuLabel}</span></td>
                     <td><strong style="color: #4CAF50;">${formatCurrency(invoice.tongtien)} VNĐ</strong></td>
                     <td>
                         <div class="actions">
@@ -65,17 +82,44 @@ async function loadInvoices(filtered = null) {
     }
 }
 
+async function fetchGuestNamesForPhieu(maThuePhong) {
+    try {
+        const res = await fetch(`${API_URL}/thue-phong/${maThuePhong}`);
+        const json = await res.json();
+        const list = json.data?.chitiet || [];
+        const names = list.map(g => g.tenkhachhang).filter(Boolean);
+        return names.length ? names.join(', ') : '—';
+    } catch {
+        return '—';
+    }
+}
+
+function getGuestNamesFromChiTiet(ct) {
+    const fromApi = ct.tenkhachthue || ct.TenKhachThue;
+    if (fromApi) return fromApi;
+    return null;
+}
+
+async function enrichChiTietWithGuestNames(chitiet) {
+    return Promise.all(chitiet.map(async (ct) => {
+        let khachhang = getGuestNamesFromChiTiet(ct);
+        if (!khachhang && ct.mathuephong) {
+            khachhang = await fetchGuestNamesForPhieu(ct.mathuephong);
+        }
+        return { ...ct, khachhang: khachhang || '—' };
+    }));
+}
+
 async function viewInvoice(maHoaDon) {
     try {
         const res = await fetch(`${API_URL}/hoa-don/${maHoaDon}`);
         const json = await res.json();
         const invoice = json.data.hoaDon;
-        const chitiet = json.data.chiTiet || [];
+        const chitiet = await enrichChiTietWithGuestNames(json.data.chiTiet || []);
 
         const maHD = 'HD' + String(invoice.mahoadon).padStart(3, '0');
         document.getElementById('modal-invoice-id').textContent = maHD;
-        document.getElementById('modal-customer').textContent = invoice.tenkhachhang || 'N/A';
-        document.getElementById('modal-agency').textContent = invoice.tencoquan || 'Không có';
+        document.getElementById('modal-payer').textContent = getPayerDisplay(invoice);
         document.getElementById('modal-date').textContent = formatDateVN(invoice.ngaythanhtoan?.split('T')[0]);
         document.getElementById('modal-total').textContent = formatCurrency(invoice.tongtien) + ' VNĐ';
 
@@ -84,6 +128,7 @@ async function viewInvoice(maHoaDon) {
             <tr>
                 <td>${index + 1}</td>
                 <td><strong>${ct.sophong || 'N/A'}</strong></td>
+                <td>${ct.khachhang}</td>
                 <td>${ct.loaiphong || '—'}</td>
                 <td>${ct.songaythue || 0}</td>
                 <td>${ct.dongia ? formatCurrency(ct.dongia) + ' VNĐ' : '—'}</td>
@@ -120,7 +165,7 @@ function setupSearch() {
         const filtered = allInvoices.filter(hd => {
             const maHD = 'HD' + String(hd.mahoadon).padStart(3, '0');
             return maHD.toLowerCase().includes(q) ||
-                (hd.tenkhachhang || '').toLowerCase().includes(q);
+                getPayerDisplay(hd).toLowerCase().includes(q);
         });
         loadInvoices(filtered);
     });

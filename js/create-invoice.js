@@ -7,6 +7,7 @@ const PAYER_AGENCY_PREFIX = 'a:';
 let allBookings = [];
 let allAgencies = [];
 let payerDropdownApi = null;
+let isCreating = false;
 
 document.addEventListener('DOMContentLoaded', async () => {
     await loadAllData();
@@ -206,6 +207,8 @@ function resolvePayerForInvoice(payerValue) {
 }
 
 async function createInvoice() {
+    if (isCreating) return;
+
     const selected = document.querySelectorAll('.booking-checkbox:checked');
     if (selected.length === 0) { alert('Vui lòng chọn ít nhất một phiếu thuê!'); return; }
 
@@ -232,6 +235,13 @@ async function createInvoice() {
         });
     });
 
+    const createBtn = document.querySelector('.invoice-actions .btn-primary');
+    isCreating = true;
+    if (createBtn) {
+        createBtn.disabled = true;
+        createBtn.textContent = 'Đang tạo...';
+    }
+
     try {
         const res = await fetch(`${API_URL}/hoa-don`, {
             method: 'POST',
@@ -247,13 +257,20 @@ async function createInvoice() {
 
         const json = await res.json();
         if (json.success) {
-            alert(`Tạo hóa đơn thành công!\nTổng tiền: ${formatCurrency(tongTien)} VNĐ`);
+            const phieuCount = danhSachPhieu.length;
+            alert(`Tạo hóa đơn thành công!\nGộp ${phieuCount} phiếu thuê\nTổng tiền: ${formatCurrency(tongTien)} VNĐ`);
             window.location.href = 'invoice-list.html';
         } else {
             alert('Lỗi: ' + json.message);
         }
     } catch (err) {
         alert('Lỗi kết nối: ' + err.message);
+    } finally {
+        isCreating = false;
+        if (createBtn) {
+            createBtn.disabled = false;
+            createBtn.textContent = 'Tạo hóa đơn';
+        }
     }
 }
 

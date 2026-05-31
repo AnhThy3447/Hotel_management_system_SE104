@@ -227,6 +227,27 @@ function setStorageData(key, data) {
     localStorage.setItem(key, JSON.stringify(data));
 }
 
+/** Hóa đơn: xác định thanh toán qua cơ quan hay khách hàng */
+function isAgencyPayer(invoice) {
+    if (!invoice) return false;
+    if (invoice.loainguoithanhtoan === 'coquan') return true;
+    const maCoQuan = invoice.macoquan ?? invoice.MaCoQuan;
+    return maCoQuan != null && maCoQuan !== '' && Number(maCoQuan) > 0;
+}
+
+function getPayerLabel(invoice) {
+    return isAgencyPayer(invoice) ? 'Cơ quan thanh toán' : 'Khách hàng thanh toán';
+}
+
+function getPayerDisplay(invoice) {
+    if (!invoice) return 'N/A';
+    if (invoice.nguoithanhtoan) return invoice.nguoithanhtoan;
+    if (isAgencyPayer(invoice)) {
+        return invoice.tencoquan || invoice.TenCoQuan || '—';
+    }
+    return invoice.tenkhachhang || invoice.TenKhachHang || 'N/A';
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     loadSidebar();
 });
