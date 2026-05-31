@@ -15,13 +15,31 @@ document.addEventListener("DOMContentLoaded", async () => {
         setupEditMode(id);
     } else {
         // Cho phép nhập số phòng khi tạo mới
-        if(codeInput) {
-            codeInput.disabled = false;
-            codeInput.placeholder = "Nhập Số phòng (Ví dụ: 101, 102)";
-            codeInput.value = "";
-        }
+       if (codeInput) {
+        const newId = await generateRoomTypeId();
+
+        codeInput.value = newId;
+        codeInput.readOnly = true;
+}
     }
 });
+async function generateRoomTypeId() {
+    try {
+        const response = await fetch(`${API_BASE}/loai-phong`);
+        const roomTypes = await response.json();
+
+        if (roomTypes.length === 0) return 1;
+
+        const maxId = Math.max(
+            ...roomTypes.map(item => parseInt(item.id) || 0)
+        );
+
+        return maxId + 1;
+    } catch (error) {
+        console.error("Lỗi tạo mã:", error);
+        return 1;
+    }
+}
 
 async function fetchRoomTypesToSelect() {
     try {
@@ -100,11 +118,6 @@ async function handleSubmit(event) {
         notes: document.getElementById("notes").value.trim()
     };
 
-    if (!isEditMode) {
-        if (!roomCodeValue) {
-            alert("Vui lòng nhập Số phòng!");
-            return;
-        }
         data.id = roomCodeValue;
     }
 
