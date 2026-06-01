@@ -20,6 +20,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         codeInput.placeholder = "Nhập Số phòng (Ví dụ: 101, 102)";
         codeInput.value = "";
 }
+         const statusSelect = document.getElementById("status");
+        statusSelect.value = "available"; 
+        statusSelect.disabled = true;  
     }
 });
 
