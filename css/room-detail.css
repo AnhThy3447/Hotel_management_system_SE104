@@ -96,22 +96,14 @@ body {
     margin-top: 20px;
 }
 
-.badge {
-    padding: 6px 14px;
-    border-radius: 999px;
-    font-size: 13px;
-    font-weight: 600;
-}
+
 .page-header h2 {
     font-size: 36px;
     font-weight: 600;
     color: #5D4037;
     letter-spacing: -0.5px;
 }
-.badge {
-    position: relative;
-    top: 2px; 
-}
+
 .header-actions {
     display: flex;
     gap: 12px;
@@ -146,6 +138,10 @@ body {
     font-weight: 600;
 }
 
+.badge {
+    position: relative;
+    top: 2px; 
+}
 .badge-available {
     background-color: #E8F5E9;
     color: #2E7D32;
@@ -155,7 +151,10 @@ body {
     background-color: #FFF3E0;
     color: #E65100;
 }
-
+.badge-maintenance {
+    background-color: #FFF9C4;
+    color: #F57F17;
+}
 /* Detail Grid */
 .detail-grid {
     display: grid;
