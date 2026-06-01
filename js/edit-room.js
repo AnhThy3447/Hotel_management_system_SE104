@@ -71,15 +71,13 @@ function checkRoomStatusRestrictions(status) {
     const submitBtn = document.querySelector('form button[type="submit"]'); 
 
     // Nếu phòng đang thuê (rented), khóa hết form
-    if (status === 'rented' || status === 'Đang thuê') { 
-        alert("Phòng đang ở trạng thái 'Đang thuê', không được phép chỉnh sửa hoặc xóa!");
-        const inputs = document.querySelectorAll('form input, form select, form textarea');
-        inputs.forEach(input => input.disabled = true);
-        if (submitBtn) submitBtn.disabled = true;
-        const deleteBtn = document.querySelector('button[onclick="deleteRoom()"]');
-        if (deleteBtn) deleteBtn.disabled = true;
-        return; 
-    }
+    if (status === 'rented' || status === 'Đang thuê') {
+
+    // Chỉ khóa combobox trạng thái
+    statusSelect.disabled = true;
+
+    return;
+}
 
     // Nếu phòng trống hoặc dọn dẹp, xóa lựa chọn "Đang thuê" đi để không chọn nhầm được
     for (let i = statusSelect.options.length - 1; i >= 0; i--) {
@@ -94,10 +92,7 @@ function checkRoomStatusRestrictions(status) {
 // ==========================
 function handleSubmit(event) {
     event.preventDefault();
-    if (currentRoom.status === 'rented' || currentRoom.status === 'Đang thuê') {
-     alert("Không thể cập nhật phòng đang thuê!");
-     return;
- }
+   
     const typeNameMap = {
     standard: "Phòng tiêu chuẩn",
     deluxe: "Phòng cao cấp",
