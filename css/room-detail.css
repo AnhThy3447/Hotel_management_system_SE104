@@ -85,13 +85,14 @@ body {
     align-items: center;
     gap: 16px;
 }
+
+
 .title-wrap {
     display: flex;
     align-items: center;
     gap: 12px;
+    transform: translateY(4px);
 }
-
-
 
 .page-header h2 {
     font-size: 36px;
