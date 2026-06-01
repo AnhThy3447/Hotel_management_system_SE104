@@ -140,7 +140,7 @@ body {
 
 .badge {
     position: relative;
-    top: 2px; 
+    top: 4px; 
 }
 .badge-available {
     background-color: #E8F5E9;
