@@ -1,5 +1,14 @@
-const API_BASE = 'https://hotel-management-system-se104-g0le.onrender.com/api/phan-quyen';
-const API_QUYDINH = 'https://hotel-management-system-se104-g0le.onrender.com/api/quy-dinh';
+const API_BASE = `${typeof API_BASE_URL !== 'undefined' ? API_BASE_URL : 'https://hotel-management-system-se104-g0le.onrender.com/api'}/phan-quyen`;
+const API_QUYDINH = typeof API_QUYDINH_URL !== 'undefined' ? API_QUYDINH_URL : `${API_BASE_URL || 'https://hotel-management-system-se104-g0le.onrender.com/api'}/quy-dinh`;
+
+async function dongBoQuyDinhSauKhiLuu() {
+    try {
+        const rules = await fetchQuyDinhTinhTien(API_QUYDINH);
+        syncQuyDinhToLocalStorage(rules);
+    } catch (err) {
+        console.warn('Không đồng bộ cache quy định sau lưu:', err);
+    }
+}
 
 // Biến toàn cục hứng danh mục chức năng load từ DB
 let danhSachChucNangGocTuDB = [];
@@ -355,11 +364,22 @@ async function xuLyLuuThamSo() {
         body: JSON.stringify({ TenThamSo, GiaTri })
     });
     if (res.ok) {
-        if (TenThamSo === 'Số khách không tính phí phụ thu') {
+        if (TenThamSo === 'Số khách không tính phí phụ thu' || TenThamSo === 'SoKhachKhongTinhPhi') {
             luuTruSoKhachKhongTinhPhi = GiaTri;
+        }
+        if (typeof getThamSo === 'function' && typeof saveThamSo === 'function') {
+            const cached = getThamSo() || {};
+            if (TenThamSo === 'Số khách tối đa trong phòng' || TenThamSo === 'SoKhachToiDa') {
+                cached.SoKhachToiDa = GiaTri;
+            }
+            if (TenThamSo === 'Số khách không tính phí phụ thu' || TenThamSo === 'SoKhachKhongTinhPhi') {
+                cached.SoKhachKhongTinhPhuThu = GiaTri;
+            }
+            saveThamSo(cached);
         }
 
         closeModal('modal-edit-param');
+        await dongBoQuyDinhSauKhiLuu();
         taiDuLieuTabQuyDinhHethong();
     }
 }
@@ -381,6 +401,7 @@ async function xuLyLuuPhuThu() {
     });
     if (res.ok) {
         closeModal('modal-edit-surcharge');
+        await dongBoQuyDinhSauKhiLuu();
         taiDuLieuTabQuyDinhHethong();
     }
 }
@@ -425,6 +446,7 @@ async function xuLyLuuLoaiKhach() {
     
     if (res.ok) {
         closeModal('modal-guest-type');
+        await dongBoQuyDinhSauKhiLuu();
         taiDuLieuTabQuyDinhHethong();
     }
 }
@@ -434,6 +456,7 @@ async function xuLyXoaLoaiKhach(id) {
         const res = await fetch(`${API_QUYDINH}/loai-khach/xoa/${id}`, { method: "DELETE" });
         const data = await res.json();
         if (!res.ok) alert(data.message);
+        await dongBoQuyDinhSauKhiLuu();
         taiDuLieuTabQuyDinhHethong();
     }
 }

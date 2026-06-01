@@ -1,6 +1,6 @@
 // create-invoice.js - Lập hóa đơn thanh toán
 
-const API_URL = 'https://hotel-management-system-se104.onrender.com/api';
+// API_BASE_URL từ api-config.js
 const PAYER_GUEST_PREFIX = 'g:';
 const PAYER_AGENCY_PREFIX = 'a:';
 
@@ -11,6 +11,7 @@ let isCreating = false;
 
 document.addEventListener('DOMContentLoaded', async () => {
     await loadAllData();
+    await loadQuyDinhDisplay();
     setDefaultDate();
     renderAvailableBookings();
     payerDropdownApi = initPayerDropdown();
@@ -18,13 +19,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     updatePayerDropdownForSelection();
 });
 
+async function loadQuyDinhDisplay() {
+    try {
+        const rules = await fetchQuyDinhTinhTien();
+        renderQuyDinhRulesList('invoice-rules-list', rules.ruleLines);
+    } catch (err) {
+        console.error('Lỗi tải quy định tính tiền:', err);
+    }
+}
+
 async function loadAllData() {
     try {
-        const resBooking = await fetch(`${API_URL}/thue-phong`);
+        const resBooking = await fetch(`${API_BASE_URL}/thue-phong`);
         const jsonBooking = await resBooking.json();
         allBookings = (jsonBooking.data || []).filter(b => b.ngaytrphong && !b.dahoadon && b.songaythue > 0);
 
-        const resCQ = await fetch(`${API_URL}/co-quan`);
+        const resCQ = await fetch(`${API_BASE_URL}/co-quan`);
         const jsonCQ = await resCQ.json();
         allAgencies = jsonCQ.data || [];
     } catch (err) {
@@ -243,7 +253,7 @@ async function createInvoice() {
     }
 
     try {
-        const res = await fetch(`${API_URL}/hoa-don`, {
+        const res = await fetch(`${API_BASE_URL}/hoa-don`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

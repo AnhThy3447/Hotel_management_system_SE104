@@ -1,9 +1,18 @@
 const db = require('../db');
+const { calcThanhTienThuePhong, getSoKhachToiDa } = require('../services/pricingService');
 
 exports.taoPhieuThue = async (req, res) => {
   try {
     const { SoPhong, NgayLap, NgayBatDauThue, DanhSachKhach } = req.body;
     const danhSach = Array.isArray(DanhSachKhach) ? DanhSachKhach : [];
+
+    const soKhachToiDa = await getSoKhachToiDa(db);
+    if (danhSach.length > soKhachToiDa) {
+      return res.status(400).json({
+        success: false,
+        message: `Mỗi phòng chỉ được tối đa ${soKhachToiDa} khách theo quy định hiện hành!`
+      });
+    }
 
     // Kiểm tra phòng có đang được thuê không
     const phongCheck = await db.query(
@@ -150,6 +159,13 @@ exports.capNhat = async (req, res) => {
 
     // Cập nhật danh sách khách nếu có
     if (Array.isArray(DanhSachKhach) && DanhSachKhach.length > 0) {
+      const soKhachToiDa = await getSoKhachToiDa(db);
+      if (DanhSachKhach.length > soKhachToiDa) {
+        return res.status(400).json({
+          success: false,
+          message: `Mỗi phòng chỉ được tối đa ${soKhachToiDa} khách theo quy định hiện hành!`
+        });
+      }
       // Xóa khách cũ
       await db.query(`DELETE FROM CTTHUEPHONG WHERE MaThuePhong = $1`, [id]);
 
@@ -207,11 +223,13 @@ exports.capNhat = async (req, res) => {
 exports.traPhong = async (req, res) => {
   try {
     const { id } = req.params;
-    const { NgayTraPhong, SoNgayThue, ThanhTien } = req.body;
+    const { NgayTraPhong, SoNgayThue } = req.body;
+    // Luôn tính lại theo quy định hiện hành trong DB (QĐ10)
+    const thanhTien = await calcThanhTienThuePhong(db, parseInt(id, 10), SoNgayThue);
     const result = await db.query(
       `UPDATE THUEPHONG SET NgayTraPhong=$1, SoNgayThue=$2, ThanhTien=$3
        WHERE MaThuePhong=$4 RETURNING *`,
-      [NgayTraPhong, SoNgayThue, ThanhTien, id]
+      [NgayTraPhong, SoNgayThue, thanhTien, id]
     );
     await db.query(
       `UPDATE PHONG SET TinhTrang = 'Dọn dẹp' WHERE SoPhong = (SELECT SoPhong FROM THUEPHONG WHERE MaThuePhong = $1)`,

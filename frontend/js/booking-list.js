@@ -1,7 +1,6 @@
 // booking-list.js - Theo DB Schema với View/Edit
 // Hiển thị danh sách phiếu thuê từ THUEPHONG, CTTHUEPHONG, KHACHHANG
 
-const API_URL = 'https://hotel-management-system-se104.onrender.com/api';
 let bookings = [];
 let currentCheckoutBooking = null;
 let currentChiTiet = [];
@@ -10,29 +9,10 @@ let checkoutPricingOptions = { khachIncluded: 2, foreignExtraRate: 0.5 };
 
 async function loadCheckoutPricingRules() {
     try {
-        const resTS = await fetch(`${API_URL}/quy-dinh/thamso`);
-        const jsonTS = await resTS.json();
-        const data = jsonTS.data || [];
-        const soKhachMienPhi = data.find(t =>
-            t.tenthamso === 'SoKhachKhongTinhPhi' || t.tenthamso === 'Số khách không tính phí phụ thu'
-        );
-        if (soKhachMienPhi) {
-            checkoutPricingOptions.khachIncluded = parseInt(soKhachMienPhi.giatri) || 2;
-        }
-
-        const resPT = await fetch(`${API_URL}/quy-dinh/phu-thu`);
-        const jsonPT = await resPT.json();
-        checkoutTiLePhuThu = normalizePhuThu(jsonPT.data || []);
-
-        const resLK = await fetch(`${API_URL}/quy-dinh/loai-khach`);
-        const jsonLK = await resLK.json();
-        const nn = (jsonLK.data || []).find(l =>
-            (l.name || l.LoaiKhach || '').toLowerCase().includes('nước ngoài')
-        );
-        if (nn) {
-            const heSo = parseFloat(nn.surcharge ?? nn.HeSoPhuThu) || 1.5;
-            checkoutPricingOptions.foreignExtraRate = Math.max(0, heSo - 1);
-        }
+        const rules = await fetchQuyDinhTinhTien();
+        checkoutTiLePhuThu = rules.tiLePhuThu;
+        checkoutPricingOptions = pricingOptionsFromRules(rules);
+        syncQuyDinhToLocalStorage(rules);
     } catch (err) {
         console.error('Lỗi load quy định tính tiền:', err);
     }
@@ -41,7 +21,7 @@ async function loadCheckoutPricingRules() {
 async function initializeData() {
     try {
         await loadCheckoutPricingRules();
-        const res = await fetch(`${API_URL}/thue-phong`);
+        const res = await fetch(`${API_BASE_URL}/thue-phong`);
         const json = await res.json();
         bookings = (json.data || []).filter(b => !b.ngaytrphong);
         renderBookings();
@@ -127,7 +107,7 @@ function editBooking(id) {
 async function deleteBooking(id) {
     if (!confirm('Bạn có chắc chắn muốn xóa phiếu thuê này?')) return;
     try {
-        await fetch(`${API_URL}/thue-phong/${id}`, { method: 'DELETE' });
+        await fetch(`${API_BASE_URL}/thue-phong/${id}`, { method: 'DELETE' });
         alert('Đã xóa phiếu thuê thành công!');
         initializeData();
     } catch (err) {
@@ -139,7 +119,7 @@ async function deleteBooking(id) {
  
 async function checkoutBooking(maThuePhong) {
     try {
-        const res = await fetch(`${API_URL}/thue-phong/${maThuePhong}`);
+        const res = await fetch(`${API_BASE_URL}/thue-phong/${maThuePhong}`);
         const json = await res.json();
         currentCheckoutBooking = json.data.phieu;
         currentChiTiet = json.data.chitiet || [];
@@ -184,7 +164,8 @@ function updateDayCount() {
  
 async function confirmCheckout() {
     if (!currentCheckoutBooking) return;
- 
+    await loadCheckoutPricingRules();
+
     const checkoutDateRaw = document.getElementById('checkout-date').value;
     const checkoutDate = getISODate(document.getElementById('checkout-date')) || convertToISO(checkoutDateRaw);
     if (!checkoutDate) { alert('Vui lòng chọn ngày trả phòng!'); return; }
@@ -208,19 +189,20 @@ async function confirmCheckout() {
     const tongTien = Math.round(tongMotNgay * days);
  
     try {
-        const res = await fetch(`${API_URL}/thue-phong/${currentCheckoutBooking.mathuephong}/tra-phong`, {
+        const res = await fetch(`${API_BASE_URL}/thue-phong/${currentCheckoutBooking.mathuephong}/tra-phong`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 NgayTraPhong: checkoutDate,
-                SoNgayThue: days,
-                ThanhTien: tongTien
+                SoNgayThue: days
             })
         });
         const json = await res.json();
         if (json.success) {
             await setRoomStatusCleaning(currentCheckoutBooking.sophong);
-            alert(`Trả phòng thành công!\nVào mục "Hóa đơn" → "Tạo hóa đơn" để lập hóa đơn thanh toán.`);
+            const amount = json.data?.thanhtien != null ? json.data.thanhtien : tongTien;
+            const tien = new Intl.NumberFormat('vi-VN').format(amount) + ' VNĐ';
+            alert(`Trả phòng thành công!\nThành tiền (theo quy định hiện hành): ${tien}\nVào mục "Hóa đơn" → "Tạo hóa đơn" để lập hóa đơn thanh toán.`);
             closeCheckoutModal();
             initializeData();
         } else {
@@ -241,13 +223,13 @@ function closeCheckoutModal() {
 async function setRoomStatusCleaning(soPhong) {
     if (!soPhong) return;
     try {
-        const resList = await fetch(`${API_URL}/phong`);
+        const resList = await fetch(`${API_BASE_URL}/phong`);
         if (!resList.ok) return;
         const rooms = await resList.json();
         const room = rooms.find(r => String(r.id) === String(soPhong));
         if (!room) return;
 
-        await fetch(`${API_URL}/phong/${soPhong}`, {
+        await fetch(`${API_BASE_URL}/phong/${soPhong}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -289,4 +271,7 @@ function updateTotalCount() {
 document.addEventListener('DOMContentLoaded', () => {
     initializeData();
     setupSearch();
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) loadCheckoutPricingRules();
+    });
 });

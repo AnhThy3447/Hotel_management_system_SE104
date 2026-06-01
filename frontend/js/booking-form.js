@@ -1,4 +1,3 @@
-const API_URL = 'https://hotel-management-system-se104.onrender.com/api';
 let currentBooking = null;
 let guests = [];
 let isViewMode = false;
@@ -6,10 +5,17 @@ let allRooms = [];
 let thamSo = { soKhachToiDa: 3, khachIncluded: 2 };
 let tiLePhuThu = [];
 let foreignExtraRate = 0.5;
+let quyDinhRules = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
     await loadRooms();
     await loadThamSo();
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) loadThamSo().then(() => {
+            updateGuestCount();
+            if (guests.length) renderGuests();
+        });
+    });
 
     const urlParams = new URLSearchParams(window.location.search);
     const bookingId = urlParams.get('id');
@@ -168,7 +174,7 @@ function buildRoomSelectOptions(rooms, placeholder) {
 
 async function loadRooms() {
     try {
-        const res = await fetch(`${API_URL}/phong`);
+        const res = await fetch(`${API_BASE_URL}/phong`);
         if (!res.ok) throw new Error('Không thể tải danh sách phòng');
 
         const data = await res.json();
@@ -191,35 +197,31 @@ async function loadRooms() {
 
 async function loadThamSo() {
     try {
-        const res = await fetch(`${API_URL}/quy-dinh/thamso`);
-        const json = await res.json();
-        const data = json.data || [];
-        const soKhach = data.find(t => t.tenthamso === 'SoKhachToiDa');
-        if (soKhach) thamSo.soKhachToiDa = parseInt(soKhach.giatri) || 3;
-        const ruleEl = document.getElementById('max-guests-rule');
-        if (ruleEl) ruleEl.textContent = thamSo.soKhachToiDa;
-
-        const soKhachMienPhi = data.find(t =>
-            t.tenthamso === 'SoKhachKhongTinhPhi' || t.tenthamso === 'Số khách không tính phí phụ thu'
-        );
-        if (soKhachMienPhi) thamSo.khachIncluded = parseInt(soKhachMienPhi.giatri) || 2;
-
-        const resPT = await fetch(`${API_URL}/quy-dinh/phu-thu`);
-        const jsonPT = await resPT.json();
-        tiLePhuThu = normalizePhuThu(jsonPT.data || []);
-
-        const resLK = await fetch(`${API_URL}/quy-dinh/loai-khach`);
-        const jsonLK = await resLK.json();
-        const lkRows = jsonLK.data || [];
-        const nn = lkRows.find(l =>
-            (l.name || l.LoaiKhach || '').toLowerCase().includes('nước ngoài')
-        );
-        if (nn) {
-            const heSo = parseFloat(nn.surcharge ?? nn.HeSoPhuThu) || 1.5;
-            foreignExtraRate = Math.max(0, heSo - 1);
-        }
+        quyDinhRules = await fetchQuyDinhTinhTien();
+        thamSo.soKhachToiDa = quyDinhRules.soKhachToiDa;
+        thamSo.khachIncluded = quyDinhRules.khachIncluded;
+        tiLePhuThu = quyDinhRules.tiLePhuThu;
+        foreignExtraRate = quyDinhRules.foreignExtraRate;
+        syncQuyDinhToLocalStorage(quyDinhRules);
     } catch (err) {
-        console.error('Lỗi load tham số:', err);
+        console.error('Lỗi load tham số từ API:', err);
+        thamSo.soKhachToiDa = readSoKhachToiDaFromLocalStorage(thamSo.soKhachToiDa);
+        const cached = typeof getThamSo === 'function' ? getThamSo() : {};
+        const mienPhi = parseInt(cached.SoKhachKhongTinhPhuThu, 10);
+        if (Number.isFinite(mienPhi)) thamSo.khachIncluded = mienPhi;
+    }
+    applySoKhachToiDaToForm(thamSo.soKhachToiDa);
+    updateGuestCount();
+    updateQuyDinhDisplayOnForm();
+}
+
+function updateQuyDinhDisplayOnForm() {
+    if (!quyDinhRules) return;
+    const note = document.querySelector('.rules-note');
+    if (note && quyDinhRules.ruleLines?.length) {
+        note.innerHTML = '<strong>Quy định hiện hành:</strong><ul>' +
+            quyDinhRules.ruleLines.map(l => `<li>${l}</li>`).join('') +
+            '</ul>';
     }
 }
 
@@ -236,11 +238,7 @@ function onRoomChange() {
         document.getElementById('room-info').style.display = 'flex';
         document.getElementById('selected-room-type').textContent = room.typeName || 'N/A';
         document.getElementById('selected-room-price').textContent = formatCurrency(room.price) + ' VNĐ';
-        document.getElementById('max-guests-display').textContent = thamSo.soKhachToiDa;
-        document.getElementById('max-guests').textContent = thamSo.soKhachToiDa;
-        document.getElementById('max-count').textContent = thamSo.soKhachToiDa;
-        const ruleEl = document.getElementById('max-guests-rule');
-        if (ruleEl) ruleEl.textContent = thamSo.soKhachToiDa;
+        applySoKhachToiDaToForm(thamSo.soKhachToiDa);
     } else {
         document.getElementById('room-info').style.display = 'none';
     }
@@ -263,7 +261,7 @@ function updatePricePreview() {
 
 async function loadBooking(id) {
     try {
-        const res = await fetch(`${API_URL}/thue-phong/${id}`);
+        const res = await fetch(`${API_BASE_URL}/thue-phong/${id}`);
         const json = await res.json();
         currentBooking = json.data?.phieu;
         const chitiet = json.data?.chitiet || [];
@@ -442,6 +440,7 @@ function convertToISO(ddmmyyyy) {
 // Hàm này được gọi từ HTML (onclick="saveBooking()")
 async function saveBooking() {
     if (!validateForm()) return;
+    await loadThamSo();
 
     const bookingData = {
         SoPhong: document.getElementById('room-select').value,
@@ -458,8 +457,8 @@ async function saveBooking() {
     try {
         const method = currentBooking ? 'PUT' : 'POST';
         const url = currentBooking
-            ? `${API_URL}/thue-phong/${currentBooking.mathuephong}`
-            : `${API_URL}/thue-phong`;
+            ? `${API_BASE_URL}/thue-phong/${currentBooking.mathuephong}`
+            : `${API_BASE_URL}/thue-phong`;
 
         const res = await fetch(url, {
             method,

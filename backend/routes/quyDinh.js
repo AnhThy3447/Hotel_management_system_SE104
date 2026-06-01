@@ -4,6 +4,7 @@ const quyDinhController = require('../controllers/quyDinhController');
 
 // THAM SỐ hệ thống
 router.get('/tham-so', quyDinhController.xemThamSo);
+router.get('/thamso', quyDinhController.xemThamSo); // alias tương thích frontend cũ
 router.put('/tham-so/cap-nhat', quyDinhController.capNhatThamSo);
 
 // TỶ LỆ PHỤ THU theo thứ tự khách

@@ -29,6 +29,20 @@ exports.capNhatThamSo = async (req, res) => {
       return res.status(404).json({ success: false, message: "Không tìm thấy tham số cần cập nhật!" });
     }
 
+    // Đồng bộ alias EN/VN để mọi API đọc cùng một giá trị
+    if (TenThamSo === 'SoKhachToiDa' || TenThamSo === 'Số khách tối đa trong phòng') {
+      await db.query(
+        `UPDATE THAMSO SET GiaTri=$1 WHERE TenThamSo IN ('SoKhachToiDa', 'Số khách tối đa trong phòng')`,
+        [GiaTri]
+      );
+    }
+    if (TenThamSo === 'SoKhachKhongTinhPhi' || TenThamSo === 'Số khách không tính phí phụ thu') {
+      await db.query(
+        `UPDATE THAMSO SET GiaTri=$1 WHERE TenThamSo IN ('SoKhachKhongTinhPhi', 'Số khách không tính phí phụ thu')`,
+        [GiaTri]
+      );
+    }
+
     // LOGIC TỰ ĐỘNG ĐỒNG BỘ: Nếu cập nhật "Số khách tối đa trong phòng" (SoKhachToiDa)
     if (TenThamSo === 'SoKhachToiDa' || TenThamSo === 'Số khách tối đa trong phòng') {
       const soKhachToiDaMoi = parseInt(GiaTri);
