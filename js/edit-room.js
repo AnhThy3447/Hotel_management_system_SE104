@@ -71,7 +71,7 @@ function checkRoomStatusRestrictions(status) {
     const submitBtn = document.querySelector('form button[type="submit"]'); 
 
     // Nếu phòng đang thuê (rented), khóa hết form
-    if (status === 'rented' || status === 'Đang thuê') {
+    if (status === 'occupied' || status === 'Đang thuê') {
 
     // Chỉ khóa combobox trạng thái
     statusSelect.disabled = true;
@@ -138,7 +138,7 @@ const data = {
 // ==========================
 function deleteRoom() {
     if (!currentRoom) return;
-    if (currentRoom.status === 'rented' || currentRoom.status === 'Đang thuê') {
+    if (currentRoom.status === 'occupied' || currentRoom.status === 'Đang thuê') {
      alert("Không thể xóa phòng đang thuê!");
      return;
  }
