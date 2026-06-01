@@ -136,12 +136,9 @@ body {
     border-radius: 24px;
     font-size: 14px;
     font-weight: 600;
+    line-height: 1;
 }
 
-.badge {
-    position: relative;
-    top: 6px; 
-}
 .badge-available {
     background-color: #E8F5E9;
     color: #2E7D32;
