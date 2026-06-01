@@ -126,10 +126,7 @@ function formatPrice(price) {
 async function deleteRoom(id) {
     const room = rooms.find(r => r.id === id);
 
-    console.log("ROOM =", room);
-    console.log("STATUS =", room?.status);
-
-    const room = rooms.find(r => r.id === id);
+    
 
 if (
     room &&
