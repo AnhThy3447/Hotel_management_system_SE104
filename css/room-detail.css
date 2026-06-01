@@ -86,16 +86,21 @@ body {
     gap: 16px;
 }
 .title-wrap {
-  display: flex;
-  align-items: center;   /* căn giữa theo chiều dọc */
-  gap: 10px;             /* khoảng cách giữa tiêu đề và badge */
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 #roomTitle {
-  margin: 0;            
-}
-#roomTitle {
+    margin: 0;
     margin-top: 20px;
+}
+
+.badge {
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
 }
 .page-header h2 {
     font-size: 36px;
