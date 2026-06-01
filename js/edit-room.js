@@ -81,11 +81,11 @@ function checkRoomStatusRestrictions(status) {
 
     // Nếu phòng trống hoặc dọn dẹp, xóa lựa chọn "Đang thuê" đi để không chọn nhầm được
     for (let i = statusSelect.options.length - 1; i >= 0; i--) {
-        const optionVal = statusSelect.options[i].value;
-        if (optionVal !== 'available' && optionVal !== 'cleaning') {
-            statusSelect.remove(i);
-        }
+    const optionVal = statusSelect.options[i].value;
+    if (optionVal !== 'available' && optionVal !== 'maintenance') {
+        statusSelect.remove(i);
     }
+}
 }
 // ==========================
 // SUBMIT UPDATE
