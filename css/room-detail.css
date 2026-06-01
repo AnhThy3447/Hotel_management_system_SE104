@@ -108,7 +108,10 @@ body {
     color: #5D4037;
     letter-spacing: -0.5px;
 }
-
+.badge {
+    position: relative;
+    top: 2px; 
+}
 .header-actions {
     display: flex;
     gap: 12px;
