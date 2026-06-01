@@ -124,6 +124,15 @@ function formatPrice(price) {
 }
 
 async function deleteRoom(id) {
+    const room = rooms.find(r => r.id === id);
+
+if (
+    room &&
+    (room.status === "occupied" || room.status === "Đang thuê")
+) {
+    alert("Không thể xóa phòng đang thuê!");
+    return;
+}
     if (!confirm("Bạn có chắc muốn xóa phòng này khỏi hệ thống?")) return;
     try {
         const response = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
