@@ -85,6 +85,15 @@ body {
     align-items: center;
     gap: 16px;
 }
+.title-wrap {
+  display: flex;
+  align-items: center;   /* căn giữa theo chiều dọc */
+  gap: 10px;             /* khoảng cách giữa tiêu đề và badge */
+}
+
+#roomTitle {
+  margin: 0;            
+}
 #roomTitle {
     margin-top: 20px;
 }
