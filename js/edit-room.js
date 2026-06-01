@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     fillForm(currentRoom);
+    checkRoomStatusRestrictions(currentRoom.status);
 });
 
 // ==========================
@@ -62,13 +63,41 @@ function updatePrice() {
         document.getElementById('price').value = prices[type];
     }
 }
+// ==========================
+// KIỂM TRA TRẠNG THÁI PHÒNG (THÊM MỚI TOÀN BỘ HÀM NÀY)
+// ==========================
+function checkRoomStatusRestrictions(status) {
+    const statusSelect = document.getElementById('status');
+    const submitBtn = document.querySelector('form button[type="submit"]'); 
 
+    // Nếu phòng đang thuê (rented), khóa hết form
+    if (status === 'rented' || status === 'Đang thuê') { 
+        alert("Phòng đang ở trạng thái 'Đang thuê', không được phép chỉnh sửa hoặc xóa!");
+        const inputs = document.querySelectorAll('form input, form select, form textarea');
+        inputs.forEach(input => input.disabled = true);
+        if (submitBtn) submitBtn.disabled = true;
+        const deleteBtn = document.querySelector('button[onclick="deleteRoom()"]');
+        if (deleteBtn) deleteBtn.disabled = true;
+        return; 
+    }
+
+    // Nếu phòng trống hoặc dọn dẹp, xóa lựa chọn "Đang thuê" đi để không chọn nhầm được
+    for (let i = statusSelect.options.length - 1; i >= 0; i--) {
+        const optionVal = statusSelect.options[i].value;
+        if (optionVal !== 'available' && optionVal !== 'cleaning') {
+            statusSelect.remove(i);
+        }
+    }
+}
 // ==========================
 // SUBMIT UPDATE
 // ==========================
 function handleSubmit(event) {
     event.preventDefault();
-
+    if (currentRoom.status === 'rented' || currentRoom.status === 'Đang thuê') {
+     alert("Không thể cập nhật phòng đang thuê!");
+     return;
+ }
     const typeNameMap = {
     standard: "Phòng tiêu chuẩn",
     deluxe: "Phòng cao cấp",
@@ -114,7 +143,10 @@ const data = {
 // ==========================
 function deleteRoom() {
     if (!currentRoom) return;
-
+    if (currentRoom.status === 'rented' || currentRoom.status === 'Đang thuê') {
+     alert("Không thể xóa phòng đang thuê!");
+     return;
+ }
     if (!confirm("Bạn có chắc muốn xóa phòng này?")) return;
 
     rooms = rooms.filter(r => r.id !== currentRoom.id);
