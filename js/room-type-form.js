@@ -45,6 +45,18 @@ async function handleSubmit(event) {
     }
 
     try {
+        // ===== KIỂM TRA TRÙNG TÊN LOẠI PHÒNG =====
+    const checkResponse = await fetch(API_BASE);
+    const roomTypes = await checkResponse.json();
+
+    const isDuplicate = roomTypes.some(
+        item => item.name.trim().toLowerCase() === data.name.trim().toLowerCase()
+    );
+
+    if (isDuplicate) {
+        alert("Tên loại phòng đã tồn tại!");
+        return;
+    }
         const response = await fetch(API_BASE, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
