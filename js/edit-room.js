@@ -68,24 +68,24 @@ function updatePrice() {
 // ==========================
 function checkRoomStatusRestrictions(status) {
     const statusSelect = document.getElementById('status');
-    const submitBtn = document.querySelector('form button[type="submit"]'); 
 
-    // Nếu phòng đang thuê (rented), khóa hết form
+    // Nếu phòng đang thuê => khóa combobox
     if (status === 'occupied' || status === 'Đang thuê') {
-
-    // Chỉ khóa combobox trạng thái
-    statusSelect.disabled = true;
-
-    return;
-}
-
-    // Nếu phòng trống hoặc dọn dẹp, xóa lựa chọn "Đang thuê" đi để không chọn nhầm được
-    for (let i = statusSelect.options.length - 1; i >= 0; i--) {
-    const optionVal = statusSelect.options[i].value;
-    if (optionVal !== 'available' && optionVal !== 'maintenance') {
-        statusSelect.remove(i);
+        statusSelect.disabled = true;
+        return;
     }
-}
+
+    // Xóa lựa chọn "Đang thuê"
+    for (let i = statusSelect.options.length - 1; i >= 0; i--) {
+        const value = statusSelect.options[i].value;
+
+        if (
+            value === 'occupied' ||
+            value === 'Đang thuê'
+        ) {
+            statusSelect.remove(i);
+        }
+    }
 }
 // ==========================
 // SUBMIT UPDATE
@@ -107,7 +107,19 @@ const data = {
     status: document.getElementById('status').value,
     notes: document.getElementById('notes').value.trim()
 };
-
+// Không cho đổi sang Đang thuê
+// Chỉ chặn khi từ trạng thái khác chuyển sang Đang thuê
+if (
+    currentRoom.status !== 'occupied' &&
+    currentRoom.status !== 'Đang thuê' &&
+    (
+        data.status === 'occupied' ||
+        data.status === 'Đang thuê'
+    )
+) {
+    alert("Không được chuyển phòng sang trạng thái Đang thuê!");
+    return;
+}
     // validate
     if (!data.id || !data.name || !data.type) {
         alert("Vui lòng nhập đầy đủ thông tin!");
