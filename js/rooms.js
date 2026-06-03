@@ -127,6 +127,8 @@ async function deleteRoom(id) {
     alert("Đã vào hàm delete");
     const room = rooms.find(r => r.id === id);
 
+alert("Status = " + room.status);
+console.log(room);
     
 
 if (
