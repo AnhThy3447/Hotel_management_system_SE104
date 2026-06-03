@@ -21,7 +21,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     try {
-
         const response = await fetch(API_BASE);
         const rooms = await response.json();
 
@@ -35,29 +34,23 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
-        console.log("Current Room:", currentRoom);
-
         fillForm(currentRoom);
         checkRoomStatusRestrictions(currentRoom.status);
 
     } catch (error) {
-
         console.error(error);
         alert("Không tải được dữ liệu phòng!");
-
     }
-
 });
+
 
 // ==========================
 // FILL FORM
 // ==========================
 function fillForm(room) {
 
-    document.getElementById("roomCode").value =
-        room.id || "";
+    document.getElementById("roomCode").value = room.id || "";
 
-    // Loại phòng
     const typeMap = {
         1: "standard",
         2: "deluxe",
@@ -67,25 +60,16 @@ function fillForm(room) {
     document.getElementById("roomType").value =
         typeMap[room.type] || "";
 
-    // Giá
-    document.getElementById("price").value =
-        room.price || "";
+    document.getElementById("price").value = room.price || "";
 
-    // Trạng thái
-    const statusMap = {
-        "Trống": "available",
-        "Đang thuê": "occupied",
-        "Dọn dẹp": "maintenance"
-    };
-
+    // status chuẩn API
     document.getElementById("status").value =
-        statusMap[room.status] || "available";
+        room.status || "available";
 
-    // Ghi chú
     document.getElementById("notes").value =
         room.notes || "";
-
 }
+
 
 // ==========================
 // AUTO PRICE
@@ -98,53 +82,52 @@ function updatePrice() {
         suite: 200000
     };
 
-    const type =
-        document.getElementById("roomType").value;
+    const type = document.getElementById("roomType").value;
 
     if (prices[type]) {
-        document.getElementById("price").value =
-            prices[type];
+        document.getElementById("price").value = prices[type];
     }
-
 }
 
+
 // ==========================
-// KIỂM TRA TRẠNG THÁI
+// LOCK ROOM IF OCCUPIED
 // ==========================
 function checkRoomStatusRestrictions(status) {
 
-    if (status !== "Đang thuê") return;
+    if (status !== "occupied") return;
 
     document.getElementById("roomType").disabled = true;
     document.getElementById("price").disabled = true;
     document.getElementById("status").disabled = true;
     document.getElementById("notes").disabled = true;
 
-    const submitBtn =
-        document.querySelector('button[type="submit"]');
-
-    if (submitBtn) {
-        submitBtn.disabled = true;
-    }
+    const submitBtn = document.querySelector('button[type="submit"]');
+    if (submitBtn) submitBtn.disabled = true;
 
     alert("Phòng đang thuê, không được chỉnh sửa!");
-
 }
 
+
 // ==========================
-// UPDATE
+// UPDATE ROOM
 // ==========================
 async function handleSubmit(event) {
-
     event.preventDefault();
-     console.log("currentRoom =", currentRoom);
-    console.log("status =", currentRoom.status);
 
-    alert("Status hiện tại: " + currentRoom.status);
+    if (!currentRoom) return;
 
-    // Chặn phòng đang thuê
-    if (currentRoom.status === "Đang thuê") {
+    const newStatus = document.getElementById("status").value;
+
+    // chặn sửa nếu đang occupied
+    if (currentRoom.status === "occupied") {
         alert("Phòng đang thuê, không được chỉnh sửa!");
+        return;
+    }
+
+    // chặn chuyển sang occupied
+    if (newStatus === "occupied") {
+        alert("Không được chuyển sang trạng thái 'Đang thuê'!");
         return;
     }
 
@@ -160,151 +143,76 @@ async function handleSubmit(event) {
         suite: "C"
     };
 
-    const statusMap = {
-        available: "Trống",
-        occupied: "Đang thuê",
-        maintenance: "Dọn dẹp"
-    };
-
     const data = {
+        id: Number(document.getElementById("roomCode").value),
 
-        id: Number(
-            document.getElementById("roomCode").value
-        ),
+        status: newStatus,
 
-        status:
-            statusMap[
-                document.getElementById("status").value
-            ],
+        notes: document.getElementById("notes").value.trim(),
 
-        notes:
-            document.getElementById("notes").value.trim(),
+        type: typeMap[document.getElementById("roomType").value],
 
-        type:
-            typeMap[
-                document.getElementById("roomType").value
-            ],
+        typeName: typeNameMap[document.getElementById("roomType").value],
 
-        typeName:
-            typeNameMap[
-                document.getElementById("roomType").value
-            ],
-
-        price: Number(
-            document.getElementById("price").value
-        )
-
+        price: Number(document.getElementById("price").value)
     };
-
-    console.log("Current:", currentRoom.status);
-    console.log("New:", data.status);
-
-    // Không cho đổi sang Đang thuê
-    if (
-        currentRoom.status !== "Đang thuê" &&
-        data.status === "Đang thuê"
-    ) {
-        alert(
-            "Không được chuyển phòng sang trạng thái Đang thuê!"
-        );
-        return;
-    }
 
     try {
+        const response = await fetch(`${API_BASE}/${currentRoom.id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        });
 
-        const response = await fetch(
-            `${API_BASE}/${currentRoom.id}`,
-            {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(data)
-            }
-        );
-
-        const result =
-            await response.json();
+        const result = await response.json();
 
         if (response.ok) {
-
             alert("Cập nhật phòng thành công!");
             window.location.href = "rooms.html";
-
         } else {
-
-            alert(
-                result.error ||
-                "Cập nhật thất bại!"
-            );
-
+            alert(result.error || "Cập nhật thất bại!");
         }
 
     } catch (error) {
-
         console.error(error);
         alert("Lỗi kết nối!");
-
     }
-
 }
 
+
 // ==========================
-// DELETE
+// DELETE ROOM
 // ==========================
 async function deleteRoom() {
 
     if (!currentRoom) return;
 
-    if (currentRoom.status === "Đang thuê") {
-
+    if (currentRoom.status === "occupied") {
         alert("Không thể xóa phòng đang thuê!");
         return;
-
     }
 
-    if (
-        !confirm("Bạn có chắc muốn xóa phòng này?")
-    ) {
-        return;
-    }
+    if (!confirm("Bạn có chắc muốn xóa phòng này?")) return;
 
     try {
-
         const response = await fetch(
             `${API_BASE}/${currentRoom.id}`,
-            {
-                method: "DELETE"
-            }
+            { method: "DELETE" }
         );
 
-        const result =
-            await response.json();
+        const result = await response.json();
 
         if (response.ok) {
-
-            alert(
-                result.message ||
-                "Xóa phòng thành công!"
-            );
-
-            window.location.href =
-                "rooms.html";
-
+            alert(result.message || "Xóa phòng thành công!");
+            window.location.href = "rooms.html";
         } else {
-
-            alert(
-                result.error ||
-                "Không thể xóa phòng!"
-            );
-
+            alert(result.error || "Không thể xóa phòng!");
         }
 
     } catch (error) {
-
         console.error(error);
         alert("Lỗi kết nối!");
-
     }
-
 }
