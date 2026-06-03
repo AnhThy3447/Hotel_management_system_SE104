@@ -25,7 +25,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     currentRoom = rooms.find(
         r => String(r.id) === String(roomId)
     );
-
+    console.log("Current Room:", currentRoom);
+console.log("Status API:", currentRoom.status);
     if (!currentRoom) {
         alert("Không tìm thấy phòng!");
         window.location.href = "rooms.html";
@@ -82,6 +83,7 @@ function checkRoomStatusRestrictions(status) {
     const statusSelect = document.getElementById('status');
 
     // Nếu phòng đang thuê => khóa combobox
+    
     if (status === 'occupied' || status === 'Đang thuê') {
         statusSelect.disabled = true;
         return;
@@ -119,6 +121,8 @@ const data = {
     status: document.getElementById('status').value,
     notes: document.getElementById('notes').value.trim()
 };
+    console.log("Current Status:", currentRoom.status);
+console.log("New Status:", data.status);
 // Không cho đổi sang Đang thuê
 // Chỉ chặn khi từ trạng thái khác chuyển sang Đang thuê
 if (
