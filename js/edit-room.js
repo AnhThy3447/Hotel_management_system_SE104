@@ -1,13 +1,14 @@
 // ==========================
 // LOAD DATA
 // ==========================
-let rooms = JSON.parse(localStorage.getItem('rooms')) || [];
+const API_BASE = "https://hotel-management-system-se104-hgkg.onrender.com/api/phong";
+
 let currentRoom = null;
 
 // ==========================
 // INIT
 // ==========================
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const params = new URLSearchParams(window.location.search);
     const roomId = params.get('id');
 
@@ -17,7 +18,13 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    currentRoom = rooms.find(r => r.id === roomId);
+   try {
+    const response = await fetch(API_BASE);
+    const rooms = await response.json();
+
+    currentRoom = rooms.find(
+        r => String(r.id) === String(roomId)
+    );
 
     if (!currentRoom) {
         alert("Không tìm thấy phòng!");
@@ -27,6 +34,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     fillForm(currentRoom);
     checkRoomStatusRestrictions(currentRoom.status);
+
+} catch (error) {
+    console.error(error);
+    alert("Không tải được dữ liệu phòng!");
+}
 });
 
 // ==========================
@@ -126,40 +138,70 @@ if (
         return;
     }
 
-    const index = rooms.findIndex(r => r.id === currentRoom.id);
+   try {
+    const response = await fetch(
+        `${API_BASE}/${currentRoom.id}`,
+        {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        }
+    );
 
-    if (index === -1) {
-        alert("Không tìm thấy phòng!");
-        return;
+    const result = await response.json();
+
+    if (response.ok) {
+        alert("Cập nhật phòng thành công!");
+        window.location.href = "rooms.html";
+    } else {
+        alert(result.error || "Cập nhật thất bại!");
     }
 
-    // update
-    rooms[index] = {
-        ...rooms[index],
-        ...data
-    };
-
-    localStorage.setItem('rooms', JSON.stringify(rooms));
-
-    alert("Cập nhật phòng thành công!");
-    window.location.href = "rooms.html";
+} catch (error) {
+    console.error(error);
+    alert("Lỗi kết nối!");
 }
-
+}
 // ==========================
 // DELETE
 // ==========================
-function deleteRoom() {
+async function deleteRoom() {
+
     if (!currentRoom) return;
-    if (currentRoom.status === 'occupied' || currentRoom.status === 'Đang thuê') {
-     alert("Không thể xóa phòng đang thuê!");
-     return;
- }
-    if (!confirm("Bạn có chắc muốn xóa phòng này?")) return;
 
-    rooms = rooms.filter(r => r.id !== currentRoom.id);
+    if (
+        currentRoom.status === "occupied" ||
+        currentRoom.status === "Đang thuê"
+    ) {
+        alert("Không thể xóa phòng đang thuê!");
+        return;
+    }
 
-    localStorage.setItem('rooms', JSON.stringify(rooms));
+    if (!confirm("Bạn có chắc muốn xóa phòng này?")) {
+        return;
+    }
 
-    alert("Đã xóa phòng!");
-    window.location.href = "rooms.html";
+    try {
+        const response = await fetch(
+            `${API_BASE}/${currentRoom.id}`,
+            {
+                method: "DELETE"
+            }
+        );
+
+        const result = await response.json();
+
+        if (response.ok) {
+            alert(result.message || "Xóa phòng thành công!");
+            window.location.href = "rooms.html";
+        } else {
+            alert(result.error || "Không thể xóa phòng!");
+        }
+
+    } catch (error) {
+        console.error(error);
+        alert("Lỗi kết nối!");
+    }
 }
