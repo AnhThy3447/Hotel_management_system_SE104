@@ -137,6 +137,10 @@ function checkRoomStatusRestrictions(status) {
 async function handleSubmit(event) {
 
     event.preventDefault();
+     console.log("currentRoom =", currentRoom);
+    console.log("status =", currentRoom.status);
+
+    alert("Status hiện tại: " + currentRoom.status);
 
     // Chặn phòng đang thuê
     if (currentRoom.status === "Đang thuê") {
