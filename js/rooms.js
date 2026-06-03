@@ -124,29 +124,48 @@ function formatPrice(price) {
 }
 
 async function deleteRoom(id) {
-    alert("Đã vào hàm delete");
-    const room = rooms.find(r => r.id === id);
-
-alert("Status = " + room.status);
-console.log(room);
-    
-
-if (
-    room &&
-    (room.status === "occupied" || room.status === "Đang thuê")
-) {
-    alert("Không thể xóa phòng đang thuê!");
-    return;
-}
-    if (!confirm("Bạn có chắc muốn xóa phòng này khỏi hệ thống?")) return;
     try {
-        const response = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
+        // Tìm phòng theo id
+        const room = rooms.find(r => String(r.id) === String(id));
+
+        console.log("ID:", id);
+        console.log("Room:", room);
+
+        if (!room) {
+            alert("Không tìm thấy thông tin phòng!");
+            return;
+        }
+
+        // Không cho xóa phòng đang thuê
+        if (
+            room.status === "occupied" ||
+            room.status === "Đang thuê"
+        ) {
+            alert("Không thể xóa phòng đang thuê!");
+            return;
+        }
+
+        // Xác nhận xóa
+        if (!confirm("Bạn có chắc muốn xóa phòng này khỏi hệ thống?")) {
+            return;
+        }
+
+        // Gọi API xóa
+        const response = await fetch(`${API_BASE}/${id}`, {
+            method: "DELETE"
+        });
+
         const result = await response.json();
+
         if (response.ok) {
-            alert(result.message);
+            alert(result.message || "Xóa phòng thành công!");
             loadAllData();
-        } else alert(result.error);
+        } else {
+            alert(result.error || "Không thể xóa phòng!");
+        }
+
     } catch (error) {
+        console.error(error);
         alert("Lỗi kết nối khi xóa phòng!");
     }
 }
