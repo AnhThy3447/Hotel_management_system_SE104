@@ -1,0 +1,36 @@
+.date-input-wrapper{
+    display:flex;
+    align-items:stretch;
+    gap:10px;
+}
+
+.date-picker-hidden{
+    position:absolute;
+
+    top:0;
+    right:40px;
+
+    width:1px;
+    height:1px;
+
+    opacity:0;
+    pointer-events:none;
+}
+
+.date-picker-btn{
+    width: 45px;
+    height: 45px;  
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid #d6c6c1;
+    border-radius: 12px;
+
+    background: #fff;
+    cursor: pointer;
+
+    color: #333;
+    flex-shrink: 0;
+}

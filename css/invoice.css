@@ -466,3 +466,10 @@ td {
         grid-template-columns: 1fr;
     }
 }
+
+.form-input,
+.searchable-select .search-input,
+.date-input-vn {
+    height: 48px;
+    box-sizing: border-box;
+}
