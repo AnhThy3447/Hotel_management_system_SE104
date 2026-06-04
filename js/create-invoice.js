@@ -34,7 +34,41 @@ async function loadAllData() {
 
 function setDefaultDate() {
     const today = new Date().toISOString().split('T')[0];
-    document.getElementById('payment-date').value = today;
+    // Fill text input in dd/mm/yyyy format
+    const [y, m, d] = today.split('-');
+    document.getElementById('payment-date').value = `${d}/${m}/${y}`;
+    document.getElementById('payment-date').dataset.isoDate = today;
+    document.getElementById('payment-date-picker').value = today;
+
+    // Wire up calendar button
+    const btn = document.getElementById('payment-date-btn');
+    const picker = document.getElementById('payment-date-picker');
+    const textInput = document.getElementById('payment-date');
+
+    btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        picker.focus();
+        if (typeof picker.showPicker === 'function') {
+            try { picker.showPicker(); } catch (_) { picker.click(); }
+        } else {
+            picker.click();
+        }
+    });
+
+    picker.addEventListener('change', function () {
+        const [yy, mm, dd] = this.value.split('-');
+        textInput.value = `${dd}/${mm}/${yy}`;
+        textInput.dataset.isoDate = this.value;
+    });
+
+    textInput.addEventListener('input', function () {
+        const parts = this.value.split('/');
+        if (parts.length === 3 && parts[2].length === 4) {
+            const iso = `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+            this.dataset.isoDate = iso;
+            picker.value = iso;
+        }
+    });
 }
 
 function formatGuestNames(booking) {
@@ -219,8 +253,13 @@ async function createInvoice() {
         return;
     }
 
-    const paymentDate = document.getElementById('payment-date').value;
-    if (!paymentDate) { alert('Vui lòng chọn ngày thanh toán!'); return; }
+    const _pdEl = document.getElementById('payment-date');
+    const paymentDate = _pdEl.dataset.isoDate || (() => {
+        const parts = _pdEl.value.split('/');
+        if (parts.length === 3) return `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+        return _pdEl.value;
+    })();
+    if (!paymentDate || paymentDate.length < 8) { alert('Vui lòng chọn ngày thanh toán!'); return; }
 
     let tongTien = 0;
     const danhSachPhieu = [];

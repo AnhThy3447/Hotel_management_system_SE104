@@ -5,6 +5,8 @@ function initDateInputs() {
     const dateInputs = document.querySelectorAll('.date-input-vn');
 
     dateInputs.forEach(input => {
+
+    attachDatePicker(input);
         input.setAttribute('placeholder', 'dd/mm/yyyy');
         input.setAttribute('maxlength', '10');
 
@@ -154,3 +156,31 @@ function getTodayISO() {
 document.addEventListener('DOMContentLoaded', function() {
     initDateInputs();
 });
+
+function attachDatePicker(input) {
+
+    const picker = document.createElement('input');
+    picker.type = 'date';
+    picker.className = 'hidden-date-picker';
+
+    input.parentNode.appendChild(picker);
+
+    picker.addEventListener('change', () => {
+
+        if (!picker.value) return;
+
+        setDateValue(input, picker.value);
+    });
+
+    input.addEventListener('dblclick', () => {
+        picker.showPicker?.();
+    });
+}
+
+function openDatePicker(inputId){
+
+    const picker =
+        document.getElementById(inputId + '-picker');
+
+    picker.showPicker?.();
+}

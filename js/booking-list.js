@@ -151,16 +151,50 @@ async function checkoutBooking(maThuePhong) {
  
         // Set ngày trả mặc định = hôm nay
         const checkoutInput = document.getElementById('checkout-date');
-        const startISO = currentCheckoutBooking.ngaybatdauthue?.split('T')[0];
-        const today = new Date().toISOString().split('T')[0];
-        const defaultDate = startISO > today ? startISO : today;
-        setDateValue(checkoutInput, defaultDate);
+        const calendarBtn = document.querySelector('#checkout-modal .date-picker-btn');
 
-        checkoutInput.addEventListener('input', () => {
-            const isoDate = convertToISO(checkoutInput.value);
-            checkoutInput.setAttribute('data-iso-date', isoDate);
-            updateDayCount();
+        const today = getTodayISO();
+
+        // Mặc định hôm nay
+        setDateValue(checkoutInput, today);
+        checkoutInput.dataset.lastValidDate = today;
+
+        // Xóa event cũ (nếu modal mở nhiều lần) bằng cách clone
+        const newCalendarBtn = calendarBtn.cloneNode(true);
+        calendarBtn.replaceWith(newCalendarBtn);
+
+        // Query lại picker SAU KHI replaceWith (element cũ đã bị xóa)
+        const newCheckoutPicker = newCalendarBtn.querySelector('#checkout-date-picker');
+        newCheckoutPicker.value = today;
+
+        // Click vào button icon => trigger click trực tiếp lên input date ẩn
+        newCalendarBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            newCheckoutPicker.focus();
+            if (typeof newCheckoutPicker.showPicker === 'function') {
+                try { newCheckoutPicker.showPicker(); } catch (_) { newCheckoutPicker.click(); }
+            } else {
+                newCheckoutPicker.click();
+            }
         });
+
+        // Chọn từ lịch
+        newCheckoutPicker.onchange = function () {
+            setDateValue(checkoutInput, this.value);
+            checkoutInput.dataset.lastValidDate = this.value;
+            updateDayCount();
+        };
+
+        // Gõ tay
+        checkoutInput.oninput = function () {
+            const isoDate = convertToISO(this.value);
+            if (isoDate) {
+                this.setAttribute('data-iso-date', isoDate);
+                newCheckoutPicker.value = isoDate;
+            }
+            updateDayCount();
+        };
  
         updateDayCount();
  
