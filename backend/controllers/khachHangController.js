@@ -3,13 +3,37 @@ const db = require('../db');
 exports.themKhach = async (req, res) => {
   try {
     const { TenKhachHang, MaLoaiKhach, CMND, DiaChi } = req.body;
+
+    const check = await db.query(
+      'SELECT 1 FROM KHACHHANG WHERE CMND = $1',
+      [CMND]
+    );
+
+    if (check.rows.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'CMND đã tồn tại trong hệ thống'
+      });
+    }
+
     const result = await db.query(
-      `INSERT INTO KHACHHANG (TenKhachHang, MaLoaiKhach, CMND, DiaChi) VALUES ($1, $2, $3, $4) RETURNING *`,
+      `INSERT INTO KHACHHANG
+       (TenKhachHang, MaLoaiKhach, CMND, DiaChi)
+       VALUES ($1, $2, $3, $4)
+       RETURNING *`,
       [TenKhachHang, MaLoaiKhach, CMND, DiaChi]
     );
-    res.status(201).json({ success: true, data: result.rows[0] });
+
+    res.status(201).json({
+      success: true,
+      data: result.rows[0]
+    });
+
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({
+      success: false,
+      message: err.message
+    });
   }
 };
 
