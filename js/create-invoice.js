@@ -34,40 +34,42 @@ async function loadAllData() {
 
 function setDefaultDate() {
     const today = new Date().toISOString().split('T')[0];
-    // Fill text input in dd/mm/yyyy format
+
     const [y, m, d] = today.split('-');
-    document.getElementById('payment-date').value = `${d}/${m}/${y}`;
-    document.getElementById('payment-date').dataset.isoDate = today;
-    document.getElementById('payment-date-picker').value = today;
 
-    // Wire up calendar button
-    const btn = document.getElementById('payment-date-btn');
-    const picker = document.getElementById('payment-date-picker');
     const textInput = document.getElementById('payment-date');
+    const picker = document.getElementById('payment-date-picker');
+    const btn = document.getElementById('payment-date-btn');
 
-    btn.addEventListener('click', function (e) {
+    textInput.value = `${d}/${m}/${y}`;
+    textInput.dataset.isoDate = today;
+
+    picker.value = today;
+
+    function openPicker(e) {
         e.preventDefault();
-        picker.focus();
+
         if (typeof picker.showPicker === 'function') {
-            try { picker.showPicker(); } catch (_) { picker.click(); }
+            try {
+                picker.showPicker();
+            } catch {
+                picker.click();
+            }
         } else {
             picker.click();
         }
-    });
+    }
+
+    btn.addEventListener('click', openPicker);
+    textInput.addEventListener('click', openPicker);
 
     picker.addEventListener('change', function () {
+        if (!this.value) return;
+
         const [yy, mm, dd] = this.value.split('-');
+
         textInput.value = `${dd}/${mm}/${yy}`;
         textInput.dataset.isoDate = this.value;
-    });
-
-    textInput.addEventListener('input', function () {
-        const parts = this.value.split('/');
-        if (parts.length === 3 && parts[2].length === 4) {
-            const iso = `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
-            this.dataset.isoDate = iso;
-            picker.value = iso;
-        }
     });
 }
 
@@ -253,12 +255,8 @@ async function createInvoice() {
         return;
     }
 
-    const _pdEl = document.getElementById('payment-date');
-    const paymentDate = _pdEl.dataset.isoDate || (() => {
-        const parts = _pdEl.value.split('/');
-        if (parts.length === 3) return `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
-        return _pdEl.value;
-    })();
+    const paymentDate =
+    document.getElementById('payment-date').dataset.isoDate;
     if (!paymentDate || paymentDate.length < 8) { alert('Vui lòng chọn ngày thanh toán!'); return; }
 
     let tongTien = 0;
