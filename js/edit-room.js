@@ -93,6 +93,7 @@ function updatePrice() {
 // ==========================
 // LOCK ROOM IF OCCUPIED
 // ==========================
+console.log(currentRoom.status);
 function checkRoomStatusRestrictions(status) {
 
     const statusSelect =
