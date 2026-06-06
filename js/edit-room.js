@@ -95,15 +95,18 @@ function updatePrice() {
 // ==========================
 function checkRoomStatusRestrictions(status) {
 
-    if (status !== "occupied") return;
-
     const statusSelect =
         document.getElementById("status");
 
-    statusSelect.disabled = true;
+    if (status === "occupied") {
 
-    statusSelect.title =
-        "Không thể thay đổi trạng thái khi phòng đang thuê";
+        statusSelect.value = "occupied";
+
+        statusSelect.disabled = true;
+
+        statusSelect.title =
+            "Không thể thay đổi trạng thái khi phòng đang thuê";
+    }
 }
 
 // ==========================
