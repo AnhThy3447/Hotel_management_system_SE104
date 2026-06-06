@@ -99,9 +99,10 @@ function checkRoomStatusRestrictions(status) {
     const statusSelect =
         document.getElementById("status");
 
-    if (status === "occupied") {
-
-        statusSelect.value = "occupied";
+    if (
+        status === "occupied" ||
+        status === "Đang thuê"
+    ) {
 
         statusSelect.disabled = true;
 
@@ -121,9 +122,13 @@ async function handleSubmit(event) {
     const newStatus = document.getElementById("status").value;
 
     // chặn chuyển sang occupied
-   if (
+  if (
     currentRoom.status !== "occupied" &&
-    newStatus === "occupied"
+    currentRoom.status !== "Đang thuê" &&
+    (
+        newStatus === "occupied" ||
+        newStatus === "Đang thuê"
+    )
 ) {
     alert("Không được chuyển sang trạng thái 'Đang thuê'!");
     return;
@@ -187,10 +192,13 @@ async function deleteRoom() {
 
     if (!currentRoom) return;
 
-    if (currentRoom.status === "occupied") {
-        alert("Không thể xóa phòng đang thuê!");
-        return;
-    }
+    if (
+    currentRoom.status === "occupied" ||
+    currentRoom.status === "Đang thuê"
+) {
+    alert("Không thể xóa phòng đang thuê!");
+    return;
+}
 
     if (!confirm("Bạn có chắc muốn xóa phòng này?")) return;
 
