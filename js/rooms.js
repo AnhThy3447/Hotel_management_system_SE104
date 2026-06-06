@@ -185,7 +185,7 @@ async function deleteRoomType(id) {
 }
 
 function editRoom(id) {
-    window.location.href = `rooms-form.html?id=${id}`; 
+    window.location.href = `edit-room.html?id=${id}`; 
 }
 
 function editRoomType() {
