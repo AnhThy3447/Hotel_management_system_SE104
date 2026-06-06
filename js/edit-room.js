@@ -97,17 +97,14 @@ function checkRoomStatusRestrictions(status) {
 
     if (status !== "occupied") return;
 
-    document.getElementById("roomType").disabled = true;
-    document.getElementById("price").disabled = true;
-    document.getElementById("status").disabled = true;
-    document.getElementById("notes").disabled = true;
+    const statusSelect =
+        document.getElementById("status");
 
-    const submitBtn = document.querySelector('button[type="submit"]');
-    if (submitBtn) submitBtn.disabled = true;
+    statusSelect.disabled = true;
 
-    alert("Phòng đang thuê, không được chỉnh sửa!");
+    statusSelect.title =
+        "Không thể thay đổi trạng thái khi phòng đang thuê";
 }
-
 
 // ==========================
 // UPDATE ROOM
@@ -119,17 +116,14 @@ async function handleSubmit(event) {
 
     const newStatus = document.getElementById("status").value;
 
-    // chặn sửa nếu đang occupied
-    if (currentRoom.status === "occupied") {
-        alert("Phòng đang thuê, không được chỉnh sửa!");
-        return;
-    }
-
     // chặn chuyển sang occupied
-    if (newStatus === "occupied") {
-        alert("Không được chuyển sang trạng thái 'Đang thuê'!");
-        return;
-    }
+   if (
+    currentRoom.status !== "occupied" &&
+    newStatus === "occupied"
+) {
+    alert("Không được chuyển sang trạng thái 'Đang thuê'!");
+    return;
+}
 
     const typeMap = {
         standard: 1,
