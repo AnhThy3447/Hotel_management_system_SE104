@@ -113,34 +113,64 @@ exports.xemLoaiKhach = async (req, res) => {
 exports.themLoaiKhach = async (req, res) => {
   try {
     const { LoaiKhach, HeSoPhuThu } = req.body;
-    if (!LoaiKhach) {
+    
+    if (!LoaiKhach || LoaiKhach.trim() === "") {
       return res.status(400).json({ success: false, message: "Tên loại khách không được để trống!" });
     }
+
+    const checkTrung = await db.query(
+      'SELECT * FROM LOAIKHACH WHERE LOWER(TRIM(LoaiKhach)) = LOWER($1)',
+      [LoaiKhach.trim()]
+    );
+    if (checkTrung.rows.length > 0) {
+      return res.status(400).json({ success: false, message: "Tên loại khách này đã tồn tại trong hệ thống rồi!" });
+    }
+
     const result = await db.query(
       `INSERT INTO LOAIKHACH (LoaiKhach, HeSoPhuThu) VALUES ($1, $2) RETURNING MaLoaiKhach as id, LoaiKhach as name, HeSoPhuThu as surcharge`,
-      [LoaiKhach, HeSoPhuThu || 1.0]
+      [LoaiKhach.trim(), HeSoPhuThu || 1.0]
     );
     res.status(201).json({ success: true, message: "Thêm loại khách thành công!", data: result.rows[0] });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error("Lỗi thêm loại khách:", err);
+    res.status(500).json({ success: false, message: "Lỗi hệ thống khi thêm loại khách!" });
   }
 };
 
+
+// Chỉnh sửa loại khách
 // Chỉnh sửa loại khách
 exports.suaLoaiKhach = async (req, res) => {
   try {
     const { id } = req.params;
     const { LoaiKhach, HeSoPhuThu } = req.body;
+
+    if (!LoaiKhach || LoaiKhach.trim() === "") {
+      return res.status(400).json({ success: false, message: "Tên loại khách không được để trống!" });
+    }
+
+    const checkTrung = await db.query(
+      'SELECT * FROM LOAIKHACH WHERE LOWER(TRIM(LoaiKhach)) = LOWER($1) AND MaLoaiKhach <> $2',
+      [LoaiKhach.trim(), id]
+    );
+    if (checkTrung.rows.length > 0) {
+      return res.status(400).json({ success: false, message: "Tên loại khách mới này đã bị trùng với loại khách khác!" });
+    }
+    // -------------------------------------------------------------------------
+
     const result = await db.query(
       `UPDATE LOAIKHACH SET LoaiKhach=$1, HeSoPhuThu=$2 WHERE MaLoaiKhach=$3 RETURNING MaLoaiKhach as id, LoaiKhach as name, HeSoPhuThu as surcharge`,
-      [LoaiKhach, HeSoPhuThu, id]
+      [LoaiKhach.trim(), HeSoPhuThu, id]
     );
+    
     if (result.rowCount === 0) {
       return res.status(404).json({ success: false, message: "Không tìm thấy loại khách cần sửa!" });
     }
+    
     res.json({ success: true, message: "Cập nhật loại khách thành công!", data: result.rows[0] });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error("Lỗi cập nhật loại khách:", err);
+    res.status(500).json({ success: false, message: "Lỗi hệ thống khi cập nhật loại khách!" });
   }
 };
 

@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 async function taiDanhMucChucNangGoc() {
     try {
         const res = await fetch(`${API_BASE}/danh-muc-chuc-nang`);
+        if (!res.ok) throw new Error("Lỗi tải danh mục");
         danhSachChucNangGocTuDB = await res.json();
     } catch (err) {
         console.error("Không thể tải danh mục chức năng từ DB, đang dùng dữ liệu dự phòng:", err);
@@ -44,6 +45,10 @@ function switchSettingsTab(tabName) {
 async function taiDuLieuTabTaiKhoan() {
     try {
         const resUser = await fetch(`${API_BASE}/taikhoan/nhanvien`);
+        if (!resUser.ok) {
+            const data = await resUser.json().catch(() => ({}));
+            throw new Error(data.error || "Không thể tải danh sách tài khoản");
+        }
         const users = await resUser.json();
         
         const tbody = document.getElementById("user-table-body");
@@ -70,6 +75,7 @@ async function taiDuLieuTabTaiKhoan() {
         });
     } catch (err) {
         console.error("Lỗi tải danh sách tài khoản:", err);
+        alert(err.message || "Lỗi hệ thống khi tải dữ liệu tài khoản!");
     }
 }
 
@@ -95,10 +101,12 @@ document.getElementById("form-them-nhan-vien").addEventListener("submit", async 
             body: JSON.stringify({ TenDangNhap, MatKhau, NhomNguoiDung })
         });
         const data = await res.json();
-        alert(data.message || data.error);
         if (res.ok) {
+            alert(data.message || "Thêm nhân viên thành công!");
             document.getElementById("form-them-nhan-vien").reset();
             taiDuLieuTabTaiKhoan();
+        } else {
+            alert(data.error || "Không thể thêm tài khoản nhân viên!");
         }
     } catch (err) {
         alert("Không thể kết nối đến máy chủ Backend!");
@@ -116,21 +124,39 @@ async function xuLyLuuQuyenNhanVien() {
     const id = document.getElementById("edit-user-id").value;
     const NhomNguoiDung = document.getElementById("edit-user-role-select").value;
 
-    const res = await fetch(`${API_BASE}/taikhoan/nhanvien/capnhat/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ NhomNguoiDung })
-    });
-    if (res.ok) {
-        closeModal('edit-user-modal');
-        taiDuLieuTabTaiKhoan();
+    try {
+        const res = await fetch(`${API_BASE}/taikhoan/nhanvien/capnhat/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ NhomNguoiDung })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            alert(data.message || "Cập nhật vai trò thành công!");
+            closeModal('edit-user-modal');
+            taiDuLieuTabTaiKhoan();
+        } else {
+            alert(data.error || "Cập nhật vai trò thất bại!");
+        }
+    } catch (err) {
+        alert("Lỗi kết nối mạng, không thể cập nhật vai trò!");
     }
 }
 
 async function xuLyXoaNhanVien(id) {
     if (confirm("Bạn có chắc chắn muốn xóa (ẩn) tài khoản nhân viên này?")) {
-        const res = await fetch(`${API_BASE}/taikhoan/nhanvien/xoa/${id}`, { method: "DELETE" });
-        if (res.ok) taiDuLieuTabTaiKhoan();
+        try {
+            const res = await fetch(`${API_BASE}/taikhoan/nhanvien/xoa/${id}`, { method: "DELETE" });
+            const data = await res.json();
+            if (res.ok) {
+                alert(data.message || "Xóa tài khoản thành công!");
+                taiDuLieuTabTaiKhoan();
+            } else {
+                alert(data.error || "Xóa tài khoản thất bại!");
+            }
+        } catch (err) {
+            alert("Lỗi kết nối mạng, không thể xóa nhân viên!");
+        }
     }
 }
 
@@ -140,6 +166,7 @@ async function xuLyXoaNhanVien(id) {
 async function taiDuLieuTabNhomQuyen() {
     try {
         const res = await fetch(`${API_BASE}/nhomquyen`);
+        if (!res.ok) throw new Error("Không thể tải danh sách nhóm quyền");
         const rolesData = await res.json();
         
         dongBoDropdownNhomQuyen(rolesData);
@@ -187,21 +214,32 @@ async function taiDuLieuTabNhomQuyen() {
         });
     } catch (err) {
         console.error("Lỗi tải danh sách cấu hình nhóm quyền:", err);
+        alert("Lỗi hệ thống khi tải danh sách nhóm quyền!");
     }
 }
 
 async function xuLyThemNhomQuyen() {
-    const TenNhom = document.getElementById("new-role-name").value;
+    const TenNhom = document.getElementById("new-role-name").value.trim();
     if (!TenNhom) return alert("Vui lòng điền tên nhóm!");
     
-    const res = await fetch(`${API_BASE}/nhomquyen/them`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ TenNhom, DanhSachMaChucNang: [1] })
-    });
-    if (res.ok) {
-        document.getElementById("new-role-name").value = "";
-        taiDuLieuTabNhomQuyen();
+    try {
+        const res = await fetch(`${API_BASE}/nhomquyen/them`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ TenNhom, DanhSachMaChucNang: [1] })
+        });
+        
+        const data = await res.json(); // FIXED: Đưa định nghĩa data lên trước khi dùng
+
+        if (res.ok) {
+            alert(data.message || "Tạo nhóm quyền thành công!");
+            document.getElementById("new-role-name").value = "";
+            taiDuLieuTabNhomQuyen();
+        } else {
+            alert(data.error || "Có lỗi xảy ra, vui lòng thử lại!");
+        }
+    } catch (error) {
+        alert("Lỗi kết nối máy chủ, không thể thêm nhóm quyền!");
     }
 }
 
@@ -209,42 +247,70 @@ async function xuLyThemChucNangLe(TenNhom, selectElement) {
     const MaChucNang = selectElement.value;
     if (!MaChucNang) return;
 
-    const res = await fetch(`${API_BASE}/nhomquyen/chucnang/them`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ TenNhom, MaChucNang: parseInt(MaChucNang) })
-    });
-    if (res.ok) taiDuLieuTabNhomQuyen();
+    try {
+        const res = await fetch(`${API_BASE}/nhomquyen/chucnang/them`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ TenNhom, MaChucNang: parseInt(MaChucNang) })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            taiDuLieuTabNhomQuyen();
+        } else {
+            alert(data.error || "Không thể thêm chức năng này!");
+            selectElement.value = ""; // Reset dropdown về rỗng
+        }
+    } catch (err) {
+        alert("Lỗi kết nối, không thể thêm chức năng lẻ!");
+    }
 }
 
 async function xuLyXoaChucNangLe(TenNhom, MaChucNang) {
-    const res = await fetch(`${API_BASE}/nhomquyen/chucnang/xoa`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ TenNhom, MaChucNang })
-    });
-    if (res.ok) taiDuLieuTabNhomQuyen();
+    try {
+        const res = await fetch(`${API_BASE}/nhomquyen/chucnang/xoa`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ TenNhom, MaChucNang })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            taiDuLieuTabNhomQuyen();
+        } else {
+            alert(data.error || "Không thể gỡ bỏ chức năng này!");
+        }
+    } catch (err) {
+        alert("Lỗi kết nối, không thể gỡ chức năng!");
+    }
 }
 
 async function xuLyXoaNhomQuyen(tenNhom) {
     if (confirm(`Xóa nhóm '${tenNhom}' sẽ làm ẩn toàn bộ nhân viên thuộc nhóm này. Xác nhận xóa?`)) {
-        const res = await fetch(`${API_BASE}/nhomquyen/xoa/${tenNhom}`, { method: "DELETE" });
-        if (res.ok) {
-            taiDuLieuTabNhomQuyen();
-            taiDuLieuTabTaiKhoan();
+        try {
+            const res = await fetch(`${API_BASE}/nhomquyen/xoa/${tenNhom}`, { method: "DELETE" });
+            const data = await res.json();
+            if (res.ok) {
+                alert(data.message || "Đã xóa nhóm quyền thành công!");
+                taiDuLieuTabNhomQuyen();
+                taiDuLieuTabTaiKhoan();
+            } else {
+                alert(data.error || "Xóa nhóm quyền thất bại!");
+            }
+        } catch (err) {
+            alert("Lỗi kết nối mạng, không thể xóa nhóm quyền!");
         }
     }
 }
 
 // ==========================================================================
-// LOGIC TAB 3: QUY ĐỊNH KHÁCH SẠN (XỬ LÝ ĐỒNG BỘ 3 KHUNG ĐỘNG CHẠY TUẦN TỰ)
+// LOGIC TAB 3: QUY ĐỊNH KHÁCH SẠN
 // ==========================================================================
-let luuTruSoKhachKhongTinhPhi = 2; // Biến tạm lưu mốc phụ thu để lọc bảng TILEPHUTHU
+let luuTruSoKhachKhongTinhPhi = 2; 
 
 async function taiDuLieuTabQuyDinhHethong() {
     try {
         // TẢI BẢNG THAM SỐ GỐC TRƯỚC ĐỂ LẤY MỐC
         const resTS = await fetch(`${API_QUYDINH}/tham-so`);
+        if (!resTS.ok) throw new Error("Lỗi tải tham số");
         const jsonTS = await resTS.json();
         const tbodyTS = document.getElementById("param-table-body");
         tbodyTS.innerHTML = "";
@@ -271,8 +337,9 @@ async function taiDuLieuTabQuyDinhHethong() {
             });
         }
 
-        // TẢI DANH MỤC LOẠI KHÁCH (Đã sửa đổi lk.name -> lk.name chuẩn khít Backend)
+        // TẢI DANH MỤC LOẠI KHÁCH
         const resLK = await fetch(`${API_QUYDINH}/loai-khach`);
+        if (!resLK.ok) throw new Error("Lỗi tải danh mục loại khách");
         const jsonLK = await resLK.json();
         const tbodyLK = document.getElementById("guest-type-table-body");
         tbodyLK.innerHTML = "";
@@ -298,14 +365,14 @@ async function taiDuLieuTabQuyDinhHethong() {
             });
         }
 
-        // TẢI BẢNG PHỤ THU THEO THỨ TỰ KHÁCH
+        // TẢI BẢNG PHỤ THU
         const resPT = await fetch(`${API_QUYDINH}/phu-thu`);
+        if (!resPT.ok) throw new Error("Lỗi tải thông tin phụ thu");
         const jsonPT = await resPT.json();
         const tbodyPT = document.getElementById("surcharge-table-body");
         tbodyPT.innerHTML = "";
 
         if (jsonPT.success && jsonPT.data) {
-            // Lọc chính xác: Chỉ hiện các dòng có số thứ tự lớn hơn mốc miễn phí
             const danhSachLoc = jsonPT.data.filter(pt => pt.ThuTuKhach > luuTruSoKhachKhongTinhPhi);
             
             if (danhSachLoc.length === 0) {
@@ -331,10 +398,9 @@ async function taiDuLieuTabQuyDinhHethong() {
 
     } catch (err) {
         console.error("Lỗi đồng bộ dữ liệu quy định hệ thống:", err);
+        alert(err.message || "Lỗi đồng bộ cấu hình hệ thống!");
     }
 }
-
-// ── CÁC HÀM XỬ LÝ ĐIỀU KHIỂN MODAL ──
 
 function openParamModal(id, val) {
     document.getElementById("edit-param-id").value = id;
@@ -349,18 +415,25 @@ async function xuLyLuuThamSo() {
     
     if (isNaN(GiaTri)) return alert("Vui lòng nhập số nguyên!");
 
-    const res = await fetch(`${API_QUYDINH}/tham-so/cap-nhat`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ TenThamSo, GiaTri })
-    });
-    if (res.ok) {
-        if (TenThamSo === 'Số khách không tính phí phụ thu') {
-            luuTruSoKhachKhongTinhPhi = GiaTri;
+    try {
+        const res = await fetch(`${API_QUYDINH}/tham-so/cap-nhat`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ TenThamSo, GiaTri })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            alert(data.message || "Lưu tham số thành công!");
+            if (TenThamSo === 'Số khách không tính phí phụ thu') {
+                luuTruSoKhachKhongTinhPhi = GiaTri;
+            }
+            closeModal('modal-edit-param');
+            taiDuLieuTabQuyDinhHethong();
+        } else {
+            alert(data.message || data.error || "Không thể cập nhật tham số!");
         }
-
-        closeModal('modal-edit-param');
-        taiDuLieuTabQuyDinhHethong();
+    } catch (err) {
+        alert("Lỗi mạng, không thể cập nhật tham số khách sạn!");
     }
 }
 
@@ -374,14 +447,24 @@ async function xuLyLuuPhuThu() {
     const thuTu = document.getElementById("edit-surcharge-thutu").value;
     const HeSoPhuThu = parseFloat(document.getElementById("input-surcharge-value").value);
 
-    const res = await fetch(`${API_QUYDINH}/phu-thu/cap-nhat/${thuTu}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ HeSoPhuThu })
-    });
-    if (res.ok) {
-        closeModal('modal-edit-surcharge');
-        taiDuLieuTabQuyDinhHethong();
+    if (isNaN(HeSoPhuThu)) return alert("Vui lòng nhập hệ số phụ thu hợp lệ!");
+
+    try {
+        const res = await fetch(`${API_QUYDINH}/phu-thu/cap-nhat/${thuTu}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ HeSoPhuThu })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            alert(data.message || "Lưu tỷ lệ phụ thu thành công!");
+            closeModal('modal-edit-surcharge');
+            taiDuLieuTabQuyDinhHethong();
+        } else {
+            alert(data.message || data.error || "Không thể cập nhật tỷ lệ phụ thu!");
+        }
+    } catch (err) {
+        alert("Lỗi kết nối mạng, tỷ lệ phụ thu chưa đổi!");
     }
 }
 
@@ -404,10 +487,11 @@ function openEditGuestTypeModal(id, name, surcharge) {
 
 async function xuLyLuuLoaiKhach() {
     const id = document.getElementById("edit-guest-id").value;
-    const LoaiKhach = document.getElementById("input-guest-name").value;
+    const LoaiKhach = document.getElementById("input-guest-name").value.trim();
     const HeSoPhuThu = parseFloat(document.getElementById("input-guest-surcharge").value);
 
     if (!LoaiKhach) return alert("Vui lòng không để trống tên loại khách!");
+    if (isNaN(HeSoPhuThu)) return alert("Vui lòng nhập hệ số phụ thu!");
 
     let url = `${API_QUYDINH}/loai-khach/them`;
     let method = "POST";
@@ -417,24 +501,41 @@ async function xuLyLuuLoaiKhach() {
         method = "PUT";
     }
 
-    const res = await fetch(url, {
-        method: method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ LoaiKhach, HeSoPhuThu })
-    });
-    
-    if (res.ok) {
-        closeModal('modal-guest-type');
-        taiDuLieuTabQuyDinhHethong();
+    try {
+        const res = await fetch(url, {
+            method: method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ LoaiKhach, HeSoPhuThu })
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+            alert(data.message || "Lưu loại khách thành công!");
+            closeModal('modal-guest-type');
+            taiDuLieuTabQuyDinhHethong();
+        } else {
+            // FIXED: Báo lỗi nếu trùng tên loại khách hoặc vi phạm logic BE
+            alert(data.message || data.error || "Thao tác loại khách thất bại!");
+        }
+    } catch (err) {
+        alert("Lỗi kết nối, không thể cập nhật danh mục loại khách!");
     }
 }
 
 async function xuLyXoaLoaiKhach(id) {
     if (confirm("Xác nhận xóa loại khách này ra khỏi hệ thống vận hành?")) {
-        const res = await fetch(`${API_QUYDINH}/loai-khach/xoa/${id}`, { method: "DELETE" });
-        const data = await res.json();
-        if (!res.ok) alert(data.message);
-        taiDuLieuTabQuyDinhHethong();
+        try {
+            const res = await fetch(`${API_QUYDINH}/loai-khach/xoa/${id}`, { method: "DELETE" });
+            const data = await res.json();
+            if (res.ok) {
+                alert(data.message || "Xóa loại khách thành công!");
+            } else {
+                alert(data.message || data.error || "Không thể xóa loại khách!");
+            }
+            taiDuLieuTabQuyDinhHethong();
+        } catch (err) {
+            alert("Lỗi mạng, không thể gửi yêu cầu xóa!");
+        }
     }
 }
 
