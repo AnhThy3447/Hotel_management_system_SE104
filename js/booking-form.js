@@ -6,6 +6,11 @@ let allRooms = [];
 let thamSo = { soKhachToiDa: 3, khachIncluded: 2 };
 let tiLePhuThu = [];
 let foreignExtraRate = 0.5;
+// Danh sách loại khách load từ DB (fallback = 2 loại cơ bản)
+let loaiKhachList = [
+  { value: "nội địa",   label: "Nội địa",    heSo: 1.0 },
+  { value: "nước ngoài", label: "Nước ngoài", heSo: 1.5 },
+];
 
 async function isCMNDExists(cmnd) {
   if (!cmnd?.trim()) return false;
@@ -325,13 +330,19 @@ async function loadThamSo() {
       ).catch(() => null);
     const jsonLK = resLK?.ok ? await resLK.json() : {};
     const lkRows = jsonLK.data || [];
-    const nn = lkRows.find((l) =>
-      (l.name || l.LoaiKhach || "").toLowerCase().includes("nước ngoài"),
-    );
-    if (nn) {
-      const heSo = parseFloat(nn.surcharge ?? nn.HeSoPhuThu) || 1.5;
-      foreignExtraRate = Math.max(0, heSo - 1);
+    if (lkRows.length > 0) {
+      // Cập nhật danh sách loại khách từ DB vào biến toàn cục
+      loaiKhachList = lkRows.map((l) => ({
+        value: (l.name || l.LoaiKhach || "").toLowerCase().trim(),
+        label: l.name || l.LoaiKhach || "",
+        heSo: parseFloat(l.surcharge ?? l.HeSoPhuThu) || 1.0,
+      }));
     }
+    // Cập nhật foreignExtraRate từ loại khách nước ngoài
+    const nn = loaiKhachList.find((l) =>
+      l.value.includes("nước ngoài") || l.value.includes("foreign")
+    );
+    if (nn) foreignExtraRate = Math.max(0, nn.heSo - 1);
 
     // Cập nhật text mô tả quy định trong rules-note
     _updateRulesNoteText();
@@ -366,7 +377,16 @@ function _updateRulesNoteText() {
 }
 
 function pricingOptions() {
-  return { khachIncluded: thamSo.khachIncluded ?? 2, foreignExtraRate };
+  // Map value -> extra rate (phần vượt trên giá cơ bản) cho từng loại khách
+  const guestTypeRates = {};
+  loaiKhachList.forEach((lk) => {
+    guestTypeRates[lk.value] = Math.max(0, lk.heSo - 1);
+  });
+  return {
+    khachIncluded: thamSo.khachIncluded ?? 2,
+    foreignExtraRate,
+    guestTypeRates,
+  };
 }
 
 function onRoomChange() {
@@ -466,7 +486,12 @@ async function loadBooking(id) {
 
     guests = chitiet.map((ct) => ({
       name: ct.tenkhachhang || "",
-      type: ct.loaikhach === "Nước ngoài" ? "nước ngoài" : "nội địa",
+      // Map tên loại khách từ DB về value trong loaiKhachList (hỗ trợ loại mới)
+      type: (() => {
+        const raw = (ct.loaikhach || "").toLowerCase().trim();
+        const found = loaiKhachList.find(lk => lk.value === raw || lk.label.toLowerCase() === raw);
+        return found ? found.value : (loaiKhachList[0]?.value || "nội địa");
+      })(),
       idNumber: ct.cmnd || "",
       address: ct.diachi || "",
       makhachhang: ct.makhachhang,
@@ -502,8 +527,7 @@ function renderGuests() {
             </td>
             <td>
                 <select onchange="updateGuest(${index}, 'type', this.value)">
-                    <option value="nội địa" ${guest.type === "nội địa" ? "selected" : ""}>Nội địa</option>
-                    <option value="nước ngoài" ${guest.type === "nước ngoài" ? "selected" : ""}>Nước ngoài</option>
+                    ${loaiKhachList.map(lk => `<option value="${lk.value}" ${guest.type === lk.value ? "selected" : ""}>${lk.label}</option>`).join("")}
                 </select>
             </td>
             <td>
@@ -547,7 +571,8 @@ function addGuest() {
     alert(`Mỗi phòng chỉ được tối đa ${maxKhach} khách!`);
     return;
   }
-  guests.push({ name: "", type: "nội địa", idNumber: "", address: "" });
+  const defaultType = loaiKhachList[0]?.value || "nội địa";
+  guests.push({ name: "", type: defaultType, idNumber: "", address: "" });
   renderGuests();
 }
 
@@ -702,3 +727,42 @@ function printForm() {
 function formatCurrency(amount) {
   return new Intl.NumberFormat("vi-VN").format(amount || 0);
 }
+
+// ==========================================================
+// SAFETY FALLBACK: room-pricing.js đã hỗ trợ guestTypeRates.
+// Block này chỉ chạy nếu room-pricing.js vắng mặt.
+// ==========================================================
+(function () {
+  if (typeof calcGuestSurchargeForDay === "function" &&
+      typeof calcRoomPricePerDay === "function") return; // đã có room-pricing.js
+
+  // Fallback tự tính — field names khớp với normalizePhuThu()
+  function _getTypeExtra(guest, opts) {
+    const t = (guest?.type || "").toLowerCase().trim();
+    const rates = opts?.guestTypeRates || {};
+    if (t in rates) return rates[t];
+    if (t.includes("nước ngoài") || t.includes("foreign")) return opts?.foreignExtraRate ?? 0.5;
+    return 0;
+  }
+
+  window.calcGuestSurchargeForDay = function (index, guest, basePrice, tiLePhuThu, opts) {
+    const donGia = basePrice || 0;
+    if (!donGia) return 0;
+    const khachIncluded = opts?.khachIncluded ?? 2;
+    const thuTu = index + 1;
+    let surcharge = donGia * _getTypeExtra(guest, opts);
+    if (thuTu > khachIncluded) {
+      const pt = (tiLePhuThu || []).find(r => r.thuTuKhach === thuTu);
+      surcharge += donGia * Math.max(0, (pt ? pt.heSoPhuThu : 1.25) - 1);
+    }
+    return Math.round(surcharge);
+  };
+
+  window.calcRoomPricePerDay = function (guests, basePrice, tiLePhuThu, opts) {
+    const donGia = basePrice || 0;
+    if (!donGia || !guests?.length) return 0;
+    return Math.round(donGia + guests.reduce(
+      (sum, g, i) => sum + window.calcGuestSurchargeForDay(i, g, donGia, tiLePhuThu, opts), 0
+    ));
+  };
+})();

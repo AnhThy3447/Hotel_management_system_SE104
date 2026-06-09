@@ -8,7 +8,7 @@ let allBookings = [];
 let allAgencies = [];
 let payerDropdownApi = null;
 let isCreating = false;
-let currentQuyDinh = { khachIncluded: 2, surchargeRates: [], foreignRate: 1.5 };
+let currentQuyDinh = { khachIncluded: 2, surchargeRates: [], foreignRate: 1.5, allGuestTypes: [] };
 
 async function loadQuyDinhForInvoice() {
     try {
@@ -38,7 +38,13 @@ async function loadQuyDinhForInvoice() {
         const resLK = await fetch(`${API_URL}/quy-dinh/loai-khach`).catch(() => null);
         if (resLK?.ok) {
             const jLK = await resLK.json();
-            const nn = (jLK.data || []).find(l => (l.name || l.LoaiKhach || '').toLowerCase().includes('nước ngoài'));
+            const lkRows = jLK.data || [];
+            // Lưu toàn bộ loại khách (hỗ trợ loại mới thêm từ hệ thống)
+            currentQuyDinh.allGuestTypes = lkRows.map(l => ({
+                name: l.name || l.LoaiKhach || '',
+                heSo: parseFloat(l.surcharge ?? l.HeSoPhuThu) || 1.0,
+            }));
+            const nn = lkRows.find(l => (l.name || l.LoaiKhach || '').toLowerCase().includes('nước ngoài'));
             if (nn) currentQuyDinh.foreignRate = parseFloat(nn.surcharge ?? nn.HeSoPhuThu) || 1.5;
         }
 
@@ -64,8 +70,19 @@ function renderQuyDinhCard() {
             lines.push(`Khách thứ ${r.ThuTuKhach} phụ thu thêm ${pct}% (hệ số ${r.HeSoPhuThu})`);
         });
     }
-    const foreignPct = Math.round((foreignRate - 1) * 100);
-    lines.push(`Nếu có khách nước ngoài thì phụ thu thêm ${foreignPct}% (hệ số ${foreignRate})`);
+    // Hiển thị phụ thu theo loại khách (tất cả loại, không chỉ nước ngoài)
+    const { allGuestTypes } = currentQuyDinh;
+    if (allGuestTypes && allGuestTypes.length > 0) {
+        allGuestTypes
+            .filter(lk => lk.heSo > 1)
+            .forEach(lk => {
+                const pct = Math.round((lk.heSo - 1) * 100);
+                lines.push(`Khách ${lk.name} phụ thu thêm ${pct}% (hệ số ${lk.heSo})`);
+            });
+    } else {
+        const foreignPct = Math.round((foreignRate - 1) * 100);
+        lines.push(`Nếu có khách nước ngoài thì phụ thu thêm ${foreignPct}% (hệ số ${foreignRate})`);
+    }
     ul.innerHTML = lines.map(l => `<li>${l}</li>`).join('');
 }
 

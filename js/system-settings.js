@@ -429,10 +429,13 @@ function openEditGuestTypeModal(id, name, surcharge) {
 
 async function xuLyLuuLoaiKhach() {
     const id = document.getElementById("edit-guest-id").value;
-    const LoaiKhach = document.getElementById("input-guest-name").value;
+    const LoaiKhach = document.getElementById("input-guest-name").value.trim();
     const HeSoPhuThu = parseFloat(document.getElementById("input-guest-surcharge").value);
 
     if (!LoaiKhach) return alert("Vui lòng không để trống tên loại khách!");
+    if (isNaN(HeSoPhuThu) || HeSoPhuThu < 1.0) {
+        return alert("Hệ số phụ thu phải >= 1.0 (1.0 = không phụ thu, 1.5 = +50%)");
+    }
 
     let url = `${API_QUYDINH}/loai-khach/them`;
     let method = "POST";
@@ -451,15 +454,21 @@ async function xuLyLuuLoaiKhach() {
     if (res.ok) {
         closeModal('modal-guest-type');
         taiDuLieuTabQuyDinhHethong();
+    } else {
+        const errJson = await res.json().catch(() => ({}));
+        alert("Lỗi lưu loại khách: " + (errJson.message || res.status));
     }
 }
 
 async function xuLyXoaLoaiKhach(id) {
-    if (confirm("Xác nhận xóa loại khách này ra khỏi hệ thống vận hành?")) {
+    if (confirm("Xác nhận xóa loại khách này ra khỏi hệ thống vận hành?\n\nLưu ý: Các phiếu thuê cũ có loại khách này vẫn giữ nguyên dữ liệu.")) {
         const res = await fetch(`${API_QUYDINH}/loai-khach/xoa/${id}`, { method: "DELETE" });
-        const data = await res.json();
-        if (!res.ok) alert(data.message);
-        taiDuLieuTabQuyDinhHethong();
+        const data = await res.json().catch(() => ({}));
+        if (res.ok) {
+            taiDuLieuTabQuyDinhHethong();
+        } else {
+            alert("Không thể xóa: " + (data.message || res.status));
+        }
     }
 }
 
