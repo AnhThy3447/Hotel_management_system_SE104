@@ -278,28 +278,52 @@ async function loadRooms() {
 
 async function loadThamSo() {
   try {
-    const res = await fetch(`${API_URL}/quy-dinh/thamso`);
-    const json = await res.json();
-    const data = json.data || [];
-    const soKhach = data.find((t) => t.tenthamso === "SoKhachToiDa");
+    // Thử lần lượt các endpoint có thể có trên backend
+    const candidates = [
+      `${API_URL}/quy-dinh/thamso`,
+      `${API_URL}/quy-dinh/tham-so`,
+    ];
+    let data = [];
+    for (const url of candidates) {
+      try {
+        const r = await fetch(url);
+        if (!r.ok) continue;
+        const j = await r.json();
+        const rows = j.data || j || [];
+        if (Array.isArray(rows) && rows.length > 0) { data = rows; break; }
+      } catch (_) {}
+    }
+    const json = { data }; // compat
+    // Hỗ trợ cả tên tiếng Anh lẫn tiếng Việt được lưu trong DB
+    const soKhach = data.find((t) =>
+      t.tenthamso === "SoKhachToiDa" ||
+      t.tenthamso === "Số khách tối đa trong phòng" ||
+      t.tenthamso === "Số khách tối đa"
+    );
     if (soKhach) thamSo.soKhachToiDa = parseInt(soKhach.giatri) || 3;
-    const ruleEl = document.getElementById("max-guests-rule");
-    if (ruleEl) ruleEl.textContent = thamSo.soKhachToiDa;
 
-    const soKhachMienPhi = data.find(
-      (t) =>
-        t.tenthamso === "SoKhachKhongTinhPhi" ||
-        t.tenthamso === "Số khách không tính phí phụ thu",
+    const soKhachMienPhi = data.find((t) =>
+      t.tenthamso === "SoKhachKhongTinhPhi" ||
+      t.tenthamso === "Số khách không tính phí phụ thu"
     );
     if (soKhachMienPhi)
       thamSo.khachIncluded = parseInt(soKhachMienPhi.giatri) || 2;
 
-    const resPT = await fetch(`${API_URL}/quy-dinh/phu-thu`);
-    const jsonPT = await resPT.json();
+    // Cập nhật toàn bộ phần tử UI hiển thị số khách tối đa
+    const maxKhach = thamSo.soKhachToiDa;
+    ["max-guests-rule", "max-guests-display", "max-guests", "max-count"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = maxKhach;
+    });
+
+    const resPT = await fetch(`${API_URL}/quy-dinh/phu-thu`
+      ).catch(() => null);
+    const jsonPT = resPT?.ok ? await resPT.json() : {};
     tiLePhuThu = normalizePhuThu(jsonPT.data || []);
 
-    const resLK = await fetch(`${API_URL}/quy-dinh/loai-khach`);
-    const jsonLK = await resLK.json();
+    const resLK = await fetch(`${API_URL}/quy-dinh/loai-khach`
+      ).catch(() => null);
+    const jsonLK = resLK?.ok ? await resLK.json() : {};
     const lkRows = jsonLK.data || [];
     const nn = lkRows.find((l) =>
       (l.name || l.LoaiKhach || "").toLowerCase().includes("nước ngoài"),
@@ -308,8 +332,36 @@ async function loadThamSo() {
       const heSo = parseFloat(nn.surcharge ?? nn.HeSoPhuThu) || 1.5;
       foreignExtraRate = Math.max(0, heSo - 1);
     }
+
+    // Cập nhật text mô tả quy định trong rules-note
+    _updateRulesNoteText();
   } catch (err) {
     console.error("Lỗi load tham số:", err);
+  }
+}
+
+// Cập nhật phần mô tả quy định hiển thị trên form
+function _updateRulesNoteText() {
+  // Cập nhật % phụ thu khách nước ngoài
+  const foreignPct = Math.round(foreignExtraRate * 100);
+  const elForeign = document.getElementById("rule-foreign-pct");
+  if (elForeign) elForeign.textContent = foreignPct;
+
+  // Cập nhật text phụ thu theo thứ tự khách
+  const elSurcharge = document.getElementById("rule-surcharge-text");
+  if (elSurcharge && tiLePhuThu && tiLePhuThu.length > 0) {
+    const extras = tiLePhuThu
+      .filter(r => (r.thutu ?? r.ThuTuKhach) > (thamSo.khachIncluded || 2))
+      .sort((a, b) => (a.thutu ?? a.ThuTuKhach) - (b.thutu ?? b.ThuTuKhach));
+    if (extras.length > 0) {
+      const parts = extras.map(r => {
+        const order = r.thutu ?? r.ThuTuKhach;
+        const heso = r.heso ?? r.HeSoPhuThu ?? 1;
+        const pct = Math.round((heso - 1) * 100);
+        return `khách thứ ${order} +${pct}%`;
+      });
+      elSurcharge.textContent = parts.join(", ");
+    }
   }
 }
 
@@ -328,12 +380,12 @@ function onRoomChange() {
       room.typeName || "N/A";
     document.getElementById("selected-room-price").textContent =
       formatCurrency(room.price) + " VNĐ";
-    document.getElementById("max-guests-display").textContent =
-      thamSo.soKhachToiDa;
-    document.getElementById("max-guests").textContent = thamSo.soKhachToiDa;
-    document.getElementById("max-count").textContent = thamSo.soKhachToiDa;
-    const ruleEl = document.getElementById("max-guests-rule");
-    if (ruleEl) ruleEl.textContent = thamSo.soKhachToiDa;
+    // Dùng thamSo đã load từ DB (không hard-code)
+    const maxKhach = thamSo.soKhachToiDa;
+    ["max-guests-display", "max-guests", "max-count", "max-guests-rule"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = maxKhach;
+    });
   } else {
     document.getElementById("room-info").style.display = "none";
   }

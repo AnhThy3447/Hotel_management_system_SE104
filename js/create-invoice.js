@@ -8,9 +8,69 @@ let allBookings = [];
 let allAgencies = [];
 let payerDropdownApi = null;
 let isCreating = false;
+let currentQuyDinh = { khachIncluded: 2, surchargeRates: [], foreignRate: 1.5 };
+
+async function loadQuyDinhForInvoice() {
+    try {
+        // Thử nhiều endpoint
+        let data = [];
+        for (const url of [`${API_URL}/quy-dinh/thamso`, `${API_URL}/quy-dinh/tham-so`]) {
+            try {
+                const r = await fetch(url);
+                if (!r.ok) continue;
+                const j = await r.json();
+                const rows = j.data || j || [];
+                if (Array.isArray(rows) && rows.length > 0) { data = rows; break; }
+            } catch (_) {}
+        }
+        const soKhachMienPhi = data.find(t =>
+            t.tenthamso === 'SoKhachKhongTinhPhi' ||
+            t.tenthamso === 'Số khách không tính phí phụ thu'
+        );
+        if (soKhachMienPhi) currentQuyDinh.khachIncluded = parseInt(soKhachMienPhi.giatri) || 2;
+
+        const resPT = await fetch(`${API_URL}/quy-dinh/phu-thu`).catch(() => null);
+        if (resPT?.ok) {
+            const jPT = await resPT.json();
+            currentQuyDinh.surchargeRates = jPT.data || [];
+        }
+
+        const resLK = await fetch(`${API_URL}/quy-dinh/loai-khach`).catch(() => null);
+        if (resLK?.ok) {
+            const jLK = await resLK.json();
+            const nn = (jLK.data || []).find(l => (l.name || l.LoaiKhach || '').toLowerCase().includes('nước ngoài'));
+            if (nn) currentQuyDinh.foreignRate = parseFloat(nn.surcharge ?? nn.HeSoPhuThu) || 1.5;
+        }
+
+        renderQuyDinhCard();
+    } catch (err) {
+        console.error('Lỗi load quy định:', err);
+    }
+}
+
+function renderQuyDinhCard() {
+    const ul = document.getElementById('quy-dinh-list');
+    if (!ul) return;
+    const { khachIncluded, surchargeRates, foreignRate } = currentQuyDinh;
+    const lines = [
+        `Đơn giá phòng áp dụng cho ${khachIncluded} khách đầu`,
+    ];
+    const extras = surchargeRates
+        .filter(r => r.ThuTuKhach > khachIncluded)
+        .sort((a, b) => a.ThuTuKhach - b.ThuTuKhach);
+    if (extras.length > 0) {
+        extras.forEach(r => {
+            const pct = Math.round((r.HeSoPhuThu - 1) * 100);
+            lines.push(`Khách thứ ${r.ThuTuKhach} phụ thu thêm ${pct}% (hệ số ${r.HeSoPhuThu})`);
+        });
+    }
+    const foreignPct = Math.round((foreignRate - 1) * 100);
+    lines.push(`Nếu có khách nước ngoài thì phụ thu thêm ${foreignPct}% (hệ số ${foreignRate})`);
+    ul.innerHTML = lines.map(l => `<li>${l}</li>`).join('');
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
-    await loadAllData();
+    await Promise.all([loadAllData(), loadQuyDinhForInvoice()]);
     setDefaultDate();
     renderAvailableBookings();
     payerDropdownApi = initPayerDropdown();
